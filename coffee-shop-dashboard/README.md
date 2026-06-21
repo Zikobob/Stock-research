@@ -1,30 +1,36 @@
-# ☕ Coffee Shop Sales Dashboard
+# 📊 Small-Business Sales Insights Dashboard
 
-A small, beginner-friendly **business analytics dashboard** built with Python and
-[Streamlit](https://streamlit.io). It reads a CSV of sales transactions and turns
-it into an interactive web page with revenue trends, top products, customer
-insights, and a date filter.
+A free, no-code-required **sales dashboard** for a small retail business (coffee
+shop, boutique, bakery — anything with a list of sales). Upload a CSV exported
+from your point-of-sale (POS) system and instantly get clear charts **and
+plain-English insights** that most basic POS systems don't show you.
 
-It comes with a realistic **fake dataset** (~2,000 coffee-shop transactions over
-18 months) so it works the moment you run it — and it's built so you can later
-swap in a **real** business's sales spreadsheet (see
-[Using your own data](#-using-your-own-data)).
+Built with Python + [Streamlit](https://streamlit.io). It ships with a realistic
+**sample coffee-shop dataset** so it works the moment you open it, and it's built
+to swallow messy real-world exports without breaking.
 
-> New to this? You don't need to understand the code to run it. Just follow the
-> numbered steps below, copy-pasting each command.
+> **Two ways to use it:** run it on your own computer (below), or
+> [deploy it free to the web](#-deploy-it-free-on-the-web-streamlit-community-cloud)
+> so a business owner can use it with just a link.
 
 ---
 
-## What the dashboard shows
+## What it shows
 
-- **Total revenue, total transactions, and average order value** (the headline numbers)
-- **Revenue over time**, summarized by month (a line chart)
-- **Top products by revenue** (a bar chart)
-- **Revenue by product category** (a donut chart)
-- **Busiest days of the week** (a bar chart)
-- **Repeat vs. one-time customers** (counts + a donut chart)
-- A **date-range filter** to focus on any time period
-- An expandable table of the underlying transactions
+**Headline numbers:** total revenue, total orders, average order value.
+
+**💡 Key insights** — written as plain sentences an owner can act on, for example:
+- 📅 *"Saturdays are your busiest day (~$X), Wednesdays the slowest — ~68% more on Saturdays."*
+- ⏰ *"Your busiest time is around 8 AM; your three busiest hours are 43% of all orders."* (needs a timestamp)
+- 🤝 *"'Drip Coffee' and 'Latte' are often bought together (19 orders) — try a combo deal."* (needs an order/receipt ID)
+- 📉 *"Heads up: 'Americano' sales are down 47% recently."*
+- 🔁 *"Repeat customers are 56% of customers but bring 90% of revenue."* (needs a customer ID)
+
+**Charts:** revenue over time, top products, revenue by category, busiest days of
+the week, repeat-vs-one-time customers, plus the raw transaction table.
+
+Every chart and insight **degrades gracefully** — if your file is missing an
+optional column, that piece is replaced with a short note instead of an error.
 
 ---
 
@@ -33,205 +39,174 @@ swap in a **real** business's sales spreadsheet (see
 | File | What it is |
 |------|------------|
 | `dashboard.py` | The dashboard app (what you run). |
-| `generate_sample_data.py` | Script that creates the fake `sales_data.csv`. |
-| `sales_data.csv` | The sample data the dashboard reads (already generated for you). |
-| `requirements.txt` | The 3 Python packages this project needs. |
+| `generate_sample_data.py` | Script that creates the sample `sales_data.csv`. |
+| `sales_data.csv` | Sample data so the app works immediately. |
+| `requirements.txt` | The exact package versions to install. |
 | `README.md` | This file. |
 
 ---
 
-## Before you start: do you have Python?
+## Run it on your computer
 
-You need **Python 3.9 or newer**. Check by running this in a terminal
-(Terminal on macOS/Linux, or PowerShell / Command Prompt on Windows):
+### Step 0 — do you have Python?
+
+You need **Python 3.9+**. Check in a terminal (Terminal on macOS/Linux,
+PowerShell on Windows):
 
 ```bash
-python3 --version
+python --version
 ```
 
-If you see something like `Python 3.11.x`, you're good. If it says the command
-isn't found, try `python --version` instead. If neither works, install Python
-from [python.org/downloads](https://www.python.org/downloads/) (on Windows,
-tick **"Add Python to PATH"** during install), then re-open your terminal.
+No Python? Install it from [python.org/downloads](https://www.python.org/downloads/)
+(on Windows, tick **"Add Python to PATH"** during setup), then reopen the terminal.
 
-> Throughout this guide, if `python3` / `pip3` don't work on your machine, use
-> `python` / `pip` instead — they're the same thing on most Windows setups.
-
----
-
-## Step-by-step setup
-
-### 1. Open a terminal in this folder
-
-Get into the `coffee-shop-dashboard` folder. For example:
+### Step 1 — open a terminal in this folder
 
 ```bash
 cd path/to/coffee-shop-dashboard
 ```
 
-(Replace `path/to/` with wherever you saved it. Tip: on most systems you can
-type `cd ` with a trailing space and then drag the folder onto the terminal
-window to fill in the path.)
-
-### 2. (Recommended) Create a virtual environment
-
-A "virtual environment" is just a private box for this project's packages, so
-they don't clash with anything else on your computer. It's optional but good
-practice.
+### Step 2 — (recommended) create a private package box and turn it on
 
 ```bash
-python3 -m venv .venv
+python -m venv .venv
+# macOS / Linux:
+source .venv/bin/activate
+# Windows (PowerShell):
+.venv\Scripts\Activate.ps1
 ```
 
-Then **activate** it:
-
-- **macOS / Linux:**
-  ```bash
-  source .venv/bin/activate
-  ```
-- **Windows (PowerShell):**
-  ```powershell
-  .venv\Scripts\Activate.ps1
-  ```
-- **Windows (Command Prompt):**
-  ```cmd
-  .venv\Scripts\activate.bat
-  ```
-
-You'll know it worked when your prompt starts showing `(.venv)`.
-
-> Skipping this step is fine too — just go straight to step 3.
-
-### 3. Install the required packages
+### Step 3 — install the packages
 
 ```bash
 pip install -r requirements.txt
 ```
 
-This installs Streamlit, pandas, and Plotly. It may take a minute the first time.
-
-### 4. (Optional) Regenerate the sample data
-
-The dashboard already has `sales_data.csv`, so **you can skip this**. But if you
-ever want fresh fake data, run:
-
-```bash
-python3 generate_sample_data.py
-```
-
-It prints a quick summary and overwrites `sales_data.csv`.
-
-### 5. Run the dashboard
+### Step 4 — run it
 
 ```bash
 streamlit run dashboard.py
 ```
 
-You'll see output like this:
-
-```
-  You can now view your Streamlit app in your browser.
-
-  Local URL: http://localhost:8501
-```
-
-### 6. Open it in your browser
-
-Streamlit usually opens your browser automatically. If it doesn't, open a
-browser and go to:
-
-**http://localhost:8501**
-
-That's your dashboard. 🎉 Play with the date filter in the left sidebar.
-
-### 7. Stopping (and re-starting) the app
-
-- The terminal stays "busy" running the app — that's normal. To **stop** it,
-  click the terminal and press **`Ctrl + C`**.
-- To **run it again** later, just repeat steps 1–2 (activate the venv) and step 5
-  (`streamlit run dashboard.py`).
+You'll see `Local URL: http://localhost:8501`. Your browser usually opens
+automatically; if not, go to **http://localhost:8501** yourself. Leave the
+terminal running while you use it; press **Ctrl + C** to stop.
 
 ---
 
-## 📤 Using your own data
+## Using your own data
 
-You can analyze a real business's sales in two ways.
+### The easy way: the upload button
 
-### Option A — Upload it in the app (easiest, nothing to install)
+Run the app, then in the sidebar use **"Upload your sales CSV"** and pick your
+file. Everything updates instantly. (This is the recommended way — nothing to
+rename on disk.)
 
-1. Run the dashboard (`streamlit run dashboard.py`).
-2. In the left sidebar, under **"Data source"**, click **"Upload your own sales CSV"**.
-3. Choose your file. The whole dashboard updates instantly.
+### What your file needs
 
-### Option B — Replace the sample file (makes it the new default)
+A **`.csv`** with a header row. **Good news: column names are flexible** — the app
+automatically recognizes common variations, so `Date`, `transaction_date` and
+`Sale Date` all work, as do `Item`/`product`, `Qty`/`quantity`, `Price`/`unit_price`,
+and so on.
 
-Save the real data as a CSV named **`sales_data.csv`** in this folder, replacing
-the sample. Next time you run the dashboard, it loads automatically.
+**Required** (the app needs all three pieces of information):
 
-*(Want a different filename? Open `dashboard.py` and change the line
-`DEFAULT_FILE = "sales_data.csv"` near the top.)*
+| Information | Column names it recognizes |
+|---|---|
+| **Date of sale** | `date`, `Date`, `transaction_date`, `timestamp`, `datetime`, … |
+| **Item sold** | `product`, `item`, `name`, `product_name`, `description`, … |
+| **How much** | a `total` / `amount` column, **OR** a `price` column **and** a `quantity` column |
 
-### The exact format a real file needs
+> If you only have a price and a quantity, the app calculates the total for you.
 
-The file must be a **`.csv`** with a **header row**, and the column names must
-match exactly (all lowercase, with underscores).
+**Optional** (each one unlocks more analysis):
 
-**Required columns** — the dashboard won't run without these four:
+| Information | Column names it recognizes | Unlocks |
+|---|---|---|
+| Category | `category`, `type`, `department`, … | Revenue-by-category chart |
+| Customer | `customer`, `customer_id`, `email`, … | Repeat-customer analysis |
+| Order / receipt # | `order_id`, `transaction_id`, `receipt`, … | "Bought together" pairings |
+| A time on the date | (any timestamp like `2025-10-04 08:30`) | Busiest-time-of-day insight |
 
-| Column name        | What it holds                       | Example      |
-|--------------------|-------------------------------------|--------------|
-| `transaction_date` | The date of the sale                | `2025-10-04` |
-| `product_name`     | The item sold                       | `Latte`      |
-| `quantity`         | How many units were sold            | `2`          |
-| `unit_price`       | Price of **one** unit, in dollars   | `4.50`       |
-
-**Optional columns** — include them to unlock more of the dashboard:
-
-| Column name        | What it adds                                                        | Example       |
-|--------------------|---------------------------------------------------------------------|---------------|
-| `total_amount`     | The line total. **If missing, it's calculated** as quantity × unit_price. | `9.00`  |
-| `product_category` | Powers the **Revenue by category** chart.                           | `Hot Coffee`  |
-| `customer_id`      | Any code/email that identifies a customer. Powers **repeat-customer** analysis. | `C0142` |
-
-A valid file looks like this (the first line is the header):
+A good file looks like this:
 
 ```csv
-transaction_date,product_name,product_category,quantity,unit_price,total_amount,customer_id
-2025-10-04,Latte,Hot Coffee,1,4.50,4.50,C0142
-2025-10-04,Croissant,Bakery,2,3.25,6.50,C0088
-2025-10-05,Cold Brew,Cold Coffee,1,4.50,4.50,C0142
+transaction_id,transaction_date,product_name,product_category,quantity,unit_price,total_amount,customer_id
+T1001,2025-10-04 08:30,Latte,Hot Coffee,1,4.50,4.50,C0142
+T1001,2025-10-04 08:30,Croissant,Bakery,2,3.25,6.50,C0142
+T1002,2025-10-04 09:05,Cold Brew,Cold Coffee,1,4.50,4.50,C0088
 ```
 
-**Getting a CSV out of Excel or Google Sheets:**
-- *Excel:* File → Save As → choose **CSV (Comma delimited) (.csv)**.
-- *Google Sheets:* File → Download → **Comma-separated values (.csv)**.
+**How the app handles messy real-world files:**
+- `$` signs and thousands commas in prices (`$1,234.50`) are cleaned automatically.
+- Many date formats are understood (`2025-10-04`, `10/4/2025`, `Oct 4 2025 8:30 AM`).
+- Rows with an unreadable date/amount or a blank item are **skipped**, and the app
+  tells you exactly how many.
+- Extra columns you don't need are ignored.
+- If a *required* column is missing, you get a clear message naming it.
 
-Then make sure the header row uses the exact column names above (rename the
-columns in the spreadsheet first if needed). Notes that make real data "just work":
+**Exporting a CSV from common systems:** *Square:* Reports → Transactions →
+Export. *Toast / Clover / Lightspeed:* Reports → Sales → Export to CSV.
+*Shopify:* Analytics → Reports, or Orders → Export. *Excel / Google Sheets:*
+File → Save As / Download → CSV.
 
-- Date formats like `2025-10-04`, `10/4/2025`, or `Oct 4, 2025` are all understood.
-- Extra columns you don't need are ignored — no need to delete them.
-- Rows with a blank/garbled date or price are skipped, and the app tells you how many.
+---
+
+## 🌐 Deploy it free on the web (Streamlit Community Cloud)
+
+This puts your dashboard online at a shareable link, for free — perfect for handing
+a business owner a URL they can use anytime. No server admin required.
+
+1. **Get the code on GitHub.** It already lives in this repository. Streamlit
+   Cloud can deploy straight from a branch (you don't have to merge first).
+2. Go to **[share.streamlit.io](https://share.streamlit.io)** and **sign in with
+   GitHub**. Approve the access request (works with private repos too).
+3. Click **"Create app"** → **"Deploy a public app from GitHub"**.
+4. Fill in:
+   - **Repository:** your repo (e.g. `Zikobob/Stock-research`)
+   - **Branch:** the branch your code is on
+   - **Main file path:** `coffee-shop-dashboard/dashboard.py`
+5. Click **Deploy**. Streamlit reads `requirements.txt` (which sits right next to
+   `dashboard.py`), installs everything, and starts the app — about 1–2 minutes.
+6. You'll get a public URL like `https://your-app-name.streamlit.app`. Share it!
+   The sample data loads by default; you or the owner can upload a real CSV from
+   the sidebar at any time.
+
+**Updating the live app:** push new commits to the branch and Streamlit Cloud
+redeploys automatically.
+
+> **Privacy note:** when deployed, files uploaded through the web app are
+> processed on Streamlit's servers (it's a hosted service). For sensitive data,
+> run the dashboard locally instead — uploads then never leave your computer.
+
+---
+
+## About the sample data (and regenerating it)
+
+`sales_data.csv` is **fake** data created by `generate_sample_data.py`. It models a
+realistic coffee shop: ~2,000 orders over ~18 months, busier weekends, a morning
+rush, a summer dip and holiday bump, hot drinks in winter / iced in summer,
+multi-item orders, and a loyal-regulars-vs-casuals customer mix.
+
+You never need to run it (the CSV is included), but you can regenerate or tweak it:
+
+```bash
+python generate_sample_data.py
+```
+
+All the "knobs" (menu, prices, seasonality, customer mix) are in the CONFIG
+section near the top of that file.
 
 ---
 
 ## Make it your own (good next experiments)
 
-Once it's running, try changing things — breaking it and fixing it is how you learn:
-
-- **Change the menu or prices:** edit the `PRODUCTS` list in
-  `generate_sample_data.py`, then re-run it (step 4) and refresh the browser.
-- **Measure "busiest day" by revenue instead of transaction count:** in
-  `dashboard.py`, the *Busiest days of the week* section counts transactions —
-  try summing `total_amount` per weekday instead.
-- **Add a new chart**, e.g. average order value by month, or revenue by hour
-  (you'd first add a time-of-day column to the data).
-- **Change the look:** the `COFFEE_BROWN` color near the top of `dashboard.py`
-  sets the chart color.
-
-A fun detail to notice in the sample data: the **first and last months look
-small** on the revenue line. That's correct — the data simply starts and ends
-mid-month, so those months are partial. Real data does the same thing.
+- **Change the menu/prices:** edit the `PRODUCTS` list in `generate_sample_data.py`,
+  re-run it, refresh the browser.
+- **Measure "busiest day" by revenue** instead of order count (in `dashboard.py`).
+- **Add a new insight:** the insight functions in `dashboard.py` (section 3) are
+  small, self-contained, and return a plain sentence — copy one as a template.
+- **Change the colors:** `COFFEE_BROWN` / `COFFEE_TAN` near the top of `dashboard.py`.
 
 ---
 
@@ -239,14 +214,14 @@ mid-month, so those months are partial. Real data does the same thing.
 
 | Problem | Fix |
 |--------|-----|
-| `command not found: streamlit` | The packages aren't installed (or your venv isn't active). Re-do steps 2–3. |
-| `python3: command not found` | Use `python` instead of `python3` (and `pip` instead of `pip3`). |
-| Browser didn't open | Manually visit **http://localhost:8501**. |
-| `Port 8501 is already in use` | Another dashboard is still running. Either close it, or run `streamlit run dashboard.py --server.port 8502` and use that port. |
-| `FileNotFoundError: sales_data.csv` | Run `python3 generate_sample_data.py` to create it, and make sure you're in the `coffee-shop-dashboard` folder. |
-| Your real file errors out | The app lists exactly which required column is missing — check the names match the table above. |
+| `command not found: streamlit` | Packages aren't installed / venv not active. Redo steps 2–3. |
+| `python: command not found` | Try `python3` (and `pip3`). |
+| Browser didn't open | Go to **http://localhost:8501** manually. |
+| `Port 8501 is already in use` | Run `streamlit run dashboard.py --server.port 8502`. |
+| The page says my file is missing a column | It names exactly which one — rename that column to a recognized name (see the table above). |
+| I replaced `sales_data.csv` but still see old data | Restart the app (Ctrl+C, then run again). Uploading via the sidebar avoids this. |
 
 ---
 
-*This is a learning project with fake sample data. Nothing here is business or
-financial advice.*
+*This is a learning/portfolio project. The bundled data is fake. Nothing here is
+business or financial advice.*

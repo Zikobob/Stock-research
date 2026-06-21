@@ -11,7 +11,11 @@ but you can re-run it any time to regenerate the data:
     python generate_sample_data.py
 
 The patterns are intentionally realistic:
-  - ~2,000 transactions spread over ~18 months
+  - ~2,000 orders spread over ~18 months (each order has 1-3 items, so the
+    file ends up with a few thousand line-item rows)
+  - every order has a timestamp, so there's a realistic morning rush
+  - items in the same order share a transaction_id, so "what gets bought
+    together" can be analysed
   - weekends are busier than weekdays
   - a summer dip and a holiday (Nov/Dec) bump in sales
   - hot drinks sell more in winter, cold drinks more in summer
@@ -22,7 +26,7 @@ The patterns are intentionally realistic:
 Every "knob" you might want to change lives in the CONFIG section below.
 """
 
-from datetime import date, timedelta
+from datetime import date, datetime, time, timedelta
 
 import numpy as np
 import pandas as pd
@@ -32,7 +36,7 @@ import pandas as pd
 # ---------------------------------------------------------------------------
 
 SEED = 42                  # makes the random data reproducible (same every run)
-TARGET_TRANSACTIONS = 2000 # roughly how many rows we want
+TARGET_TRANSACTIONS = 2000 # roughly how many *orders* we want
 END_DATE = date(2026, 6, 15)
 START_DATE = END_DATE - timedelta(days=548)  # ~18 months of history
 N_CUSTOMERS = 1000         # size of the customer pool (drives repeat customers)
@@ -83,6 +87,17 @@ SEASONAL_VOLUME = {
 # How busy each weekday is, relative to a normal day (1.0). Monday=0 ... Sunday=6.
 # Weekends are clearly busier.
 WEEKDAY_VOLUME = {0: 0.95, 1: 0.95, 2: 1.00, 3: 1.00, 4: 1.10, 5: 1.45, 6: 1.35}
+
+# How many items are in one order (most people just grab a single thing).
+ITEMS_PER_ORDER = [1, 2, 3]
+ITEMS_PER_ORDER_PROBS = [0.60, 0.30, 0.10]
+
+# How busy each hour of the day is (the shop is open ~6am-8pm). There's a
+# strong morning rush that peaks around 8am, plus a smaller lunch bump.
+HOURLY_VOLUME = {
+    6: 2, 7: 6, 8: 11, 9: 9, 10: 6, 11: 5, 12: 7,
+    13: 6, 14: 4, 15: 3, 16: 3, 17: 2, 18: 1, 19: 1, 20: 1,
+}
 
 
 # ---------------------------------------------------------------------------
@@ -169,10 +184,18 @@ def generate() -> pd.DataFrame:
     # Step 2: draw an actual (whole-number) count per day, with realistic noise.
     daily_counts = rng.poisson(expected)
 
-    # Step 3: build one row per transaction.
+    # Hour-of-day choices, turned into probabilities.
+    hours = list(HOURLY_VOLUME.keys())
+    hour_probs = np.array([HOURLY_VOLUME[h] for h in hours], dtype=float)
+    hour_probs /= hour_probs.sum()
+
+    # Step 3: build the orders. Each order turns into 1-3 rows (one per item),
+    # and every row in an order shares the same transaction_id, timestamp, and
+    # customer_id -- exactly how a real point-of-sale export looks.
     rows = []
-    for day, count in zip(all_days, daily_counts):
-        if count == 0:
+    order_number = 0
+    for day, n_orders in zip(all_days, daily_counts):
+        if n_orders == 0:
             continue
 
         # Season-adjust product popularity for this month, then normalize.
@@ -181,27 +204,43 @@ def generate() -> pd.DataFrame:
         )
         month_probs = month_weights / month_weights.sum()
 
-        # Pick products and customers for all of today's transactions at once.
-        chosen_products = rng.choice(len(names), size=count, p=month_probs)
-        chosen_customers = rng.choice(customer_ids, size=count, p=customer_weights)
-        # Most orders are a single item; occasionally 2, rarely 3.
-        quantities = rng.choice([1, 2, 3], size=count, p=[0.82, 0.15, 0.03])
+        # Make the random choices for all of today's orders at once (fast).
+        order_customers = rng.choice(customer_ids, size=n_orders, p=customer_weights)
+        order_hours = rng.choice(hours, size=n_orders, p=hour_probs)
+        order_sizes = rng.choice(
+            ITEMS_PER_ORDER, size=n_orders, p=ITEMS_PER_ORDER_PROBS
+        )
 
-        for prod_idx, cust, qty in zip(chosen_products, chosen_customers, quantities):
-            name = names[prod_idx]
-            unit_price = prices[name]
-            rows.append({
-                "transaction_date": day.isoformat(),
-                "product_name": name,
-                "product_category": categories[name],
-                "quantity": int(qty),
-                "unit_price": round(unit_price, 2),
-                "total_amount": round(unit_price * qty, 2),
-                "customer_id": cust,
-            })
+        for k in range(n_orders):
+            order_number += 1
+            txn_id = f"T{order_number:06d}"
+            customer = order_customers[k]
+            minute = int(rng.integers(0, 60))
+            timestamp = datetime.combine(day, time(int(order_hours[k]), minute))
+
+            # The order's distinct items (no duplicate items within one order).
+            n_items = min(int(order_sizes[k]), len(names))
+            item_indices = rng.choice(
+                len(names), size=n_items, replace=False, p=month_probs
+            )
+
+            for prod_idx in item_indices:
+                name = names[prod_idx]
+                unit_price = prices[name]
+                qty = int(rng.choice([1, 2], p=[0.9, 0.1]))
+                rows.append({
+                    "transaction_id": txn_id,
+                    "transaction_date": timestamp.isoformat(sep=" "),
+                    "product_name": name,
+                    "product_category": categories[name],
+                    "quantity": qty,
+                    "unit_price": round(unit_price, 2),
+                    "total_amount": round(unit_price * qty, 2),
+                    "customer_id": customer,
+                })
 
     df = pd.DataFrame(rows)
-    df = df.sort_values("transaction_date").reset_index(drop=True)
+    df = df.sort_values(["transaction_date", "transaction_id"]).reset_index(drop=True)
     return df
 
 
@@ -210,13 +249,17 @@ def main() -> None:
     df.to_csv(OUTPUT_FILE, index=False)
 
     # Print a quick summary so you can sanity-check the data.
-    visits_per_customer = df["customer_id"].value_counts()
+    n_orders = df["transaction_id"].nunique()
+    revenue = df["total_amount"].sum()
+    # Count visits per customer by distinct orders (not line items).
+    visits_per_customer = df.groupby("customer_id")["transaction_id"].nunique()
     repeat = (visits_per_customer > 1).sum()
     one_time = (visits_per_customer == 1).sum()
 
-    print(f"Wrote {len(df):,} transactions to {OUTPUT_FILE}")
+    print(f"Wrote {len(df):,} line items across {n_orders:,} orders to {OUTPUT_FILE}")
     print(f"  Date range:     {df['transaction_date'].min()} -> {df['transaction_date'].max()}")
-    print(f"  Total revenue:  ${df['total_amount'].sum():,.2f}")
+    print(f"  Total revenue:  ${revenue:,.2f}")
+    print(f"  Avg order value:${revenue / n_orders:,.2f}")
     print(f"  Unique products:{df['product_name'].nunique()}")
     print(f"  Customers:      {df['customer_id'].nunique()} "
           f"({repeat} repeat, {one_time} one-time)")

@@ -1,5 +1,7 @@
-# Coffee Shop Dashboard — everything you need, three packages.
-# Install with:  pip install -r requirements.txt
-streamlit>=1.50
-pandas>=2.0
-plotly>=5.18
+# Coffee Shop / Small-Business Sales Dashboard
+# Exact, tested versions so it installs the same way locally and on
+# Streamlit Community Cloud.  Install with:  pip install -r requirements.txt
+streamlit==1.58.0
+pandas==3.0.3
+plotly==6.8.0
+numpy==2.4.6     # used by generate_sample_data.py (the dashboard pulls it in anyway)
