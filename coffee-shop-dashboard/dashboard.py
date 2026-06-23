@@ -494,6 +494,15 @@ def compute_insights(data: pd.DataFrame, flags: dict) -> list:
     return results
 
 
+def escape_dollars(text: str) -> str:
+    r"""Escape '$' as '\$' so Streamlit markdown doesn't read dollar amounts as
+    LaTeX math delimiters. Without this, a string like "$173 ... $72" makes
+    Streamlit treat the words between the two '$' as math, mashing them together.
+    A '\$' renders as a normal '$' in the browser.
+    """
+    return text.replace("$", r"\$")
+
+
 # ===========================================================================
 # 4. UI HELPERS  (these use Streamlit; only called at runtime, not on import)
 # ===========================================================================
@@ -698,7 +707,8 @@ def main() -> None:
     if insights:
         with st.container(border=True):
             for line in insights:
-                st.markdown(line)
+                # Escape '$' so Streamlit doesn't render dollar amounts as LaTeX math.
+                st.markdown(escape_dollars(line))
     else:
         st.caption("Add category, customer, order-ID, or timestamp columns to your "
                    "data to unlock automatic insights.")
