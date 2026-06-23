@@ -351,8 +351,8 @@ def insight_busiest_day(data: pd.DataFrame):
     pct = (hi / lo - 1) * 100 if lo > 0 else 0
     return (
         f"📅 **{busiest}s are your busiest day** (about **${hi:,.0f}** on a typical "
-        f"{busiest}), while **{slowest}s are slowest** (~${lo:,.0f}) — roughly "
-        f"**{pct:.0f}% more** revenue on {busiest}s. Consider extra staff on "
+        f"{busiest}), while **{slowest}s are the slowest** (about **${lo:,.0f}**) — "
+        f"roughly **{pct:.0f}% more** revenue on {busiest}s. Consider extra staff on "
         f"{busiest}s and a promotion to lift {slowest}s."
     )
 
@@ -495,12 +495,18 @@ def compute_insights(data: pd.DataFrame, flags: dict) -> list:
 
 
 def escape_dollars(text: str) -> str:
-    r"""Escape '$' as '\$' so Streamlit markdown doesn't read dollar amounts as
-    LaTeX math delimiters. Without this, a string like "$173 ... $72" makes
-    Streamlit treat the words between the two '$' as math, mashing them together.
-    A '\$' renders as a normal '$' in the browser.
+    r"""Make '$' safe inside Streamlit markdown by replacing each one with the
+    HTML numeric entity '&#36;'.
+
+    Streamlit renders markdown with LaTeX support, so a pair of '$' turns the
+    text between them into math — mashing the words (and any ** bold ** markers)
+    together. A backslash escape ('\$') is NOT reliable here: Streamlit's math
+    tokenizer can ignore the backslash, especially when the '$' sits inside
+    **bold**. '&#36;' sidesteps the problem entirely — the math tokenizer never
+    sees a '$' character at all, yet the browser still displays a normal '$'.
+    This is applied AFTER the ** bold ** markers are added, and works inside them.
     """
-    return text.replace("$", r"\$")
+    return text.replace("$", "&#36;")
 
 
 # ===========================================================================
