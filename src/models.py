@@ -11,14 +11,17 @@ Models
 ------
 Model A - Naive random walk:
     P_{t+1} = P_t  (i.e. predicted return = 0). For directional accuracy we use
-    the sign of the most recent return (a momentum-style naive direction).
+    the sign of the most recent return as the naive direction rule.
 
-Model B - Linear regression / AR(1):
-    r_t regressed on its own lagged returns (lags 1..N_LAGS). With N_LAGS=1
-    this is exactly an AR(1) model.
+Model B - AR(1):
+    r_t regressed on a single lag r_{t-1}.
+
+Model C - Linear regression on lagged returns:
+    r_t regressed on lags 1..N_LAGS.
 
 Extensions - Ridge and Lasso regression:
-    Same lagged-return design matrix with L2 / L1 regularization.
+    Same lagged-return design matrix (lags 1..N_LAGS) with L2 / L1
+    regularization; the penalties are standard defaults (see paper Sec. 3.2).
 """
 
 from __future__ import annotations

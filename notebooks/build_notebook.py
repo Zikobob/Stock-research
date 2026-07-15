@@ -155,15 +155,59 @@ cells.append(new_code_cell(
 ))
 
 cells.append(new_markdown_cell(
-    "## 6. Conclusion\n"
-    "Across **every** model, absolute return-forecast errors are "
-    "significantly **larger** in the high cross-sector correlation regime "
-    "(all p < 0.001 on both tests), and directional accuracy falls toward — "
-    "or below — 50%. High-correlation periods coincide with market stress and "
-    "elevated volatility, during which short-horizon predictability collapses. "
-    "We therefore **reject $H_0$**: forecasting accuracy is *not* independent "
-    "of the correlation regime — models are reliably less accurate when "
-    "cross-sector correlation is high.\n"
+    "## 6. The confound: is it correlation, or just volatility?\n"
+    "The result above is **descriptive**. High correlation is collinear with "
+    "high volatility, so a critic can argue we are only measuring *bigger moves "
+    "= bigger errors*. We test this directly with a lagged volatility proxy "
+    "(90-day realized volatility of SPY, through $t-1$).\n"
+    "\n"
+    "Run `python -m src.confound_analysis` to regenerate these tables."
+))
+cells.append(new_code_cell(
+    "reg = pd.read_csv(os.path.join(RES, 'confound_regression.csv'))\n"
+    "print(f\"corr-vol correlation: {reg['corr_vol_correlation'].iloc[0]:.3f}\")\n"
+    "show = reg[['model','b_corr_only','p_corr_only','b_corr_joint',\n"
+    "            'p_corr_joint','b_vol_joint','p_vol_joint','r2_joint']]\n"
+    "display(show)\n"
+    "display(Image(os.path.join(FIG, '10_corr_vs_vol_scatter.png')))"
+))
+cells.append(new_markdown_cell(
+    "**Read the coefficients:** correlation is significant *alone* "
+    "(`p_corr_only` ≈ 0.017) but collapses to insignificance once volatility is "
+    "added (`p_corr_joint` ≈ 0.72–0.79, coefficient ≈ 0), while volatility stays "
+    "highly significant (`p_vol_joint` ≈ 3–6×10⁻⁶). Adding correlation on top of "
+    "volatility barely moves R². The correlation 'effect' is a volatility "
+    "artifact."
+))
+cells.append(new_code_cell(
+    "ds = pd.read_csv(os.path.join(RES, 'double_sort.csv'))\n"
+    "lr = ds[ds['model']=='LinearRegression'].pivot(index='corr', columns='vol',\n"
+    "        values='MAE_return')\n"
+    "print('MAE by correlation x volatility (LinearRegression):')\n"
+    "display(lr)\n"
+    "display(Image(os.path.join(FIG, '11_double_sort.png')))"
+))
+cells.append(new_markdown_cell(
+    "In the 2×2 sort, **volatility dominates** (low-vol cells ≈ 0.007, high-vol "
+    "cells ≈ 0.010–0.012). Within a fixed volatility level the correlation "
+    "effect is small and even **flips sign** (in the low-vol row, high "
+    "correlation has *lower* error). No robust independent correlation effect."
+))
+
+cells.append(new_markdown_cell(
+    "## 7. Conclusion\n"
+    "Descriptively, forecast errors are ~58–62% larger in high cross-sector "
+    "correlation regimes and both tests reject $H_0$. **But that is not an "
+    "independent correlation effect.** Correlation is collinear with volatility "
+    "($r = 0.64$); once volatility is controlled with a lagged, "
+    "look-ahead-free proxy, the correlation regime adds *no* information about "
+    "forecast accuracy (joint-regression $p \\approx 0.72\\text{–}0.79$), while "
+    "volatility remains strongly significant. A 2×2 double sort confirms it.\n"
+    "\n"
+    "**Honest bottom line:** the correlation regime predicts poor forecast "
+    "accuracy *only because it proxies for volatility*. Volatility, not "
+    "correlation, drives short-horizon predictability — consistent with Forbes "
+    "& Rigobon (2002).\n"
     "\n"
     "See `../paper/research_paper.md` for the full write-up."
 ))

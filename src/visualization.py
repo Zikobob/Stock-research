@@ -184,6 +184,48 @@ def plot_directional_accuracy(summary: pd.DataFrame) -> str:
     return _save(fig, "09_directional_accuracy.png")
 
 
+def plot_corr_vol_scatter(predictors: pd.DataFrame) -> str:
+    """Scatter of lagged correlation vs lagged volatility (collinearity)."""
+    r = float(np.corrcoef(predictors["corr_lag"], predictors["vol_lag"])[0, 1])
+    fig, ax = plt.subplots(figsize=(9, 7))
+    ax.scatter(predictors["corr_lag"], predictors["vol_lag"], s=10,
+               alpha=0.35, color="steelblue")
+    ax.set_xlabel("Lagged avg cross-sector correlation")
+    ax.set_ylabel("Lagged 90-day realized volatility (SPY, annualized)")
+    ax.set_title(f"Correlation vs. Volatility are Collinear (r = {r:.2f})")
+    return _save(fig, "10_corr_vs_vol_scatter.png")
+
+
+def plot_double_sort(ds_table: pd.DataFrame,
+                     model: str = "LinearRegression") -> str:
+    """Grouped bars of MAE by correlation x volatility cell for one model."""
+    d = ds_table[ds_table["model"] == model].copy()
+    order_c = ["low_corr", "high_corr"]
+    order_v = ["low_vol", "high_vol"]
+    fig, ax = plt.subplots(figsize=(10, 6.5))
+    width = 0.35
+    x = np.arange(len(order_c))
+    for i, v in enumerate(order_v):
+        vals = [d[(d["corr"] == c) & (d["vol"] == v)]["MAE_return"].values[0]
+                for c in order_c]
+        ns = [int(d[(d["corr"] == c) & (d["vol"] == v)]["n_obs"].values[0])
+              for c in order_c]
+        bars = ax.bar(x + (i - 0.5) * width, vals, width,
+                      label=v.replace("_", " "),
+                      color="navy" if v == "low_vol" else "firebrick",
+                      alpha=0.85)
+        for b, n in zip(bars, ns):
+            ax.text(b.get_x() + b.get_width() / 2, b.get_height(),
+                    f"n={n}", ha="center", va="bottom", fontsize=10)
+    ax.set_xticks(x)
+    ax.set_xticklabels(["Low correlation", "High correlation"])
+    ax.set_ylabel("Mean abs. return error (MAE)")
+    ax.set_title(f"Double Sort: Volatility Dominates, Not Correlation "
+                 f"({model})")
+    ax.legend(title="Volatility", fontsize=12)
+    return _save(fig, "11_double_sort.png")
+
+
 def run(returns, regimes, pca_static, pca_rolling, universe_forecasts,
         pooled, summary) -> list[str]:
     paths = []

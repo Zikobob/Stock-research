@@ -5,12 +5,18 @@ A reproducible quantitative-finance research project investigating one question:
 > **Do equity price-forecasting models perform more accurately during periods of
 > high cross-sector correlation or low cross-sector correlation?**
 
-**Headline finding:** Across five forecasting models and ~11 years of U.S.
-sector-ETF data, short-horizon forecast accuracy is *significantly worse* during
-high cross-sector correlation regimes. Absolute return errors are ~58–62% larger
-and directional accuracy falls to (or below) the 50% chance level — both
-parametric and non-parametric tests reject the null at **p ≪ 0.001** for every
-model. Predictability collapses precisely when sectors move as one.
+**Headline finding (with the honest twist):** Across five forecasting models and
+~11 years of U.S. sector-ETF data, short-horizon forecast accuracy is
+*descriptively* much worse during high cross-sector correlation regimes —
+absolute return errors are ~58–62% larger and directional accuracy falls to the
+50% chance level. **But this is a volatility artifact, not a correlation effect.**
+Correlation is collinear with volatility (r = 0.64); once we control for a lagged
+volatility proxy, the correlation regime adds *no* explanatory power for forecast
+error (joint-regression p ≈ 0.72–0.79 across all models; R² unchanged), while
+volatility stays strongly significant. A 2×2 double sort confirms it — the
+correlation effect flips sign across volatility buckets. **Volatility, not
+correlation, drives short-horizon predictability** (consistent with Forbes &
+Rigobon, 2002).
 
 📄 Full write-up: [`paper/research_paper.md`](paper/research_paper.md)
 📓 Interactive walk-through: [`notebooks/research_analysis.ipynb`](notebooks/research_analysis.ipynb)
@@ -31,13 +37,17 @@ model. Predictability collapses precisely when sectors move as one.
 5. **Evaluates** MAE, RMSE, and directional accuracy by regime.
 6. **Tests** the hypothesis with Welch's t-test, the Mann–Whitney U test, and a
    two-proportion z-test.
-7. **Visualizes** everything as nine publication-ready figures.
+7. **Controls for the volatility confound** (the crux): regresses forecast error
+   on lagged correlation *and* lagged volatility (Newey–West SE), runs a 2×2
+   correlation×volatility double sort, and checks alpha-robustness.
+8. **Visualizes** everything as eleven publication-ready figures.
 
 ## Quick start
 
 ```bash
 pip install -r requirements.txt
-python -m src.main          # runs the full pipeline end-to-end (~1-2 min)
+python -m src.main               # main pipeline: data, regimes, models, metrics, tests, figures
+python -m src.confound_analysis  # volatility-confound regressions, double sort, alpha robustness
 ```
 
 This regenerates every dataset, table, and figure. To explore interactively:
@@ -62,7 +72,8 @@ Stock-research/
 │   ├── models.py                 # (4) walk-forward forecasting models
 │   ├── evaluation.py             # (5) MAE / RMSE / directional accuracy
 │   ├── statistical_tests.py      # (6) t-test, Mann-Whitney, z-test
-│   ├── visualization.py          # (7) nine figures
+│   ├── confound_analysis.py      # (7) corr-vs-vol regressions, double sort, alphas
+│   ├── visualization.py          # (8) eleven figures
 │   └── main.py                   # orchestrates the whole pipeline
 ├── notebooks/
 │   ├── research_analysis.ipynb   # narrative notebook
@@ -89,6 +100,8 @@ Stock-research/
 | `07_prediction_vs_actual.png` | Predicted vs actual SPY price |
 | `08_error_distribution.png` | Error distribution: high vs low regime |
 | `09_directional_accuracy.png` | Directional accuracy by model & regime |
+| `10_corr_vs_vol_scatter.png` | Correlation vs volatility collinearity (r = 0.64) |
+| `11_double_sort.png` | 2×2 double sort — volatility dominates |
 
 | Result table | Description |
 |--------------|-------------|
@@ -96,6 +109,9 @@ Stock-research/
 | `results/metrics_by_regime.csv` | Pooled MAE/RMSE/accuracy by model & regime |
 | `results/metrics_per_asset.csv` | Per-asset breakdown |
 | `results/hypothesis_tests.csv` | t-test, Mann-Whitney, z-test, effect sizes |
+| `results/confound_regression.csv` | Error ~ lagged corr + lagged vol (Newey–West) |
+| `results/double_sort.csv` | 2×2 correlation × volatility cells |
+| `results/alpha_robustness.csv` | Ridge/Lasso MAE ratio across penalties |
 | `results/pca_static_variance.csv` | PCA explained variance |
 
 ## Configuration
@@ -115,6 +131,11 @@ different assumptions.
   confound the comparison.
 - **Robust testing.** Both a parametric (Welch's t) and a non-parametric
   (Mann–Whitney U) test are reported, given the heavy-tailed error distribution.
+- **Confound control (the honest core).** Because high correlation is collinear
+  with high volatility, the descriptive regime result is re-tested with a lagged
+  volatility control (Newey–West standard errors) and a 2×2 double sort. The
+  correlation effect does *not* survive — volatility does. The paper reports this
+  plainly rather than forcing the original conclusion.
 
 ## Disclaimer
 
