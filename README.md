@@ -7,7 +7,7 @@ A reproducible quantitative-finance research project investigating one question:
 
 **Headline finding:** Across five forecasting models and ~11 years of U.S.
 sector-ETF data, short-horizon forecast accuracy is *significantly worse* during
-high cross-sector correlation regimes. Absolute return errors are ~55–60% larger
+high cross-sector correlation regimes. Absolute return errors are ~58–62% larger
 and directional accuracy falls to (or below) the 50% chance level — both
 parametric and non-parametric tests reject the null at **p ≪ 0.001** for every
 model. Predictability collapses precisely when sectors move as one.

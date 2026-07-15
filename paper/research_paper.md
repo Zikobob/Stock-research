@@ -199,7 +199,7 @@ model and regime (full table in `results/metrics_by_regime.csv`).
 
 Two patterns are immediate and consistent across all five models:
 
-1. **Return-forecast errors are roughly 55–60% larger in the high-correlation
+1. **Return-forecast errors are roughly 58–62% larger in the high-correlation
    regime** than in the low-correlation regime (e.g. Ridge MAE 0.01162 vs
    0.00732).
 2. **Directional accuracy is lower in the high regime**, falling to the
@@ -285,7 +285,7 @@ accuracy; and (iv) adding non-linear / machine-learning forecasters.
 Across a decade of U.S. sector-ETF data and five forecasting models spanning
 naive, autoregressive, and regularized approaches, short-horizon equity
 forecasting accuracy is **significantly and consistently worse during
-high cross-sector correlation regimes**. Absolute return errors are ~55–60%
+high cross-sector correlation regimes**. Absolute return errors are ~58–62%
 larger and directional accuracy falls to (or below) chance, with both
 parametric and non-parametric tests rejecting the null hypothesis at
 p ≪ 0.001 for every model. Predictability is therefore regime-dependent and
