@@ -188,10 +188,23 @@ cells.append(new_code_cell(
     "display(Image(os.path.join(FIG, '11_double_sort.png')))"
 ))
 cells.append(new_markdown_cell(
-    "In the 2×2 sort, **volatility dominates** (low-vol cells ≈ 0.007, high-vol "
-    "cells ≈ 0.010–0.012). Within a fixed volatility level the correlation "
-    "effect is small and even **flips sign** (in the low-vol row, high "
-    "correlation has *lower* error). No robust independent correlation effect."
+    "In the 2×2 sort, **volatility dominates the MAE** (low-vol cells ≈ 0.007, "
+    "high-vol cells ≈ 0.010–0.012). Within a fixed volatility level the "
+    "correlation effect is small and even **flips sign**. But MAE is partly "
+    "mechanical (error ≈ move size), so the honest test is directional accuracy."
+))
+cells.append(new_code_cell(
+    "da = ds[ds['model'].isin(['RandomWalk','AR1','LinearRegression','Ridge',\n"
+    "        'Lasso'])].pivot_table(index='model', columns=['corr','vol'],\n"
+    "        values='dir_acc')\n"
+    "print('Directional accuracy by correlation x volatility cell:')\n"
+    "display((da*100).round(1))"
+))
+cells.append(new_markdown_cell(
+    "**The scale-free test dissolves the strong story.** Directional accuracy is "
+    "44–54% in *every* cell — a whisker from the 50% coin flip — with no clean "
+    "ordering by volatility or correlation (for Ridge/Lasso the *worst* cell is "
+    "low-volatility). There is little genuine directional skill in any regime."
 ))
 
 cells.append(new_markdown_cell(
@@ -201,13 +214,17 @@ cells.append(new_markdown_cell(
     "independent correlation effect.** Correlation is collinear with volatility "
     "($r = 0.64$); once volatility is controlled with a lagged, "
     "look-ahead-free proxy, the correlation regime adds *no* information about "
-    "forecast accuracy (joint-regression $p \\approx 0.72\\text{–}0.79$), while "
-    "volatility remains strongly significant. A 2×2 double sort confirms it.\n"
+    "the error magnitude (joint-regression $p \\approx 0.72\\text{–}0.79$), while "
+    "volatility remains significant.\n"
     "\n"
-    "**Honest bottom line:** the correlation regime predicts poor forecast "
-    "accuracy *only because it proxies for volatility*. Volatility, not "
-    "correlation, drives short-horizon predictability — consistent with Forbes "
-    "& Rigobon (2002).\n"
+    "And the volatility 'winner' is partly **mechanical** (error ≈ move size). On "
+    "directional accuracy — the scale-free metric — skill is 44–54% in every "
+    "regime, near a coin flip, with no clean ordering.\n"
+    "\n"
+    "**Honest bottom line — the contribution is methodological:** an effect that "
+    "looked bulletproof ($p \\ll 0.001$, every model) was a volatility shadow. "
+    "One lagged volatility control plus a scale-free re-check dissolves it. A tiny "
+    "p-value certifies neither a real effect nor genuine forecast skill.\n"
     "\n"
     "See `../paper/research_paper.md` for the full write-up."
 ))

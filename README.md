@@ -14,9 +14,14 @@ Correlation is collinear with volatility (r = 0.64); once we control for a lagge
 volatility proxy, the correlation regime adds *no* explanatory power for forecast
 error (joint-regression p ≈ 0.72–0.79 across all models; R² unchanged), while
 volatility stays strongly significant. A 2×2 double sort confirms it — the
-correlation effect flips sign across volatility buckets. **Volatility, not
-correlation, drives short-horizon predictability** (consistent with Forbes &
-Rigobon, 2002).
+correlation effect flips sign across volatility buckets. And the volatility
+"winner" is partly mechanical (error ≈ move size), so on the scale-free metric —
+**directional accuracy** — skill is 44–54% in *every* regime, near a coin flip,
+with no clean ordering. **The real contribution is methodological:** an effect
+that looked bulletproof (p ≪ 0.001, every model) was a volatility shadow, and one
+lagged volatility control plus a scale-free re-check dissolves it. A tiny p-value
+certifies neither a real effect nor genuine forecast skill (cf. Forbes & Rigobon,
+2002).
 
 📄 Full write-up: [`paper/research_paper.md`](paper/research_paper.md)
 📓 Interactive walk-through: [`notebooks/research_analysis.ipynb`](notebooks/research_analysis.ipynb)

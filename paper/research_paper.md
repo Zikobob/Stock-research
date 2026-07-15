@@ -28,17 +28,25 @@ correlation and a lagged volatility proxy (90-day realized volatility of SPY,
 Newey–West standard errors), the correlation coefficient collapses from
 significant (p ≈ 0.017) to indistinguishable from zero (p ≈ 0.72–0.79) and even
 changes sign, while volatility remains strongly significant (p ≈ 3×10⁻⁶) and
-absorbs essentially all of the explanatory power (R² unchanged at ≈ 0.115). A
-2×2 double sort confirms this: within a fixed volatility bucket the correlation
-effect is small and flips sign. The correlation regime therefore predicts forecast
-accuracy **only because it proxies for volatility** — consistent with Forbes and
-Rigobon (2002), who show that measured correlation is itself inflated by
-volatility. The paper's positive contribution follows directly: once the
-correlation mirage is removed, **volatility emerges as the operative, robust, and
-actionable driver of short-horizon equity predictability** — observable at *t−1*
-and significant under every control we impose. For practitioners the lesson is
-singular: to know when a short-horizon forecast is about to fail, condition on
-volatility, not correlation.
+absorbs essentially all of the explanatory power (R² essentially unchanged,
+≈ 0.11–0.12 across models). A 2×2 double sort confirms this: within a fixed
+volatility bucket the correlation effect is small and flips sign. The correlation
+regime therefore appears to matter **only because it proxies for volatility** —
+consistent with Forbes and Rigobon (2002), who show that measured correlation is
+itself inflated by volatility.
+
+We are equally candid about the volatility half of the story. Because our models
+predict returns near zero, absolute error is nearly equal to the size of the move,
+so the "volatility explains the error" result is partly *mechanical* rather than a
+discovery. The honest test is **directional accuracy**, a scale-free metric that
+does not inflate with volatility — and there we find that predictive skill is weak
+in *every* cell of the double sort (44–54%, hovering near the 50% coin-flip), with
+no clean ordering by either volatility or correlation. The paper's real
+contribution is therefore methodological: an effect that looks statistically
+bulletproof on a scale-dependent metric (p ≪ 0.001, every model, two tests) can be
+a volatility shadow, and the cure — add one lagged volatility control and read the
+coefficient, then re-check on a scale-free metric — is cheap and decisive. A tiny
+p-value certifies neither a real effect nor genuine forecast skill.
 
 ---
 
@@ -49,9 +57,16 @@ markets is not constant — it shifts between regimes (Hamilton, 1989). One of t
 most studied regime variables is **cross-asset correlation**: in calm markets,
 individual sectors are driven largely by their own sector-specific news, whereas
 in crises a single systematic factor dominates and "everything moves together"
-(Ang and Bekaert, 2002). This phenomenon — higher co-movement precisely when
-diversification is most needed — has direct consequences for risk management and,
-potentially, for forecasting.
+(Ang and Bekaert, 2002; Ang and Chen, 2002). This phenomenon — higher co-movement
+precisely when diversification is most needed — has direct consequences for risk
+management and, potentially, for forecasting.
+
+It is worth stating the backdrop plainly: short-horizon equity return
+predictability is weak to begin with. Welch and Goyal (2008) show that popular
+predictors struggle to beat the historical mean out of sample, and Campbell and
+Thompson (2008) find that even statistically detectable predictability translates
+into only slim out-of-sample gains. Any regime-conditional "edge" must be read
+against this low baseline — a point that becomes central to our conclusions.
 
 **A signal-to-noise view.** Short-horizon linear forecasting models exploit weak,
 sector-specific structure in returns — mild autocorrelation and cross-sector
@@ -168,7 +183,9 @@ All models generate **one-step-ahead, walk-forward, out-of-sample** forecasts.
 | **Lasso** (extension) | Model C's design matrix with an L1 penalty (α = 5×10⁻⁴) |
 
 Predicted returns are converted to a price forecast via
-$\hat{P}_t = P_{t-1}\,e^{\hat{r}_t}$.
+$\hat{P}_t = P_{t-1}\,e^{\hat{r}_t}$. The random walk is a deliberately demanding
+benchmark: beating a no-change forecast out of sample is known to be hard for
+short-horizon equity returns (Campbell and Thompson, 2008).
 
 **No look-ahead bias.** For each day *t* the model is fit only on data through
 *t−1* using a **252-day rolling training window** (≈ one trading year). The
@@ -184,29 +201,40 @@ the penalties: the sample begins in January 2015, so there is no earlier
 validation window to tune on without either introducing look-ahead bias or
 sacrificing data. We therefore fix the penalties at conventional defaults
 (Ridge α = 1.0; Lasso α = 5×10⁻⁴) and, rather than claim a tuned optimum, provide
-an explicit **alpha-robustness check** (Section 4.5) showing the regime finding
+an explicit **alpha-robustness check** (Section 4.6) showing the regime finding
 does not hinge on the exact penalty.
 
 ### 3.3 Evaluation metrics
 
 For each model, regime, and asset we compute **MAE** and **RMSE** of the return
-forecast (scale-free; the primary metric), the same for the price forecast, and
-**directional accuracy** (fraction of days the predicted return sign matches the
-realized sign; zero-return days excluded). Errors are pooled across the five
-assets and tagged by the regime of each day.
+forecast, the same for the price forecast, and **directional accuracy** (fraction
+of days the predicted return sign matches the realized sign; zero-return days
+excluded). Errors are pooled across the five assets and tagged by the regime of
+each day.
 
-> **Why return-space errors, not price-MAE, for regime comparisons?** Price
-> levels drift over the sample, so a raw price MAE conflates forecasting
-> difficulty with the price level on a given day. The absolute *return* error is
-> scale-free and directly comparable across regimes and assets.
+> **Why return-space errors, not price-MAE?** Price levels drift over the sample,
+> so a raw price MAE conflates forecasting difficulty with the price level on a
+> given day. The absolute *return* error is comparable across assets and regimes.
+
+> **A caution about MAE that shapes the whole analysis.** Because every model
+> predicts a return close to zero (the random walk predicts exactly zero), the
+> absolute return error is nearly equal to the *size of the realized move* — i.e.
+> it tracks realized volatility almost by construction. Return-MAE is therefore
+> **not** invariant to volatility, and any "volatility explains the error" result
+> in Section 4 is partly mechanical. The metric that is genuinely invariant to
+> move size is **directional accuracy**: getting the sign right is neither easier
+> nor harder simply because moves are large. We treat directional accuracy as the
+> load-bearing, non-trivial test (Section 4.5).
 
 ### 3.4 Hypothesis testing
 
 For each model we compare absolute return errors in the high vs low regime using
 **Welch's t-test** (unequal variance) and the **Mann–Whitney U test**
-(distribution-free, robust to the heavy-tailed error distribution). Directional
-accuracy is compared with a **two-proportion z-test**, and we report **Cohen's d**
-as a standardized effect size.
+(distribution-free, robust to the heavy-tailed error distribution); comparing the
+predictive accuracy of competing forecasts in this way follows the tradition of
+Diebold and Mariano (1995). Directional accuracy is compared with a
+**two-proportion z-test**, and we report **Cohen's d** as a standardized effect
+size.
 
 **Caveat on independence.** The pooled observations are *not* independent — regimes
 persist for many consecutive days and the five assets are correlated — so the
@@ -225,7 +253,8 @@ effect from a volatility effect, we:
    here, to keep the pipeline fully reproducible from the price data alone).
 
 2. **Regress the daily mean absolute error on the lagged predictors** (both
-   z-scored), using Newey–West (HAC) standard errors with 21 lags to account for
+   z-scored), using Newey and West (1987) heteroskedasticity- and
+   autocorrelation-consistent (HAC) standard errors with 21 lags to account for
    the strong persistence of the series:
    $$ |\text{error}|_t = b_0 + b_1\,\text{corr}_{t-1} + b_2\,\text{vol}_{t-1} + e_t. $$
    We estimate three specifications — correlation only, volatility only, and joint
@@ -297,10 +326,17 @@ The pattern is the same for all five models: in the joint specification the
 correlation coefficient is statistically insignificant (**p ≈ 0.72–0.79** across
 models) and economically ≈ 0 (it even flips slightly negative), while volatility
 remains highly significant (**p ≈ 3–6×10⁻⁶**). Adding correlation on top of
-volatility moves R² by essentially nothing (0.1189 → 0.1190). In plain terms:
-**once volatility is accounted for, the correlation regime tells us nothing more
-about forecast accuracy.** The significant marginal association in Sections
-4.1–4.2 is a volatility effect wearing a correlation costume.
+volatility moves R² by essentially nothing (0.1189 → 0.1190 for the linear model;
+the joint R² ranges 0.109–0.119 across the five models). In plain terms: **once
+volatility is accounted for, the correlation regime tells us nothing more about
+the error magnitude.** The significant marginal association in Sections 4.1–4.2 is
+a volatility effect wearing a correlation costume.
+
+One caveat we return to below: the dependent variable here is absolute return
+error, which — because forecasts are near zero — is close to the size of the move
+itself. So this regression establishes that the *correlation* effect is spurious,
+but the surviving *volatility* coefficient is partly mechanical and should not be
+read as "volatility predicts skill." Section 4.5 puts that to a scale-free test.
 
 ### 4.4 Double sort (volatility held fixed)
 
@@ -329,14 +365,44 @@ means are noisier; and (ii) within the coarse "high-volatility" bucket the
 high-correlation days still tend to be the very highest-volatility days, which is
 why a residual gap remains there. The continuous-control regression in Section 4.3,
 which does not suffer from a coarse split, is the cleaner test and attributes that
-residual gap to volatility.
+residual gap to volatility. But note again that all of these cells are measured in
+MAE — the metric that tracks move size. Section 4.5 asks whether the pattern
+survives on a metric that does not.
 
-Directional accuracy across the four cells (LinearRegression: 51.1% / 48.8% /
-50.8% / 48.7% for low-low / low-high / high-low / high-high) shows no clean
-correlation ordering either — it hovers near 50% and is, if anything, governed by
-volatility.
+### 4.5 Directional accuracy: the scale-free test (the load-bearing result)
 
-### 4.5 Alpha robustness
+MAE is contaminated by the mechanical link to move size, so the honest question is
+whether the models get the *direction* right more often in any regime — a metric
+that does not inflate with volatility. We re-ran the 2×2 double sort using
+directional accuracy for all five models (full table in
+`results/double_sort.csv`):
+
+| Model | Low-corr / Low-vol | Low-corr / High-vol | High-corr / Low-vol | High-corr / High-vol |
+|-------|-----:|-----:|-----:|-----:|
+| RandomWalk       | 51.7% | 45.2% | 45.5% | 46.8% |
+| AR(1)            | 52.2% | 53.0% | 52.8% | 50.5% |
+| LinearRegression | 51.1% | 48.8% | 50.8% | 48.7% |
+| Ridge            | 53.3% | 53.0% | 48.4% | 51.7% |
+| Lasso            | 53.5% | 52.4% | 48.4% | 51.4% |
+
+**Here the strong story dissolves.** Every number sits between 44% and 54% — a
+whisker around the 50% coin-flip. No model is meaningfully skillful in any cell,
+and the naive random walk's direction rule is actually *below* 50% in three of
+four cells. Crucially, the clean volatility ordering that dominated the MAE
+results **does not reappear**: for Ridge and Lasso the *worst* cell is
+high-correlation/**low**-volatility (48.4%), not a high-volatility cell, and AR(1)
+is essentially flat everywhere. Because correlation and volatility are collinear,
+their marginal orderings coincide (both "low" cells edge out their "high"
+counterparts by ~1–5 percentage points), and this scale-free metric cannot cleanly
+credit either one.
+
+The honest reading is therefore weaker than the MAE tables suggest, and we state
+it plainly: **on the metric that is not mechanically inflated by volatility, there
+is little genuine directional skill to allocate to any regime.** The models are
+near coin-flips throughout. This is the load-bearing evidence, and it disciplines
+every claim in the Discussion.
+
+### 4.6 Alpha robustness
 
 To confirm the regularized-model results are not an artifact of the chosen
 penalties, we re-ran Ridge and Lasso on SPY across an alpha grid (full table in
@@ -356,33 +422,44 @@ point is their stability across α.)
 
 ## 5. Discussion
 
-The honest reading of these results is that **volatility, not correlation, drives
-short-horizon forecast accuracy** in this universe. The descriptive regime effect
-is real — errors genuinely are ~60% larger in high-correlation regimes — but it is
-not evidence of a correlation mechanism. Once we control for volatility with a
-lagged, look-ahead-free proxy, the correlation regime adds no explanatory power
-(joint p ≈ 0.72–0.79), and the double sort shows the correlation effect changing
-sign depending on the volatility bucket.
+These results have to be read carefully, because two different things are true at
+two different levels of rigor.
 
-This is exactly the trap Forbes and Rigobon (2002) identified: because measured
-correlation is mechanically higher when volatility is higher, an apparent
-"correlation regime effect" can be a volatility effect in disguise. Our finding is
-a concrete, forecasting-flavored instance of their point.
+**On error magnitude, the correlation effect is a volatility artifact.** The
+descriptive regime effect is real — errors genuinely are ~60% larger in
+high-correlation regimes — but it is not evidence of a correlation mechanism. Once
+we control for volatility with a lagged, look-ahead-free proxy, the correlation
+regime adds no explanatory power (joint p ≈ 0.72–0.79), and the double sort shows
+the correlation effect changing sign across volatility buckets. This is exactly the
+trap Forbes and Rigobon (2002) identified: because measured correlation is
+mechanically higher when volatility is higher, an apparent "correlation regime
+effect" can be a volatility effect in disguise. Our result is a concrete,
+forecasting-flavored instance of their point.
 
-The signal-to-noise intuition from the introduction should therefore be
-**restated in terms of volatility**. What actually erodes short-horizon
-predictability is the arrival of large, news-driven moves — a high-volatility
-state. High cross-sector correlation tends to accompany that state, which is why
-it *looks* predictive of poor accuracy, but it is the volatility, not the
-co-movement per se, that swamps the weak sector-specific signal linear models rely
-on.
+**But we must not over-claim the volatility side either.** The surviving volatility
+coefficient is measured on absolute return error, and because our forecasts are
+near zero, that error is close to the size of the move itself — so "volatility
+explains the error" is partly *mechanical*, not a discovery about forecast skill.
+This is precisely why we lean on directional accuracy (Section 4.5), a metric that
+is invariant to move size. On that metric the strong story evaporates: skill sits
+between 44% and 54% in every cell, the volatility ordering does not cleanly
+reappear (for Ridge/Lasso the worst cell is low-volatility), and neither
+correlation nor volatility earns a robust edge. In other words, there is little
+genuine directional predictability in *any* regime to begin with — consistent with
+the broader evidence that short-horizon equity returns are hard to forecast out of
+sample (Welch and Goyal, 2008; Campbell and Thompson, 2008). The signal-to-noise
+intuition from the introduction is best restated as a null: the sector-specific
+signal these linear models can exploit is faint everywhere, and no regime turns it
+into a reliable edge.
 
-**Practical implication.** A practitioner who wants a leading indicator of
-"forecasts are about to get unreliable" should watch **volatility**, which is
-observable at *t−1* and does the real work; conditioning additionally on
-correlation buys essentially nothing here. And a single headline accuracy number
-remains misleading — the same model is near-useless in high-volatility states —
-but the conditioning variable that matters is volatility.
+**Practical implication.** The usable takeaway is modest and honest. Volatility is
+the right variable to watch for *how large forecast errors will be* — it is
+observable at *t−1* and dominates the error magnitude — and cross-sector
+correlation adds nothing beyond it. But large errors are not the same as lost
+skill: on a scale-free basis the models are near coin-flips regardless of regime,
+so neither correlation nor volatility should be sold as a switch that turns
+short-horizon forecasts on or off. The most defensible advice is to size positions
+by volatility and to distrust any single headline accuracy number.
 
 ### 5.1 Limitations
 
@@ -403,6 +480,10 @@ but the conditioning variable that matters is volatility.
   horizons, or periods is untested.
 - **Overlapping, dependent observations.** The Section 4.2 p-values overstate
   certainty; the HAC-based Section 4.3 inference is the reliable one.
+- **MAE is partly mechanical.** Because forecasts are near zero, absolute return
+  error ≈ move size, so the volatility result on MAE is partly definitional. We
+  rely on directional accuracy (Section 4.5) to avoid this trap — but that metric,
+  being near 50% everywhere, offers little skill to explain in the first place.
 
 ### 5.2 Future work
 
@@ -419,9 +500,9 @@ non-linear forecasters; and (iv) testing whether a **volatility-aware** meta-mod
 
 This study set out to test whether cross-sector correlation regimes shape the
 accuracy of equity forecasting models. The answer is more interesting than a
-simple yes: correlation regimes *appear* to matter enormously, but that
-appearance is a mirage — and seeing through it points to the variable that
-actually does the work.
+simple yes: correlation regimes *appear* to matter enormously, but that appearance
+is a mirage — and the lesson is in how the mirage forms and how cheaply it
+dissolves.
 
 Three findings, in order of what they teach:
 
@@ -442,22 +523,30 @@ Three findings, in order of what they teach:
    sort drives the point home: hold volatility fixed and the correlation effect
    shrinks to noise and even flips sign.
 
-3. **The positive takeaway — the real contribution — is about volatility.**
-   Stripping away the correlation mirage leaves a clean, robust, and *usable*
-   result: **volatility is the operative driver of short-horizon equity
-   predictability.** It is observable at *t−1*, it survives every control we impose,
-   and it alone explains why forecasts collapse in stressed markets. Cross-sector
-   correlation is worth watching only as one of several *signals* of that
-   volatility state — not as a cause in its own right.
+3. **What survives is a caveat, not a new predictor.** Stripping away the
+   correlation mirage does *not* leave a shiny "volatility predicts skill" result
+   in its place — and claiming one would repeat the very mistake the paper warns
+   against. Volatility dominates the *error magnitude*, but that is partly
+   mechanical: with forecasts near zero, absolute error is essentially move size.
+   On directional accuracy — the metric that does not inflate with volatility —
+   skill is 44–54% in every regime, a whisker from a coin flip, with no clean
+   ordering by volatility or correlation. The blunt truth is that there is little
+   short-horizon directional predictability here for *any* regime to switch on or
+   off, exactly as the out-of-sample predictability literature would lead us to
+   expect (Welch and Goyal, 2008; Campbell and Thompson, 2008).
 
-The methodological lesson generalizes beyond this dataset. Regime studies that
-sort on correlation, dispersion, or breadth are all vulnerable to the same
-volatility confound, and a marginal test — however tiny its p-value — cannot tell a
-genuine effect from a volatility shadow. The remedy is cheap and decisive: add a
-lagged volatility control and let the coefficient speak. Here it spoke clearly.
-For anyone building or trusting a short-horizon equity forecast, the actionable
-conclusion is singular and well-supported: **condition on volatility.** That is
-where the predictability — and the danger — actually lives.
+**The real contribution is methodological, and it is the headline.** A
+correlation-regime effect that looked statistically bulletproof — a ~60% error gap,
+p ≪ 0.001, replicated across five models and two tests — turned out to be a
+volatility shadow. The cure was cheap and decisive: add one lagged volatility
+control and read the coefficient (it fell to zero), then re-check on a scale-free
+metric (the pattern vanished). This generalizes. Regime studies that sort on
+correlation, dispersion, or breadth are all exposed to the same volatility
+confound, and often to a mechanical-metric trap on top of it. **A tiny p-value
+certifies neither a real effect nor genuine forecast skill.** Before believing a
+regime "controls" predictability, control for volatility and test on a metric that
+move size cannot inflate. When we did both, the impressive result dissolved — and
+saying so plainly is the point.
 
 ---
 
@@ -465,6 +554,16 @@ where the predictability — and the danger — actually lives.
 
 Ang, A., and G. Bekaert. 2002. "International Asset Allocation With Regime
 Shifts." *The Review of Financial Studies* 15 (4): 1137–1187.
+
+Ang, A., and J. Chen. 2002. "Asymmetric Correlations of Equity Portfolios."
+*Journal of Financial Economics* 63 (3): 443–494.
+
+Campbell, J. Y., and S. B. Thompson. 2008. "Predicting Excess Stock Returns Out of
+Sample: Can Anything Beat the Historical Average?" *The Review of Financial
+Studies* 21 (4): 1509–1531.
+
+Diebold, F. X., and R. S. Mariano. 1995. "Comparing Predictive Accuracy." *Journal
+of Business & Economic Statistics* 13 (3): 253–263.
 
 Forbes, K. J., and R. Rigobon. 2002. "No Contagion, Only Interdependence:
 Measuring Stock Market Comovements." *The Journal of Finance* 57 (5): 2223–2261.
@@ -475,13 +574,24 @@ Learning." *The Review of Financial Studies* 33 (5): 2223–2273.
 Hamilton, J. D. 1989. "A New Approach to the Economic Analysis of Nonstationary
 Time Series and the Business Cycle." *Econometrica* 57 (2): 357–384.
 
+Newey, W. K., and K. D. West. 1987. "A Simple, Positive Semi-Definite,
+Heteroskedasticity and Autocorrelation Consistent Covariance Matrix."
+*Econometrica* 55 (3): 703–708.
+
+Welch, I., and A. Goyal. 2008. "A Comprehensive Look at the Empirical Performance
+of Equity Premium Prediction." *The Review of Financial Studies* 21 (4):
+1455–1508.
+
 > **Note on citations (author should verify before submission).** I am confident
-> these four papers exist and that each genuinely supports the specific sentence
-> it is attached to — Forbes and Rigobon on the volatility/correlation confound,
-> Hamilton and Ang–Bekaert on regime-switching co-movement, and Gu–Kelly–Xiu on
-> regularized linear models in asset pricing. The exact volume/issue/page numbers
-> are given from memory and should be double-checked against the journal of record
-> (or a DOI) before final submission. No reference here was included unless it
+> these nine papers are real and that each genuinely supports the specific sentence
+> it is attached to — Forbes and Rigobon on the volatility/correlation confound;
+> Hamilton, Ang–Bekaert, and Ang–Chen on regime-switching and asymmetric
+> co-movement; Gu–Kelly–Xiu on regularized linear models; Newey–West on the HAC
+> standard errors actually used here; Diebold–Mariano on forecast-accuracy
+> comparison; and Welch–Goyal and Campbell–Thompson on the weak out-of-sample
+> predictability of short-horizon equity returns. The exact volume/issue/page
+> numbers are given from memory and should be double-checked against the journal of
+> record (or a DOI) before final submission. No reference was included unless it
 > directly backs a claim in the text.
 
 ---
