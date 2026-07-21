@@ -142,7 +142,9 @@ among the well-documented stylized facts of asset returns (Cont, 2001).
 | XLF (Financials)  | 10.4% | 21.8% | 0.48 | −0.56 | 15.1 |
 | SPY (S&P 500)     | 12.9% | 17.7% | 0.73 | −0.58 | 14.5 |
 
-*(See `figures/01_cumulative_returns.png` and `figures/02_return_series.png`.)*
+![Figure 1. Growth of one dollar invested per asset (cumulative log returns).](../figures/01_cumulative_returns.png)
+
+![Figure 2. Daily log returns by asset.](../figures/02_return_series.png)
 
 ---
 
@@ -153,22 +155,31 @@ among the well-documented stylized facts of asset returns (Cont, 2001).
 For each trading day we estimate the Pearson correlation between every pair of the
 four sector ETFs over a trailing **90-day window** (within the 60–120-day range
 common in the literature). With four sectors there are C(4,2) = 6 pairs; their
-mean is the day's **average pairwise cross-sector correlation**.
+mean is the day's **average pairwise cross-sector correlation**. Over the full
+sample the sectors are strongly co-moving (Figure 3).
+
+![Figure 3. Full-sample return correlation matrix.](../figures/03_correlation_heatmap.png)
 
 **Regime classification.** Using the empirical distribution of the average
 correlation over the full sample, we label each day **high** (≥ 75th percentile,
 threshold ≈ 0.670), **low** (≤ 25th percentile, threshold ≈ 0.337), or **mid**.
-This yields 697 high, 697 low, and 1,394 mid days. Figure
-`04_rolling_corr_regimes.png` shows the correlation series with the regime bands;
-high-correlation episodes cluster around well-known stress periods (the 2018
-volatility spike, the 2020 COVID crash, the 2022 drawdown), while the later part
-of the sample is markedly less correlated.
+This yields 697 high, 697 low, and 1,394 mid days. Figure 4 shows the correlation
+series with the regime bands; high-correlation episodes cluster around well-known
+stress periods (the 2018 volatility spike, the 2020 COVID crash, the 2022
+drawdown), while the later part of the sample is markedly less correlated. Figure 5
+shows the resulting regime label for each day.
+
+![Figure 4. Rolling average cross-sector correlation with high/low regime shading.](../figures/04_rolling_corr_regimes.png)
+
+![Figure 5. Correlation regime classification over time.](../figures/05_regime_timeline.png)
 
 **Principal Component Analysis.** As a complementary market-wide co-movement gauge
 we run PCA on the standardized sector returns. Over the full sample the **first
 principal component explains 69.3%** of total variance (PC1+PC2 = 85.0%),
 confirming a single dominant systematic factor. A rolling PC1 variance share
-(`06_pca_analysis.png`) tracks the average correlation closely.
+(Figure 6) tracks the average correlation closely.
+
+![Figure 6. PCA explained variance (scree) and rolling PC1 co-movement.](../figures/06_pca_analysis.png)
 
 ### 3.2 Forecasting models
 
@@ -295,7 +306,9 @@ table in `results/metrics_by_regime.csv`):
 Descriptively, errors are **roughly 58–62% larger** in the high-correlation
 regime for every model, and directional accuracy is lower — falling to chance or
 below (the naive random-walk direction is 46.6%, worse than a coin flip, in the
-high regime).
+high regime). Figure 7 shows a representative predicted-vs-actual price track.
+
+![Figure 7. Predicted vs actual SPY price (linear regression, last 250 trading days).](../figures/07_prediction_vs_actual.png)
 
 ### 4.2 Hypothesis tests (high vs low regime)
 
@@ -308,13 +321,16 @@ high regime).
 | Lasso            | 0.01163 | 0.00732 | 1.1×10⁻⁴⁴ | 1.8×10⁻³⁰ | 0.37 |
 
 Both tests reject H₀ for every model (small-to-medium effect, Cohen's d ≈ 0.37).
-Taken at face value this says accuracy is *not* independent of the correlation
-regime. Section 4.3 shows why that face-value reading is misleading.
+The error distributions for the two regimes are compared in Figure 8. Taken at
+face value this says accuracy is *not* independent of the correlation regime.
+Section 4.3 shows why that face-value reading is misleading.
+
+![Figure 8. Absolute return-error distribution: high vs low correlation regime.](../figures/08_error_distribution.png)
 
 ### 4.3 The confound: correlation vs. volatility (the key result)
 
 In our sample, lagged correlation and lagged volatility are strongly collinear:
-**r = 0.64** (Figure `10_corr_vs_vol_scatter.png`). The regression of daily mean
+**r = 0.64** (Figure 9). The regression of daily mean
 absolute error on the two lagged predictors (z-scored; Newey–West SE, 21 lags;
 n = 2,620) is decisive. Results are near-identical across models; the
 LinearRegression row is representative (full table in
@@ -336,6 +352,8 @@ volatility is accounted for, the correlation regime tells us nothing more about
 the error magnitude.** The significant marginal association in Sections 4.1–4.2 is
 a volatility effect wearing a correlation costume.
 
+![Figure 9. Lagged correlation vs lagged volatility — the two are collinear (r = 0.64).](../figures/10_corr_vs_vol_scatter.png)
+
 One caveat we return to below: the dependent variable here is absolute return
 error, which — because forecasts are near zero — is close to the size of the move
 itself. So this regression establishes that the *correlation* effect is spurious,
@@ -347,12 +365,14 @@ read as "volatility predicts skill." Section 4.5 puts that to a scale-free test.
 The 2×2 sort tells the same story visually and numerically. Cells use lagged
 correlation quartiles (thresholds 0.337 / 0.670) and a lagged-volatility median
 split (0.137). LinearRegression shown (all models in `results/double_sort.csv`;
-Figure `11_double_sort.png`):
+Figure 10):
 
 | | Low volatility | High volatility |
 |---|---:|---:|
 | **Low correlation**  | MAE 0.00734 (n=3,095) | MAE 0.01032 (n=390) |
 | **High correlation** | MAE 0.00657 (n=250)   | MAE 0.01216 (n=2,760) |
+
+![Figure 10. 2×2 double sort of mean absolute error — volatility dominates, not correlation.](../figures/11_double_sort.png)
 
 Two things stand out. First, **volatility dominates**: moving from low to high
 volatility roughly doubles MAE within each correlation column (e.g. within
@@ -404,7 +424,10 @@ The honest reading is therefore weaker than the MAE tables suggest, and we state
 it plainly: **on the metric that is not mechanically inflated by volatility, there
 is little genuine directional skill to allocate to any regime.** The models are
 near coin-flips throughout. This is the load-bearing evidence, and it disciplines
-every claim in the Discussion.
+every claim in the Discussion. Figure 11 shows the directional accuracy by model
+and regime.
+
+![Figure 11. Directional accuracy by model and correlation regime (dashed line = 50% chance).](../figures/09_directional_accuracy.png)
 
 ### 4.6 Alpha robustness
 
@@ -655,4 +678,4 @@ hyperparameters) are centralized in `src/config.py`. The annotated notebook
 | **2×2 double sort** | `results/double_sort.csv` |
 | **Alpha robustness** | `results/alpha_robustness.csv` |
 | PCA variance | `results/pca_static_variance.csv` |
-| Figures (11 publication-ready PNGs) | `figures/` |
+| Figures 1–11 (inline in the paper; source PNGs) | `figures/` |

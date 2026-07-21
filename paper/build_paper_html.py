@@ -78,20 +78,38 @@ def preprocess(md_text: str) -> str:
     return md_text
 
 
-def figures_html() -> str:
-    blocks = ["<hr><h2 id='figures'>Figures</h2>"]
-    for i, (fname, cap) in enumerate(FIGURES, 1):
-        path = os.path.join(FIG_DIR, fname)
-        if not os.path.exists(path):
-            continue
-        with open(path, "rb") as f:
-            b64 = base64.b64encode(f.read()).decode("ascii")
-        blocks.append(
-            f"<figure><img src='data:image/png;base64,{b64}' alt='{fname}'>"
-            f"<figcaption><strong>Figure {i}.</strong> {cap} "
-            f"<code>{fname}</code></figcaption></figure>"
-        )
-    return "\n".join(blocks)
+def _embed_one(alt: str, src: str) -> str:
+    """Return a self-contained <figure> for one image, or '' if missing."""
+    fname = os.path.basename(src)
+    path = os.path.join(FIG_DIR, fname)
+    if not os.path.exists(path):
+        return ""
+    with open(path, "rb") as f:
+        b64 = base64.b64encode(f.read()).decode("ascii")
+    # Bold a leading "Figure N." label in the caption.
+    m = re.match(r"(Figure\s+\d+\.)\s*(.*)", alt, re.S)
+    caption = (f"<strong>{m.group(1)}</strong> {m.group(2)}" if m else alt)
+    return (f'<figure><img src="data:image/png;base64,{b64}" alt="{fname}">'
+            f'<figcaption>{caption}</figcaption></figure>')
+
+
+def embed_images(html: str) -> str:
+    """Replace inline <img src="../figures/..."> tags with embedded figures.
+
+    Markdown renders a standalone image as <p><img ...></p>; we swap the <img>
+    for a self-contained <figure> and unwrap the surrounding <p>.
+    """
+    def repl(match: "re.Match") -> str:
+        tag = match.group(0)
+        alt = (re.search(r'alt="([^"]*)"', tag) or [None, ""])
+        src = (re.search(r'src="([^"]*)"', tag) or [None, ""])
+        alt_v = alt.group(1) if hasattr(alt, "group") else ""
+        src_v = src.group(1) if hasattr(src, "group") else ""
+        return _embed_one(alt_v, src_v) or tag
+
+    html = re.sub(r"<img[^>]*>", repl, html)
+    html = html.replace("<p><figure>", "<figure>").replace("</figure></p>", "</figure>")
+    return html
 
 
 CSS = """
@@ -187,6 +205,7 @@ def main() -> None:
         preprocess(md_text),
         extensions=["tables", "fenced_code", "sane_lists"],
     )
+    body = embed_images(body)
     html = f"""<!doctype html>
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -195,7 +214,6 @@ def main() -> None:
 <body>
 {TITLE_PAGE}
 {body}
-{figures_html()}
 </body></html>"""
 
     with open(OUT_PATH, "w", encoding="utf-8") as f:
