@@ -202,7 +202,7 @@ cells.append(new_code_cell(
 ))
 cells.append(new_markdown_cell(
     "**The scale-free test dissolves the strong story.** Directional accuracy is "
-    "44–54% in *every* cell — a whisker from the 50% coin flip — with no clean "
+    "45–54% in *every* cell — a whisker from the 50% coin flip — with no clean "
     "ordering by volatility or correlation (for Ridge/Lasso the *worst* cell is "
     "low-volatility). There is little genuine directional skill in any regime."
 ))
@@ -218,7 +218,7 @@ cells.append(new_markdown_cell(
     "volatility remains significant.\n"
     "\n"
     "And the volatility 'winner' is partly **mechanical** (error ≈ move size). On "
-    "directional accuracy — the scale-free metric — skill is 44–54% in every "
+    "directional accuracy — the scale-free metric — skill is 45–54% in every "
     "regime, near a coin flip, with no clean ordering.\n"
     "\n"
     "**Honest bottom line — the contribution is methodological:** an effect that "

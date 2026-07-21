@@ -40,7 +40,7 @@ predict returns near zero, absolute error is nearly equal to the size of the mov
 so the "volatility explains the error" result is partly *mechanical* rather than a
 discovery. The honest test is **directional accuracy**, a scale-free metric that
 does not inflate with volatility — and there we find that predictive skill is weak
-in *every* cell of the double sort (44–54%, hovering near the 50% coin-flip), with
+in *every* cell of the double sort (45–54%, hovering near the 50% coin-flip), with
 no clean ordering by either volatility or correlation. The paper's real
 contribution is therefore methodological: an effect that looks statistically
 bulletproof on a scale-dependent metric (p ≪ 0.001, every model, two tests) can be
@@ -131,8 +131,8 @@ returns:
 $$ r_t = \ln\!\left(\frac{P_t}{P_{t-1}}\right). $$
 
 **Descriptive statistics (annualized).** Technology was the strongest and Energy
-the weakest sector; all series show the negative skew and heavy tails typical of
-equity returns.
+the weakest sector; all series show the negative skew and heavy tails that are
+among the well-documented stylized facts of asset returns (Cont, 2001).
 
 | Asset | Annual return | Annual volatility | Naive Sharpe | Skew | Excess kurtosis |
 |-------|--------------:|------------------:|-------------:|-----:|----------------:|
@@ -219,7 +219,9 @@ each day.
 > **A caution about MAE that shapes the whole analysis.** Because every model
 > predicts a return close to zero (the random walk predicts exactly zero), the
 > absolute return error is nearly equal to the *size of the realized move* — i.e.
-> it tracks realized volatility almost by construction. Return-MAE is therefore
+> it tracks realized volatility almost by construction, and realized volatility is
+> itself persistent and clustered (Engle, 1982; Bollerslev, 1986). Return-MAE is
+> therefore
 > **not** invariant to volatility, and any "volatility explains the error" result
 > in Section 4 is partly mechanical. The metric that is genuinely invariant to
 > move size is **directional accuracy**: getting the sign right is neither easier
@@ -233,8 +235,9 @@ For each model we compare absolute return errors in the high vs low regime using
 (distribution-free, robust to the heavy-tailed error distribution); comparing the
 predictive accuracy of competing forecasts in this way follows the tradition of
 Diebold and Mariano (1995). Directional accuracy is compared with a
-**two-proportion z-test**, and we report **Cohen's d** as a standardized effect
-size.
+**two-proportion z-test** — a simple sign-based assessment in the spirit of the
+directional-predictability test of Pesaran and Timmermann (1992) — and we report
+**Cohen's d** as a standardized effect size.
 
 **Caveat on independence.** The pooled observations are *not* independent — regimes
 persist for many consecutive days and the five assets are correlated — so the
@@ -248,9 +251,10 @@ inferential test.
 This is the paper's core robustness section. To separate a genuine correlation
 effect from a volatility effect, we:
 
-1. **Add a volatility proxy** — 90-day annualized realized volatility of SPY,
-   computed through day *t−1* (a VIX-based proxy was considered but is not used
-   here, to keep the pipeline fully reproducible from the price data alone).
+1. **Add a volatility proxy** — 90-day annualized realized volatility of SPY
+   (realized volatility in the sense of Andersen, Bollerslev, Diebold, and Labys,
+   2003), computed through day *t−1* (a VIX-based proxy was considered but is not
+   used here, to keep the pipeline fully reproducible from the price data alone).
 
 2. **Regress the daily mean absolute error on the lagged predictors** (both
    z-scored), using Newey and West (1987) heteroskedasticity- and
@@ -385,7 +389,7 @@ directional accuracy for all five models (full table in
 | Ridge            | 53.3% | 53.0% | 48.4% | 51.7% |
 | Lasso            | 53.5% | 52.4% | 48.4% | 51.4% |
 
-**Here the strong story dissolves.** Every number sits between 44% and 54% — a
+**Here the strong story dissolves.** Every number sits between 45% and 54% — a
 whisker around the 50% coin-flip. No model is meaningfully skillful in any cell,
 and the naive random walk's direction rule is actually *below* 50% in three of
 four cells. Crucially, the clean volatility ordering that dominated the MAE
@@ -442,7 +446,7 @@ near zero, that error is close to the size of the move itself — so "volatility
 explains the error" is partly *mechanical*, not a discovery about forecast skill.
 This is precisely why we lean on directional accuracy (Section 4.5), a metric that
 is invariant to move size. On that metric the strong story evaporates: skill sits
-between 44% and 54% in every cell, the volatility ordering does not cleanly
+between 45% and 54% in every cell, the volatility ordering does not cleanly
 reappear (for Ridge/Lasso the worst cell is low-volatility), and neither
 correlation nor volatility earns a robust edge. In other words, there is little
 genuine directional predictability in *any* regime to begin with — consistent with
@@ -491,8 +495,10 @@ Promising extensions: (i) a heteroskedasticity-corrected correlation measure à 
 Forbes and Rigobon to test whether *volatility-adjusted* correlation has any
 residual predictive content; (ii) a regime-switching / HMM regime definition
 (Hamilton, 1989; Ang and Bekaert, 2002) instead of static quartiles; (iii) adding
-non-linear forecasters; and (iv) testing whether a **volatility-aware** meta-model
-(scaling back forecasts in high-volatility states) improves realized accuracy.
+non-linear forecasters and forecast-combination schemes, which have improved
+out-of-sample equity prediction elsewhere (Rapach, Strauss, and Zhou, 2010); and
+(iv) testing whether a **volatility-aware** meta-model (scaling back forecasts in
+high-volatility states) improves realized accuracy.
 
 ---
 
@@ -529,7 +535,7 @@ Three findings, in order of what they teach:
    against. Volatility dominates the *error magnitude*, but that is partly
    mechanical: with forecasts near zero, absolute error is essentially move size.
    On directional accuracy — the metric that does not inflate with volatility —
-   skill is 44–54% in every regime, a whisker from a coin flip, with no clean
+   skill is 45–54% in every regime, a whisker from a coin flip, with no clean
    ordering by volatility or correlation. The blunt truth is that there is little
    short-horizon directional predictability here for *any* regime to switch on or
    off, exactly as the out-of-sample predictability literature would lead us to
@@ -552,47 +558,73 @@ saying so plainly is the point.
 
 ## References
 
+Andersen, T. G., T. Bollerslev, F. X. Diebold, and P. Labys. 2003. "Modeling and
+Forecasting Realized Volatility." *Econometrica* 71 (2): 579–625.
+https://doi.org/10.1111/1468-0262.00418
+
 Ang, A., and G. Bekaert. 2002. "International Asset Allocation With Regime
 Shifts." *The Review of Financial Studies* 15 (4): 1137–1187.
+https://doi.org/10.1093/rfs/15.4.1137
 
 Ang, A., and J. Chen. 2002. "Asymmetric Correlations of Equity Portfolios."
 *Journal of Financial Economics* 63 (3): 443–494.
+https://doi.org/10.1016/S0304-405X(02)00068-5
+
+Bollerslev, T. 1986. "Generalized Autoregressive Conditional Heteroskedasticity."
+*Journal of Econometrics* 31 (3): 307–327.
+https://doi.org/10.1016/0304-4076(86)90063-1
 
 Campbell, J. Y., and S. B. Thompson. 2008. "Predicting Excess Stock Returns Out of
 Sample: Can Anything Beat the Historical Average?" *The Review of Financial
-Studies* 21 (4): 1509–1531.
+Studies* 21 (4): 1509–1531. https://doi.org/10.1093/rfs/hhm055
+
+Cont, R. 2001. "Empirical Properties of Asset Returns: Stylized Facts and
+Statistical Issues." *Quantitative Finance* 1 (2): 223–236.
+https://doi.org/10.1088/1469-7688/1/2/304
 
 Diebold, F. X., and R. S. Mariano. 1995. "Comparing Predictive Accuracy." *Journal
 of Business & Economic Statistics* 13 (3): 253–263.
+https://doi.org/10.1080/07350015.1995.10524599
+
+Engle, R. F. 1982. "Autoregressive Conditional Heteroscedasticity with Estimates
+of the Variance of United Kingdom Inflation." *Econometrica* 50 (4): 987–1007.
+https://doi.org/10.2307/1912773
 
 Forbes, K. J., and R. Rigobon. 2002. "No Contagion, Only Interdependence:
 Measuring Stock Market Comovements." *The Journal of Finance* 57 (5): 2223–2261.
+https://doi.org/10.1111/0022-1082.00494
 
 Gu, S., B. Kelly, and D. Xiu. 2020. "Empirical Asset Pricing via Machine
 Learning." *The Review of Financial Studies* 33 (5): 2223–2273.
+https://doi.org/10.1093/rfs/hhaa009
 
 Hamilton, J. D. 1989. "A New Approach to the Economic Analysis of Nonstationary
 Time Series and the Business Cycle." *Econometrica* 57 (2): 357–384.
+https://doi.org/10.2307/1912559
 
 Newey, W. K., and K. D. West. 1987. "A Simple, Positive Semi-Definite,
 Heteroskedasticity and Autocorrelation Consistent Covariance Matrix."
-*Econometrica* 55 (3): 703–708.
+*Econometrica* 55 (3): 703–708. https://doi.org/10.2307/1913610
+
+Pesaran, M. H., and A. Timmermann. 1992. "A Simple Nonparametric Test of
+Predictive Performance." *Journal of Business & Economic Statistics* 10 (4):
+461–465. https://doi.org/10.1080/07350015.1992.10509922
+
+Rapach, D. E., J. K. Strauss, and G. Zhou. 2010. "Out-of-Sample Equity Premium
+Prediction: Combination Forecasts and Links to the Real Economy." *The Review of
+Financial Studies* 23 (2): 821–862. https://doi.org/10.1093/rfs/hhp063
 
 Welch, I., and A. Goyal. 2008. "A Comprehensive Look at the Empirical Performance
 of Equity Premium Prediction." *The Review of Financial Studies* 21 (4):
-1455–1508.
+1455–1508. https://doi.org/10.1093/rfs/hhm014
 
-> **Note on citations (author should verify before submission).** I am confident
-> these nine papers are real and that each genuinely supports the specific sentence
-> it is attached to — Forbes and Rigobon on the volatility/correlation confound;
-> Hamilton, Ang–Bekaert, and Ang–Chen on regime-switching and asymmetric
-> co-movement; Gu–Kelly–Xiu on regularized linear models; Newey–West on the HAC
-> standard errors actually used here; Diebold–Mariano on forecast-accuracy
-> comparison; and Welch–Goyal and Campbell–Thompson on the weak out-of-sample
-> predictability of short-horizon equity returns. The exact volume/issue/page
-> numbers are given from memory and should be double-checked against the journal of
-> record (or a DOI) before final submission. No reference was included unless it
-> directly backs a claim in the text.
+> **Note on citations.** All fifteen references were verified against publisher,
+> Econometric Society, Wiley, or RePEc records, and each carries a resolvable DOI;
+> every reference is attached to a specific claim it directly supports. Two minor
+> page-range ambiguities remain in secondary indexes and are worth a final check
+> against the journal of record: Pesaran and Timmermann (1992) is listed as
+> 461–465 by the publisher (one index shows 561–565), and Engle (1982) as 987–1007
+> (one index shows …1008). The values above are the authoritative ones.
 
 ---
 

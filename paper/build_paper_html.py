@@ -129,18 +129,59 @@ figcaption { font-size: .82em; color: var(--muted); margin-top: .5rem;
              text-align: left; }
 hr { border: none; border-top: 1px solid var(--rule); margin: 2.5rem 0; }
 strong { color: #111; }
+.titlepage { text-align: center; padding: 3.5rem 0 2rem; }
+.titlepage .maintitle { font-size: 1.9rem; line-height: 1.3; font-weight: 700;
+  margin: 0 auto 1rem; max-width: 90%; }
+.titlepage .subtitle { font-size: 1.15rem; font-style: italic; color: var(--muted);
+  margin-bottom: 2.5rem; }
+.titlepage .author { font-size: 1.15rem; margin-bottom: .2rem; }
+.titlepage .date { color: var(--muted); margin-bottom: 2.5rem; }
+.titlepage .meta { text-align: left; max-width: 640px; margin: 2rem auto 0;
+  font-size: .9em; font-family: -apple-system, Arial, sans-serif; }
+.titlepage .meta p { margin: .4rem 0; }
+.titlepage .rule { width: 60px; border-top: 2px solid var(--accent);
+  margin: 1.5rem auto; }
 @media print {
   body { font-size: 11.5pt; max-width: 100%; padding: 0; }
   h2 { page-break-after: avoid; }
   figure, table, pre, blockquote { page-break-inside: avoid; }
   a { color: var(--ink); text-decoration: none; }
+  .titlepage { page-break-after: always; min-height: 90vh; }
 }
+"""
+
+# --- Title-page content ---------------------------------------------------- #
+AUTHOR = "Aarav Vaidha"
+DATE = "July 2026"
+KEYWORDS = ("cross-sector correlation; realized volatility; regime analysis; "
+            "out-of-sample forecasting; return predictability; "
+            "Newey–West standard errors")
+JEL = "C53, C58, G11, G17"
+
+TITLE_PAGE = f"""
+<div class="titlepage">
+  <div class="maintitle">Cross-Sector Correlation Regimes and Their Impact on the
+    Predictive Accuracy of Equity Price Forecasting Models</div>
+  <div class="subtitle">A quantitative study of U.S. sector ETFs (2015&ndash;2026)</div>
+  <div class="author">{AUTHOR}</div>
+  <div class="date">{DATE}</div>
+  <div class="rule"></div>
+  <div class="meta">
+    <p><strong>Keywords:</strong> {KEYWORDS}</p>
+    <p><strong>JEL classification:</strong> {JEL}</p>
+  </div>
+</div>
 """
 
 
 def main() -> None:
     with open(MD_PATH, encoding="utf-8") as f:
         md_text = f.read()
+
+    # Drop the leading H1 + subtitle block from the body; the title page renders
+    # them instead. Body begins at the Abstract.
+    if "## Abstract" in md_text:
+        md_text = md_text[md_text.index("## Abstract"):]
 
     body = markdown.markdown(
         preprocess(md_text),
@@ -152,6 +193,7 @@ def main() -> None:
 <title>Cross-Sector Correlation Regimes and Equity Forecasting Accuracy</title>
 <style>{CSS}</style></head>
 <body>
+{TITLE_PAGE}
 {body}
 {figures_html()}
 </body></html>"""
