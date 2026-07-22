@@ -30,8 +30,8 @@ TITLE = ("Cross-Sector Correlation Regimes and Their Impact on the Predictive "
 KEYWORDS = ("cross-sector correlation, realized volatility, regime analysis, "
             "out-of-sample forecasting, return predictability, volatility "
             "confound, Newey–West standard errors")
-AFFIL = ("¹Aarav Vaidha, [Your School], [Street Address], [City, State ZIP], "
-         "USA. aaravvaidha69@gmail.com")
+AFFIL = ("¹Aarav Vaidha, MOT Charter High School, 1275 Cedar Lane Rd, "
+         "Middletown, DE 19709, USA. aaravvaidha69@gmail.com")
 
 CSS = """
 * { box-sizing: border-box; }
