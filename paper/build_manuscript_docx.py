@@ -61,7 +61,7 @@ def _set_font(style, size=12, bold=False):
 def _page_number_field(paragraph):
     run = paragraph.add_run()
     run.font.name = TNR
-    run.font.size = Pt(12)
+    run.font.size = Pt(11)
     for typ, extra in (("begin", None), ("text", "PAGE"), ("end", None)):
         if typ == "text":
             el = OxmlElement("w:instrText")
@@ -87,9 +87,9 @@ def _top_border(paragraph):
 def build_reference_doc() -> None:
     doc = Document()
 
-    # --- Normal: TNR 12, double spacing, first-line indent -----------------
+    # --- Normal: TNR 11, double spacing, first-line indent -----------------
     normal = doc.styles["Normal"]
-    _set_font(normal, 12)
+    _set_font(normal, 11)
     pf = normal.paragraph_format
     pf.line_spacing = 2.0
     pf.space_after = Pt(0)
@@ -102,7 +102,7 @@ def build_reference_doc() -> None:
             h = doc.styles[f"Heading {lvl}"]
         except KeyError:
             continue
-        _set_font(h, 12, bold=True)
+        _set_font(h, 11, bold=True)
         h.font.color.rgb = None  # inherit black
         hpf = h.paragraph_format
         hpf.first_line_indent = Inches(0)
@@ -157,7 +157,7 @@ def add_title_page(doc: Document) -> None:
     first = doc.paragraphs[0]
 
     def new(before, text="", *, align=WD_ALIGN_PARAGRAPH.LEFT, bold=False,
-            size=12, blank_after=0, superscript_tail=None):
+            size=11, blank_after=0, superscript_tail=None):
         p = before.insert_paragraph_before()
         p.alignment = align
         p.paragraph_format.first_line_indent = Inches(0)
@@ -190,11 +190,11 @@ def add_title_page(doc: Document) -> None:
     kw = new(first, "", align=WD_ALIGN_PARAGRAPH.LEFT)
     b = kw.add_run("Keywords: ")
     b.font.name = TNR
-    b.font.size = Pt(12)
+    b.font.size = Pt(11)
     b.font.bold = True
     k = kw.add_run(KEYWORDS)
     k.font.name = TNR
-    k.font.size = Pt(12)
+    k.font.size = Pt(11)
     # Page break to end the title page
     pb = new(first)
     pb.add_run().add_break(WD_BREAK.PAGE)

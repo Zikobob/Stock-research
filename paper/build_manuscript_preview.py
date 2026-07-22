@@ -36,7 +36,7 @@ AFFIL = ("¹Aarav Vaidha, MOT Charter High School, 1275 Cedar Lane Rd, "
 
 CSS = """
 * { box-sizing: border-box; }
-body { font-family: 'Times New Roman', Times, serif; font-size: 12pt;
+body { font-family: 'Times New Roman', Times, serif; font-size: 11pt;
        line-height: 2.0; color: #000; margin: 0; }
 p { text-indent: 0.5in; margin: 0; text-align: left; }
 h1, h2 { font-size: 12pt; font-weight: bold; text-align: center; margin: 1em 0 .3em; }
