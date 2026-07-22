@@ -23,10 +23,12 @@ lagged volatility control plus a scale-free re-check dissolves it. A tiny p-valu
 certifies neither a real effect nor genuine forecast skill (cf. Forbes & Rigobon,
 2002).
 
-📄 Full write-up: [`paper/research_paper.md`](paper/research_paper.md) · [PDF](paper/research_paper.pdf) · [HTML](paper/research_paper.html)
+📄 Full write-up: [`paper/research_paper.md`](paper/research_paper.md) · [PDF](paper/research_paper.pdf) · [Word/Google Docs](paper/research_paper.docx) · [HTML](paper/research_paper.html)
 📓 Interactive walk-through: [`notebooks/research_analysis.ipynb`](notebooks/research_analysis.ipynb)
 
-*15 verified references (each with a DOI). Regenerate the PDF with `python paper/build_pdf.py`.*
+*15 verified references (each with a DOI).*
+*Regenerate outputs: `python paper/build_pdf.py` (PDF); `pandoc paper/research_paper.md -o paper/research_paper.docx --toc` run from `paper/` (Word).*
+*To edit in Google Docs: upload `research_paper.docx` to Drive → right-click → Open with Google Docs.*
 
 ---
 
