@@ -205,9 +205,11 @@ boundaries are **all computed using data strictly up to *t−1***; nothing on da
 *t* enters any quantity used to forecast day *t*.
 
 **On the regularized models and their penalties.** Ridge and Lasso are included
-because regularized linear models are a standard, well-motivated benchmark in
-empirical asset pricing (Gu, Kelly, and Xiu, 2020), which finds that shrinkage
-methods are among the more reliable linear return predictors. We do **not** tune
+because regularized linear models are a standard, well-motivated *linear*
+benchmark in empirical asset pricing, where shrinkage methods have been
+systematically evaluated as part of the machine-learning toolkit (Gu, Kelly, and
+Xiu, 2020, who report that nonlinear methods can improve further still). We do
+**not** tune
 the penalties: the sample begins in January 2015, so there is no earlier
 validation window to tune on without either introducing look-ahead bias or
 sacrificing data. We therefore fix the penalties at conventional defaults
@@ -243,9 +245,11 @@ each day.
 
 For each model we compare absolute return errors in the high vs low regime using
 **Welch's t-test** (unequal variance) and the **Mann–Whitney U test**
-(distribution-free, robust to the heavy-tailed error distribution); comparing the
-predictive accuracy of competing forecasts in this way follows the tradition of
-Diebold and Mariano (1995). Directional accuracy is compared with a
+(distribution-free, robust to the heavy-tailed error distribution). More broadly,
+formally testing whether one set of forecasts is more accurate than another is the
+problem introduced by Diebold and Mariano (1995); here we compare a single model's
+errors *across regimes* rather than two models against each other. Directional
+accuracy is compared with a
 **two-proportion z-test** — a simple sign-based assessment in the spirit of the
 directional-predictability test of Pesaran and Timmermann (1992) — and we report
 **Cohen's d** as a standardized effect size.
@@ -460,8 +464,10 @@ regime adds no explanatory power (joint p ≈ 0.72–0.79), and the double sort 
 the correlation effect changing sign across volatility buckets. This is exactly the
 trap Forbes and Rigobon (2002) identified: because measured correlation is
 mechanically higher when volatility is higher, an apparent "correlation regime
-effect" can be a volatility effect in disguise. Our result is a concrete,
-forecasting-flavored instance of their point.
+effect" can be a volatility effect in disguise. Forbes and Rigobon studied
+*cross-country* contagion rather than cross-sector co-movement; we extend their
+heteroskedasticity-bias mechanism to a cross-sector, forecasting setting, which is
+a natural analogy rather than a like-for-like replication of their result.
 
 **But we must not over-claim the volatility side either.** The surviving volatility
 coefficient is measured on absolute return error, and because our forecasts are
@@ -610,7 +616,7 @@ of Business & Economic Statistics* 13 (3): 253–263.
 https://doi.org/10.1080/07350015.1995.10524599
 
 Engle, R. F. 1982. "Autoregressive Conditional Heteroscedasticity with Estimates
-of the Variance of United Kingdom Inflation." *Econometrica* 50 (4): 987–1007.
+of the Variance of United Kingdom Inflation." *Econometrica* 50 (4): 987–1008.
 https://doi.org/10.2307/1912773
 
 Forbes, K. J., and R. Rigobon. 2002. "No Contagion, Only Interdependence:
@@ -643,11 +649,11 @@ of Equity Premium Prediction." *The Review of Financial Studies* 21 (4):
 
 > **Note on citations.** All fifteen references were verified against publisher,
 > Econometric Society, Wiley, or RePEc records, and each carries a resolvable DOI;
-> every reference is attached to a specific claim it directly supports. Two minor
-> page-range ambiguities remain in secondary indexes and are worth a final check
-> against the journal of record: Pesaran and Timmermann (1992) is listed as
-> 461–465 by the publisher (one index shows 561–565), and Engle (1982) as 987–1007
-> (one index shows …1008). The values above are the authoritative ones.
+> every reference is attached to a specific claim it directly supports. Two page
+> ranges that appear inconsistently across secondary indexes were resolved to the
+> journal of record: Pesaran and Timmermann (1992) is 461–465 (the Taylor &
+> Francis record; a RePEc handle mis-encodes it as 561–565), and Engle (1982) is
+> 987–1008 (the Econometric Society closing page; some JSTOR headers show 987–1007).
 
 ---
 
