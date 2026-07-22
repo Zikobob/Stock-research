@@ -18,7 +18,9 @@ from playwright.sync_api import sync_playwright
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 HTML_PATH = os.path.join(HERE, "research_paper.html")
-PDF_PATH = os.path.join(HERE, "research_paper.pdf")
+# Web-styled PDF. The canonical, manuscript-styled PDF is produced by
+# build_manuscript_preview.py -> research_paper.pdf.
+PDF_PATH = os.path.join(HERE, "research_paper_web.pdf")
 
 
 def _find_chromium() -> str | None:

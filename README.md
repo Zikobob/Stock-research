@@ -26,8 +26,11 @@ certifies neither a real effect nor genuine forecast skill (cf. Forbes & Rigobon
 📄 Full write-up: [`paper/research_paper.md`](paper/research_paper.md) · [PDF](paper/research_paper.pdf) · [Word/Google Docs](paper/research_paper.docx) · [HTML](paper/research_paper.html)
 📓 Interactive walk-through: [`notebooks/research_analysis.ipynb`](notebooks/research_analysis.ipynb)
 
-*15 verified references (each with a DOI).*
-*Regenerate outputs: `python paper/build_pdf.py` (PDF); `pandoc paper/research_paper.md -o paper/research_paper.docx --toc` run from `paper/` (Word).*
+*15 verified references (each with a DOI). The PDF and Word file use a classic
+double-spaced, Times New Roman manuscript format (title page, page numbers,
+affiliation footer).*
+*Regenerate: `python paper/build_manuscript_docx.py` (editable Word) and
+`python paper/build_manuscript_preview.py` (matching PDF).*
 *To edit in Google Docs: upload `research_paper.docx` to Drive → right-click → Open with Google Docs.*
 
 ---
