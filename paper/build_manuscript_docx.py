@@ -31,7 +31,8 @@ OUT = os.path.join(HERE, "research_paper.docx")
 
 # ----- Author / affiliation (edit these) ----------------------------------- #
 AUTHOR = "Aarav Vaidha"
-MENTOR = "Guidance from [Mentor / Advisor]"          # edit or delete
+MENTOR = ("Guidance from Dr. Madjid Tavana, Distinguished Chair & Professor of "
+          "Business Analytics, La Salle University")
 AFFILIATION = "MOT Charter High School, 1275 Cedar Lane Rd, Middletown, DE 19709, USA."
 EMAIL = "aaravvaidha69@gmail.com"
 TITLE = ("Cross-Sector Correlation Regimes and Their Impact on the Predictive "

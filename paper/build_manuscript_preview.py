@@ -24,7 +24,8 @@ HTML = os.path.join(HERE, "_manuscript.html")
 PDF = os.path.join(HERE, "research_paper.pdf")
 
 AUTHOR = "Aarav Vaidha"
-MENTOR = "Guidance from [Mentor / Advisor]"
+MENTOR = ("Guidance from Dr. Madjid Tavana, Distinguished Chair &amp; Professor of "
+          "Business Analytics, La Salle University")
 TITLE = ("Cross-Sector Correlation Regimes and Their Impact on the Predictive "
          "Accuracy of Equity Price Forecasting Models")
 KEYWORDS = ("cross-sector correlation, realized volatility, regime analysis, "
