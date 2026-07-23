@@ -5,23 +5,15 @@ A reproducible quantitative-finance research project investigating one question:
 > **Do equity price-forecasting models perform more accurately during periods of
 > high cross-sector correlation or low cross-sector correlation?**
 
-**Headline finding (with the honest twist):** Across five forecasting models and
-~11 years of U.S. sector-ETF data, short-horizon forecast accuracy is
-*descriptively* much worse during high cross-sector correlation regimes —
-absolute return errors are ~58–62% larger and directional accuracy falls to the
-50% chance level. **But this is a volatility artifact, not a correlation effect.**
-Correlation is collinear with volatility (r = 0.64); once we control for a lagged
-volatility proxy, the correlation regime adds *no* explanatory power for forecast
-error (joint-regression p ≈ 0.72–0.79 across all models; R² unchanged), while
-volatility stays strongly significant. A 2×2 double sort confirms it — the
-correlation effect flips sign across volatility buckets. And the volatility
-"winner" is partly mechanical (error ≈ move size), so on the scale-free metric —
-**directional accuracy** — skill is 45–54% in *every* regime, near a coin flip,
-with no clean ordering. **The real contribution is methodological:** an effect
-that looked bulletproof (p ≪ 0.001, every model) was a volatility shadow, and one
-lagged volatility control plus a scale-free re-check dissolves it. A tiny p-value
-certifies neither a real effect nor genuine forecast skill (cf. Forbes & Rigobon,
-2002).
+**Finding:** Return errors are 58 to 62 percent larger in the high cross-sector
+correlation regime across five models, with p < 0.001 on both a t-test and a
+Mann–Whitney test. Correlation and volatility move together in the sample
+(r = 0.64). Once forecast error is regressed on lagged correlation and lagged
+volatility together, the correlation term drops to zero and loses significance
+(p = 0.72 to 0.79), while volatility stays significant. Directional accuracy,
+which does not scale with move size, stays between 45 and 54 percent in every
+regime. The regime result is a volatility effect, not a correlation effect
+(consistent with Forbes and Rigobon, 2002).
 
 📄 Full write-up: [`paper/research_paper.md`](paper/research_paper.md) · [PDF](paper/research_paper.pdf) · [Word/Google Docs](paper/research_paper.docx) · [HTML](paper/research_paper.html)
 📓 Interactive walk-through: [`notebooks/research_analysis.ipynb`](notebooks/research_analysis.ipynb)
