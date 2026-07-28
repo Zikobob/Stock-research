@@ -209,6 +209,12 @@ A correlation-regime effect that looks strong turns out to be a volatility effec
 
 ---
 
+## Use of AI tools
+
+The author used Claude (Anthropic), an AI assistant, to help write and debug the Python analysis code, run the statistical analyses, generate the figures, and draft and revise the manuscript. All results were reproduced from the code, and the author is responsible for the final content.
+
+---
+
 ## References
 
 Andersen, T. G., T. Bollerslev, F. X. Diebold, and P. Labys. 2003. "Modeling and Forecasting Realized Volatility." *Econometrica* 71 (2): 579–625. https://doi.org/10.1111/1468-0262.00418
