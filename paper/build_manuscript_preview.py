@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import glob
 import os
+import sys
 
 import markdown
 from playwright.sync_api import sync_playwright
@@ -19,9 +20,10 @@ from playwright.sync_api import sync_playwright
 import build_paper_html as bp  # reuse preprocess() + embed_images()
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-MD = os.path.join(HERE, "research_paper.md")
+NAME = sys.argv[1] if len(sys.argv) > 1 else "research_paper"
+MD = os.path.join(HERE, f"{NAME}.md")
 HTML = os.path.join(HERE, "_manuscript.html")
-PDF = os.path.join(HERE, "research_paper.pdf")
+PDF = os.path.join(HERE, f"{NAME}.pdf")
 
 AUTHOR = "Aarav Vaidha"
 MENTOR = ("Guidance from Dr. Madjid Tavana, Distinguished Chair &amp; Professor of "

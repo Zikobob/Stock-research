@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import os
 import re
+import sys
 
 import pypandoc
 from docx import Document
@@ -25,9 +26,11 @@ from docx.oxml.ns import qn
 from docx.shared import Inches, Pt
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-MD = os.path.join(HERE, "research_paper.md")
+# Optional first arg = markdown basename (without .md). Defaults to the paper.
+NAME = sys.argv[1] if len(sys.argv) > 1 else "research_paper"
+MD = os.path.join(HERE, f"{NAME}.md")
 REF = os.path.join(HERE, "_reference.docx")
-OUT = os.path.join(HERE, "research_paper.docx")
+OUT = os.path.join(HERE, f"{NAME}.docx")
 
 # ----- Author / affiliation (edit these) ----------------------------------- #
 AUTHOR = "Aarav Vaidha"
