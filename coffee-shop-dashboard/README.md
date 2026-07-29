@@ -41,6 +41,11 @@ the week, repeat-vs-one-time customers, plus the raw transaction table.
 Every chart and insight **degrades gracefully** — if your file is missing an
 optional column, that piece is replaced with a short note instead of an error.
 
+**🤖 Optional AI chart explainer** — only have a *picture* of a chart and no
+spreadsheet? A separate mode can send the image to Claude's vision API for a
+plain-English explanation. It's the one feature that isn't free/local (it needs
+your own paid API key) — [details below](#-ai-chart-explainer-optional--the-one-paid-feature).
+
 ---
 
 ## What's in this folder
@@ -165,6 +170,44 @@ T1002,2025-10-04 09:05,Cold Brew,Cold Coffee,1,4.50,4.50,C0088
 Export. *Toast / Clover / Lightspeed:* Reports → Sales → Export to CSV.
 *Shopify:* Analytics → Reports, or Orders → Export. *Excel / Google Sheets:*
 File → Save As / Download → CSV.
+
+---
+
+## 🤖 AI Chart Explainer (optional — the one paid feature)
+
+Sometimes all you have is a **picture** of a chart — a screenshot, a photo, or a
+PDF page — with no underlying spreadsheet. Switch the sidebar **Mode** to
+**🤖 AI chart explainer**, upload the image, and Claude reads it and explains what
+it shows in plain English (what's on each axis, the headline, the trends, and a
+couple of practical suggestions).
+
+> **⚠️ This feature is deliberately different from the rest of the app — read this first:**
+> - **It's not free and not local.** It sends your image to **Anthropic's Claude
+>   API**, which needs **your own paid API key** and costs roughly a few cents per
+>   chart. Everything else in this dashboard is free and runs on your machine —
+>   only this part isn't.
+> - **It describes, it doesn't extract.** It reads a *picture*, so it can tell you
+>   what the chart *shows* but **can't recover the exact underlying numbers**. For
+>   real analysis of your figures, use the **📊 Sales dashboard** with a CSV/Excel
+>   file — that's what the rest of this app is for.
+> - **Your image leaves your computer** — it's uploaded to Anthropic to be read.
+
+**Setting your API key:**
+- Get a key at [console.anthropic.com](https://console.anthropic.com/settings/keys)
+  (you'll need a little paid credit on the account).
+- **Running locally:** either paste the key into the box the app shows, or set it
+  as an environment variable before launching:
+  ```bash
+  export ANTHROPIC_API_KEY="sk-ant-..."   # macOS/Linux  (Windows: setx ANTHROPIC_API_KEY "sk-ant-...")
+  streamlit run dashboard.py
+  ```
+- **Deployed on Streamlit Cloud:** add it once under **App → Settings → Secrets**
+  as `ANTHROPIC_API_KEY = "sk-ant-..."` and the app picks it up automatically.
+
+The key is never written to disk by the app; when typed into the box it lives only
+in that browser session. If you don't want this feature at all, just ignore the
+mode switch — the dashboard works fully without a key (and the `anthropic` package
+it uses is the only "extra" in `requirements.txt`).
 
 ---
 

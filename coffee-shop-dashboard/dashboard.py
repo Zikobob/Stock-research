@@ -593,6 +593,98 @@ def escape_dollars(text: str) -> str:
 
 
 # ===========================================================================
+# 3B. AI CHART EXPLAINER  (the ONLY part that calls a paid, non-local API)
+# ---------------------------------------------------------------------------
+# Everything else in this app is free and runs entirely on your computer. This
+# one optional feature sends a *picture* of a chart to Anthropic's Claude vision
+# API and gets back a plain-English description. It needs your own (paid) API
+# key, and — being a photo/screenshot reader — it DESCRIBES a chart, it does not
+# recover the exact underlying numbers. For real number-crunching, use the main
+# dashboard with a CSV/Excel file instead.
+# ===========================================================================
+
+# Default vision model. `claude-opus-5` is Anthropic's current flagship; you can
+# swap in a cheaper model (e.g. "claude-haiku-4-5") to spend less per image.
+AI_VISION_MODEL = "claude-opus-5"
+
+AI_CHART_PROMPT = (
+    "You are a friendly data analyst helping a small-business owner who is NOT "
+    "technical. Look at this chart/graph image and explain it in plain English.\n\n"
+    "Structure your answer with these short, bolded sections:\n"
+    "1. **What it shows** — the chart type and what each axis / slice represents.\n"
+    "2. **The headline** — the single most important thing to notice.\n"
+    "3. **Patterns & trends** — rises, falls, peaks, seasonality, and any outliers.\n"
+    "4. **What to do about it** — 2-3 concrete, practical suggestions for the owner.\n\n"
+    "Reference what you actually see (approximate values, axis labels, categories). "
+    "IMPORTANT: you are reading a *picture* of a chart, so treat every number as an "
+    "approximate estimate read off the image — say so plainly, and never invent "
+    "precise figures the chart doesn't clearly show. If the image is not a chart or "
+    "is too blurry/cropped to read, say that instead of guessing."
+)
+
+
+def image_media_type(filename: str) -> str:
+    """Map an uploaded file's name to the media type the Claude API expects.
+
+    Images use an `image/*` type; a PDF is sent as a `document` instead. Anything
+    unrecognised is assumed to be a PNG (the most common screenshot format).
+    """
+    name = str(filename).lower()
+    if name.endswith(".pdf"):
+        return "application/pdf"
+    if name.endswith((".jpg", ".jpeg")):
+        return "image/jpeg"
+    if name.endswith(".gif"):
+        return "image/gif"
+    if name.endswith(".webp"):
+        return "image/webp"
+    return "image/png"
+
+
+def explain_chart_image(file_bytes: bytes, media_type: str, api_key: str,
+                        model: str = AI_VISION_MODEL) -> str:
+    """Send a chart image (or PDF) to Claude's vision API; return its plain-English
+    explanation as text.
+
+    Kept free of Streamlit so it can be reasoned about / tested in isolation. It
+    lets the SDK's typed exceptions (AuthenticationError, RateLimitError,
+    APIStatusError, …) propagate so the UI layer can turn each into a friendly
+    message. The API key is passed in explicitly and never hard-coded or logged.
+    """
+    import base64
+
+    import anthropic  # imported lazily: the rest of the app doesn't need it
+
+    b64 = base64.standard_b64encode(file_bytes).decode("utf-8")
+    if media_type == "application/pdf":
+        # A PDF goes in as a `document` block (Claude reads the page directly).
+        media_block = {"type": "document",
+                       "source": {"type": "base64",
+                                  "media_type": "application/pdf", "data": b64}}
+    else:
+        media_block = {"type": "image",
+                       "source": {"type": "base64",
+                                  "media_type": media_type, "data": b64}}
+
+    client = anthropic.Anthropic(api_key=api_key)
+    response = client.messages.create(
+        model=model,
+        max_tokens=1200,
+        messages=[{"role": "user",
+                   "content": [media_block,
+                               {"type": "text", "text": AI_CHART_PROMPT}]}],
+    )
+    # A safety refusal comes back as a normal response with this stop_reason.
+    if getattr(response, "stop_reason", None) == "refusal":
+        raise RuntimeError(
+            "Claude declined to analyze this image. Try a different chart.")
+    return "".join(
+        block.text for block in response.content
+        if getattr(block, "type", None) == "text"
+    ).strip()
+
+
+# ===========================================================================
 # 4. UI HELPERS  (these use Streamlit; only called at runtime, not on import)
 # ===========================================================================
 
@@ -1000,6 +1092,123 @@ def render_load_summary(report: dict, label: str, is_sample: bool, flags: dict) 
                 st.caption("Extra features active for your data: " + ", ".join(active) + ".")
 
 
+def find_anthropic_key() -> str:
+    """Look for an Anthropic API key in Streamlit secrets, then the environment.
+
+    Returns "" if none is set (the UI then offers a password box to type one in).
+    Accessing st.secrets can raise when there's no secrets file at all, so it's
+    guarded. The key is never written to disk or logged.
+    """
+    try:
+        key = st.secrets.get("ANTHROPIC_API_KEY", "")
+        if key:
+            return str(key)
+    except Exception:
+        pass  # no secrets.toml configured -> fall back to the environment
+    return os.environ.get("ANTHROPIC_API_KEY", "")
+
+
+def render_ai_chart_explainer() -> None:
+    """The '🤖 AI chart explainer' screen: upload a picture of a chart and have
+    Claude describe it in plain English. This is the one feature that leaves the
+    free/local design — it calls Anthropic's paid API with the user's own key."""
+    st.title("🤖 AI Chart Explainer")
+    st.markdown(
+        "Upload a **picture of a chart or graph** — a screenshot, a photo, or a "
+        "PDF page — and Claude will read it and explain what it shows in plain "
+        "English, then suggest what to do about it."
+    )
+
+    st.warning(
+        "**Heads-up — this feature works differently from the rest of the app:**\n\n"
+        "- 💳 It sends your image to **Anthropic's Claude API**, so it needs *your "
+        "own* **paid API key** and costs roughly a few cents per chart. Everything "
+        "else in this dashboard is **free and runs locally** — only this part isn't.\n"
+        "- 👀 It **describes** a chart in words; it **can't pull the exact numbers** "
+        "back out of a picture. For real analysis of your figures, use the "
+        "**📊 Sales dashboard** with a CSV or Excel file instead.\n"
+        "- 🔐 Your image is uploaded to Anthropic to be processed."
+    )
+
+    # --- API key: from secrets/env if present, otherwise ask for one ---
+    key = find_anthropic_key()
+    if key:
+        st.caption("🔑 Using the Anthropic API key from this app's secrets / environment.")
+    else:
+        with st.expander("🔑 Set your Anthropic API key (required)", expanded=True):
+            st.markdown(
+                "Get a key at "
+                "[console.anthropic.com](https://console.anthropic.com/settings/keys) "
+                "(you'll need a small amount of paid credit on your account). It is "
+                "**not stored** — it lives only in this browser session.\n\n"
+                "*Deploying on Streamlit Community Cloud? Add it once under* "
+                "**App → Settings → Secrets** *as* `ANTHROPIC_API_KEY = \"sk-ant-...\"` "
+                "*and it'll be picked up here automatically.*"
+            )
+            key = st.text_input("Anthropic API key", type="password",
+                                placeholder="sk-ant-...")
+
+    # --- Upload the chart ---
+    uploaded = st.file_uploader(
+        "Upload a chart image or PDF",
+        type=["png", "jpg", "jpeg", "gif", "webp", "pdf"],
+        help="A screenshot or photo of a chart (PNG/JPG) works best. A PDF page is "
+             "sent to Claude as-is.",
+    )
+    if uploaded is not None:
+        if image_media_type(uploaded.name) == "application/pdf":
+            st.caption(f"📄 **{uploaded.name}** — will be sent to Claude as a PDF.")
+        else:
+            st.image(uploaded.getvalue(), caption=uploaded.name, width="stretch")
+
+    # --- Run it ---
+    if st.button("✨ Explain this chart", type="primary", disabled=(uploaded is None)):
+        if not key:
+            st.error("Please enter your Anthropic API key above first.")
+            return
+        try:
+            import anthropic
+        except ModuleNotFoundError:
+            st.error("The `anthropic` package isn't installed. Run "
+                     "`pip install -r requirements.txt` and try again.")
+            return
+
+        try:
+            with st.spinner("Claude is reading your chart…"):
+                answer = explain_chart_image(
+                    uploaded.getvalue(), image_media_type(uploaded.name), key)
+        except anthropic.AuthenticationError:
+            st.error("🔑 That API key was rejected. Double-check it at "
+                     "console.anthropic.com and try again.")
+            return
+        except anthropic.RateLimitError:
+            st.error("⏳ Rate limit hit, or your account is out of credit. Wait a "
+                     "moment (or top up your Anthropic billing), then try again.")
+            return
+        except anthropic.APIConnectionError:
+            st.error("🌐 Couldn't reach the Anthropic API. Check your internet "
+                     "connection and try again.")
+            return
+        except anthropic.APIStatusError as exc:
+            st.error(f"The Anthropic API returned an error (HTTP {exc.status_code}). "
+                     "Please try again in a moment.")
+            return
+        except Exception as exc:  # never let it crash the app
+            st.error(f"Something went wrong talking to the API: {exc}")
+            return
+
+        if answer:
+            st.markdown("### 🧾 What Claude sees")
+            with st.container(border=True):
+                st.markdown(escape_dollars(answer))
+            st.caption("⚠️ These figures are **estimates read off the picture**. For "
+                       "exact numbers, analyze the underlying CSV in the 📊 Sales "
+                       "dashboard.")
+        else:
+            st.warning("Claude didn't return any text for that image. Try another "
+                       "chart, or a clearer screenshot.")
+
+
 # ===========================================================================
 # 5. THE PAGE
 # ===========================================================================
@@ -1007,6 +1216,25 @@ def render_load_summary(report: dict, label: str, is_sample: bool, flags: dict) 
 def main() -> None:
     st.set_page_config(page_title="Sales Insights Dashboard", page_icon="📊",
                        layout="wide")
+
+    # --- Sidebar: pick a mode -------------------------------------------------
+    # Two tools in one app: the free/local sales dashboard (default), and an
+    # optional AI chart explainer that reads a *picture* of a chart via Claude's
+    # paid API. Kept as a top-level switch so the explainer never interferes with
+    # the core, no-API-needed experience.
+    mode = st.sidebar.radio(
+        "Mode",
+        ["📊 Sales dashboard", "🤖 AI chart explainer"],
+        index=0,
+        key="app_mode",
+        help="Sales dashboard: analyze a CSV/Excel/PDF of sales — free and local. "
+             "AI chart explainer: read a *picture* of a chart using Claude's API "
+             "(needs your own paid API key).",
+    )
+    st.sidebar.divider()
+    if mode.startswith("🤖"):
+        render_ai_chart_explainer()
+        return
 
     # --- Sidebar: choose the data source --------------------------------------
     st.sidebar.header("① Your data")
