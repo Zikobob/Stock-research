@@ -679,6 +679,28 @@ def _parse_text_rows(text: str):
     return pd.DataFrame(rows[1:], columns=[str(h).strip() for h in rows[0]])
 
 
+def _looks_like_real_table(df) -> bool:
+    """True only for something that plausibly is a data table — used to reject
+    the garbage a *chart/image* PDF produces (a chart's axis/tick labels get
+    sliced into dozens of meaningless columns like col0, col1, ... col126)."""
+    if df is None or df.shape[1] < 2 or len(df) < 1:
+        return False
+    # Real sales tables have a handful of columns, never dozens.
+    if df.shape[1] > 20:
+        return False
+    # If (nearly) every column is an auto-generated placeholder, no header row
+    # was found — i.e. there was no real table, just scattered text.
+    placeholders = sum(1 for c in df.columns
+                       if str(c).startswith("col") and str(c)[3:].isdigit())
+    if placeholders >= max(2, df.shape[1] - 1):
+        return False
+    # A real table is mostly filled in; chart scraps are mostly blank.
+    filled = df.map(lambda v: v is not None and str(v).strip() != "")
+    if filled.to_numpy().mean() < 0.4:
+        return False
+    return True
+
+
 @st.cache_data(show_spinner=False)
 def read_pdf_bytes(file_bytes: bytes) -> pd.DataFrame:
     """Best-effort: pull a sales table out of a text-based PDF, trying three
@@ -713,14 +735,20 @@ def read_pdf_bytes(file_bytes: bytes) -> pd.DataFrame:
     def _tidy(df):
         return df.map(lambda v: str(v).strip() if v is not None else None)
 
-    # Prefer ruled tables, then borderless tables, then the text parser.
+    # Prefer ruled tables, then borderless tables, then the text parser -- but
+    # only accept a candidate that actually looks like a data table (this is what
+    # rejects a chart/image PDF instead of returning col0..col126 garbage).
     for i in (0, 1):
         combined = _combine_same_shape(frames_by_strategy[i])
-        if combined is not None and combined.shape[1] >= 2:
-            return _tidy(combined)
+        if combined is not None:
+            combined = _tidy(combined)
+            if _looks_like_real_table(combined):
+                return combined
     parsed = _parse_text_rows("\n".join(texts))
-    if parsed is not None and parsed.shape[1] >= 2:
-        return _tidy(parsed)
+    if parsed is not None:
+        parsed = _tidy(parsed)
+        if _looks_like_real_table(parsed):
+            return parsed
     return pd.DataFrame()
 
 
@@ -989,20 +1017,11 @@ def main() -> None:
         file_bytes = uploaded.getvalue()
         try:
             if name.endswith((".xlsx", ".xls")):
-                raw = read_excel_bytes(file_bytes)
+                raw, source_kind = read_excel_bytes(file_bytes), "excel"
             elif name.endswith(".pdf"):
-                raw = read_pdf_bytes(file_bytes)
-                if raw is None or raw.empty:
-                    st.title("📊 Sales Insights Dashboard")
-                    st.warning(
-                        "I couldn't find a sales **table** inside that PDF. PDFs vary "
-                        "a lot — scanned/image PDFs and summary-only reports (just "
-                        "totals or a chart) can't be turned into data. **A CSV or "
-                        "Excel export works best** — see the guide below.")
-                    render_how_to(expanded=True)
-                    return
+                raw, source_kind = read_pdf_bytes(file_bytes), "pdf"
             else:  # csv / tsv / txt
-                raw = read_csv_bytes(file_bytes)
+                raw, source_kind = read_csv_bytes(file_bytes), "csv"
         except Exception as exc:
             st.title("📊 Sales Insights Dashboard")
             st.error(
@@ -1014,7 +1033,7 @@ def main() -> None:
         source_label, is_sample = uploaded.name, False
     elif os.path.exists(DEFAULT_FILE):
         raw = read_csv_path(DEFAULT_FILE)
-        source_label, is_sample = f"{DEFAULT_FILE}", True
+        source_label, is_sample, source_kind = f"{DEFAULT_FILE}", True, "sample"
     else:
         # No upload and no bundled file -> welcoming landing instead of an error.
         render_landing()
@@ -1024,7 +1043,20 @@ def main() -> None:
     data_all, report = prepare(raw)
     if data_all is None:
         st.title("📊 Sales Insights Dashboard")
-        st.error(report["error"])
+        if source_kind == "pdf":
+            # For a PDF, a validation failure almost always means it was a chart,
+            # image, or summary report — not a real sales table. Say that plainly
+            # instead of dumping garbage column names.
+            st.warning(
+                "**I couldn't find a data table in that PDF.** It looks like a "
+                "**chart, image, or summary report** — and a *picture* of a chart "
+                "isn't something I can read numbers back out of (the underlying data "
+                "simply isn't in the file). I can only analyze a **list of individual "
+                "sales** — rows that each have a date, an item, and an amount.\n\n"
+                "**Please upload the underlying data instead:** a **CSV or Excel** "
+                "export, or a PDF that contains a real table of transactions.")
+        else:
+            st.error(report["error"])
         render_how_to(expanded=True)
         return
 
