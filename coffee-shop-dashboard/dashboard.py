@@ -764,15 +764,21 @@ def _pdf_text(line: str) -> str:
 
 
 def _pdf_chart(kind, data, brown="#6f4e37"):
-    """Render one clean chart to a PNG buffer for the PDF (headless matplotlib)."""
+    """Render one clean chart to a PNG buffer for the PDF.
+
+    Uses matplotlib's object-oriented Figure API (NOT pyplot) so it's safe to
+    call from Streamlit's background script-runner thread. pyplot keeps global
+    state that isn't thread-safe and can crash the app (segfault) on reruns.
+    """
     import io as _io
-    import matplotlib.pyplot as plt
+    from matplotlib.figure import Figure
     from matplotlib.ticker import FuncFormatter
     dollars = FuncFormatter(lambda v, _pos: f"${v:,.0f}")
 
+    fig = Figure(figsize=(6.9, 1.7 if kind == "revenue" else 1.9))
+    ax = fig.subplots()
     if kind == "revenue":
         series = data.set_index("transaction_date")["total_amount"].resample("MS").sum()
-        fig, ax = plt.subplots(figsize=(6.9, 1.7))
         ax.plot(series.index, series.values, color=brown, marker="o", ms=3, lw=1.8)
         ax.fill_between(series.index, series.values, color=brown, alpha=0.08)
         ax.set_title("Revenue by month", fontsize=11, loc="left",
@@ -782,7 +788,6 @@ def _pdf_chart(kind, data, brown="#6f4e37"):
     else:  # "products"
         series = (data.groupby("product_name")["total_amount"].sum()
                   .sort_values(ascending=False).head(8).iloc[::-1])
-        fig, ax = plt.subplots(figsize=(6.9, 1.9))
         ax.barh(series.index, series.values, color=brown)
         ax.set_title("Top products by revenue", fontsize=11, loc="left",
                      fontweight="bold", color="#3a3a3a", pad=6)
@@ -796,8 +801,7 @@ def _pdf_chart(kind, data, brown="#6f4e37"):
     ax.tick_params(colors="#555555", labelsize=8)
     fig.tight_layout()
     buf = _io.BytesIO()
-    fig.savefig(buf, format="png", dpi=180)
-    plt.close(fig)
+    fig.savefig(buf, format="png", dpi=180)  # Figure.savefig uses Agg for PNG
     buf.seek(0)
     return buf
 
@@ -812,7 +816,6 @@ def build_pdf_summary(data: pd.DataFrame, kpis: tuple, insights: tuple,
     from datetime import datetime
     import matplotlib
     matplotlib.use("Agg")  # headless backend, no display needed
-    import matplotlib.pyplot as plt
     from reportlab.lib import colors
     from reportlab.lib.enums import TA_LEFT
     from reportlab.lib.pagesizes import letter
@@ -821,7 +824,8 @@ def build_pdf_summary(data: pd.DataFrame, kpis: tuple, insights: tuple,
     from reportlab.platypus import (HRFlowable, Image, Paragraph,
                                     SimpleDocTemplate, Spacer, Table, TableStyle)
 
-    plt.rcParams.update({"font.family": "DejaVu Sans", "font.size": 8})
+    # Set fonts globally (config only — no pyplot, which isn't thread-safe here).
+    matplotlib.rcParams.update({"font.family": "DejaVu Sans", "font.size": 8})
     BROWN = colors.HexColor("#6f4e37")
     TAN = colors.HexColor("#c4a484")
     CREAM = colors.HexColor("#f6f1ea")
@@ -1012,7 +1016,26 @@ def main() -> None:
              "be read (scanned or summary-only PDFs can't).",
     )
 
-    if uploaded is not None:
+    # One-click "Load sample data" — lets anyone see the dashboard on real data,
+    # even if their uploaded file can't be read. A fresh upload overrides it.
+    st.session_state.setdefault("use_sample", False)
+    if uploaded is not None and st.session_state.get("_last_upload") != uploaded.name:
+        st.session_state.use_sample = False
+        st.session_state["_last_upload"] = uploaded.name
+    if os.path.exists(DEFAULT_FILE) and st.sidebar.button(
+            "▶️ Load sample data", help="See the dashboard on built-in sample sales data."):
+        st.session_state.use_sample = True
+
+    def offer_sample():
+        """Prominent fallback button shown on error screens."""
+        if os.path.exists(DEFAULT_FILE) and st.button(
+                "▶️  See it work with sample data instead", type="primary"):
+            st.session_state.use_sample = True
+            st.rerun()
+
+    show_sample = st.session_state.use_sample or uploaded is None
+
+    if uploaded is not None and not show_sample:
         name = uploaded.name.lower()
         file_bytes = uploaded.getvalue()
         try:
@@ -1028,6 +1051,7 @@ def main() -> None:
                 f"Sorry, I couldn't read **{uploaded.name}**.\n\nDetails: {exc}\n\n"
                 "Supported files: **CSV**, **Excel (.xlsx)**, or a **text-based PDF** "
                 "that contains a sales table.")
+            offer_sample()
             render_how_to(expanded=True)
             return
         source_label, is_sample = uploaded.name, False
@@ -1057,6 +1081,7 @@ def main() -> None:
                 "export, or a PDF that contains a real table of transactions.")
         else:
             st.error(report["error"])
+        offer_sample()
         render_how_to(expanded=True)
         return
 
