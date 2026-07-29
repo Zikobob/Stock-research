@@ -628,76 +628,146 @@ def _pdf_text(line: str) -> str:
     return line
 
 
+def _pdf_chart(kind, data, brown="#6f4e37"):
+    """Render one clean chart to a PNG buffer for the PDF (headless matplotlib)."""
+    import io as _io
+    import matplotlib.pyplot as plt
+    from matplotlib.ticker import FuncFormatter
+    dollars = FuncFormatter(lambda v, _pos: f"${v:,.0f}")
+
+    if kind == "revenue":
+        series = data.set_index("transaction_date")["total_amount"].resample("MS").sum()
+        fig, ax = plt.subplots(figsize=(6.9, 1.7))
+        ax.plot(series.index, series.values, color=brown, marker="o", ms=3, lw=1.8)
+        ax.fill_between(series.index, series.values, color=brown, alpha=0.08)
+        ax.set_title("Revenue by month", fontsize=11, loc="left",
+                     fontweight="bold", color="#3a3a3a", pad=6)
+        ax.yaxis.set_major_formatter(dollars)
+        ax.grid(axis="y", alpha=0.18)
+    else:  # "products"
+        series = (data.groupby("product_name")["total_amount"].sum()
+                  .sort_values(ascending=False).head(8).iloc[::-1])
+        fig, ax = plt.subplots(figsize=(6.9, 1.9))
+        ax.barh(series.index, series.values, color=brown)
+        ax.set_title("Top products by revenue", fontsize=11, loc="left",
+                     fontweight="bold", color="#3a3a3a", pad=6)
+        ax.xaxis.set_major_formatter(dollars)
+        ax.grid(axis="x", alpha=0.18)
+
+    for side in ("top", "right"):
+        ax.spines[side].set_visible(False)
+    for side in ("left", "bottom"):
+        ax.spines[side].set_color("#cccccc")
+    ax.tick_params(colors="#555555", labelsize=8)
+    fig.tight_layout()
+    buf = _io.BytesIO()
+    fig.savefig(buf, format="png", dpi=180)
+    plt.close(fig)
+    buf.seek(0)
+    return buf
+
+
 @st.cache_data(show_spinner=False)
 def build_pdf_summary(data: pd.DataFrame, kpis: tuple, insights: tuple,
                       alerts: tuple, date_label: str) -> bytes:
-    """Render a clean one-page PDF: headline numbers, two charts, and the
-    plain-English takeaways. Cached so it only rebuilds when the inputs change."""
+    """Render a clean, well-organized one-page PDF report: headline numbers, two
+    charts, and detailed plain-English takeaways. Cached so it only rebuilds when
+    the inputs change."""
     import io as _io
+    from datetime import datetime
     import matplotlib
     matplotlib.use("Agg")  # headless backend, no display needed
     import matplotlib.pyplot as plt
     from reportlab.lib import colors
+    from reportlab.lib.enums import TA_LEFT
     from reportlab.lib.pagesizes import letter
-    from reportlab.lib.styles import getSampleStyleSheet
+    from reportlab.lib.styles import ParagraphStyle
     from reportlab.lib.units import inch
-    from reportlab.platypus import (Image, Paragraph, SimpleDocTemplate, Spacer,
-                                    Table, TableStyle)
+    from reportlab.platypus import (HRFlowable, Image, Paragraph,
+                                    SimpleDocTemplate, Spacer, Table, TableStyle)
 
-    brown = "#6f4e37"
-
-    # chart 1 — revenue over time (monthly)
-    monthly = data.set_index("transaction_date")["total_amount"].resample("MS").sum()
-    fig1, ax1 = plt.subplots(figsize=(6.6, 2.05))
-    ax1.plot(monthly.index, monthly.values, color=brown, marker="o", ms=3)
-    ax1.set_title("Revenue over time", fontsize=10, loc="left")
-    ax1.grid(alpha=0.25)
-    ax1.tick_params(labelsize=7)
-    fig1.tight_layout()
-    buf1 = _io.BytesIO(); fig1.savefig(buf1, format="png", dpi=150); plt.close(fig1); buf1.seek(0)
-
-    # chart 2 — top products by revenue
-    top = (data.groupby("product_name")["total_amount"].sum()
-           .sort_values(ascending=False).head(8).iloc[::-1])
-    fig2, ax2 = plt.subplots(figsize=(6.6, 2.2))
-    ax2.barh(top.index, top.values, color=brown)
-    ax2.set_title("Top products by revenue", fontsize=10, loc="left")
-    ax2.tick_params(labelsize=7)
-    fig2.tight_layout()
-    buf2 = _io.BytesIO(); fig2.savefig(buf2, format="png", dpi=150); plt.close(fig2); buf2.seek(0)
-
-    styles = getSampleStyleSheet()
-    out = _io.BytesIO()
-    doc = SimpleDocTemplate(out, pagesize=letter, topMargin=0.6 * inch,
-                            bottomMargin=0.5 * inch, leftMargin=0.6 * inch,
-                            rightMargin=0.6 * inch)
-    story = [Paragraph("Sales Summary", styles["Title"]),
-             Paragraph(date_label, styles["Normal"]), Spacer(1, 10)]
-
+    plt.rcParams.update({"font.family": "DejaVu Sans", "font.size": 8})
+    BROWN = colors.HexColor("#6f4e37")
+    TAN = colors.HexColor("#c4a484")
+    CREAM = colors.HexColor("#f6f1ea")
+    GREY = colors.HexColor("#6b6b6b")
+    DARK = colors.HexColor("#2b2b2b")
     total_revenue, n_orders, aov, orders_label = kpis
-    kpi_table = Table(
-        [[f"${total_revenue:,.0f}", f"{n_orders:,}", f"${aov:,.2f}"],
-         ["Total revenue", orders_label, "Avg order value"]],
-        colWidths=[2.3 * inch] * 3)
-    kpi_table.setStyle(TableStyle([
-        ("FONTSIZE", (0, 0), (-1, 0), 18),
-        ("FONTSIZE", (0, 1), (-1, 1), 9),
-        ("TEXTCOLOR", (0, 0), (-1, 0), colors.HexColor(brown)),
-        ("ALIGN", (0, 0), (-1, -1), "CENTER"),
-        ("BOTTOMPADDING", (0, 0), (-1, 0), 2),
+
+    # --- consistent, clean typography (all Helvetica) ---
+    title = ParagraphStyle("title", fontName="Helvetica-Bold", fontSize=22,
+                           textColor=BROWN, alignment=TA_LEFT, spaceAfter=1)
+    subtitle = ParagraphStyle("subtitle", fontName="Helvetica", fontSize=10.5,
+                              textColor=GREY, spaceAfter=2)
+    section = ParagraphStyle("section", fontName="Helvetica-Bold", fontSize=12,
+                             textColor=BROWN, spaceBefore=9, spaceAfter=4)
+    body = ParagraphStyle("body", fontName="Helvetica", fontSize=10.5,
+                          textColor=DARK, leading=14, spaceAfter=3)
+    bullet = ParagraphStyle("bullet", fontName="Helvetica", fontSize=10,
+                            textColor=DARK, leading=12.8, leftIndent=14,
+                            firstLineIndent=-9, spaceAfter=4)
+    kpi_num = ParagraphStyle("kpi_num", fontName="Helvetica-Bold", fontSize=19,
+                             textColor=BROWN, alignment=1)
+    kpi_lab = ParagraphStyle("kpi_lab", fontName="Helvetica", fontSize=8.5,
+                             textColor=GREY, alignment=1)
+    footer = ParagraphStyle("footer", fontName="Helvetica-Oblique", fontSize=8,
+                            textColor=GREY)
+
+    story = [
+        Paragraph("Sales Summary Report", title),
+        Paragraph(date_label, subtitle),
+        HRFlowable(width="100%", thickness=1.2, color=TAN, spaceBefore=3, spaceAfter=10),
+        Paragraph(
+            f"In this period the business took in <b>${total_revenue:,.0f}</b> across "
+            f"<b>{n_orders:,}</b> {orders_label.lower().replace('total ', '')}, "
+            f"for an average of <b>${aov:,.2f}</b> per order.", body),
+        Spacer(1, 6),
+    ]
+
+    # --- KPI cards ---
+    kpi_tbl = Table(
+        [[Paragraph(f"${total_revenue:,.0f}", kpi_num),
+          Paragraph(f"{n_orders:,}", kpi_num),
+          Paragraph(f"${aov:,.2f}", kpi_num)],
+         [Paragraph("Total revenue", kpi_lab),
+          Paragraph(orders_label, kpi_lab),
+          Paragraph("Avg order value", kpi_lab)]],
+        colWidths=[2.32 * inch] * 3)
+    kpi_tbl.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, -1), CREAM),
+        ("BOX", (0, 0), (-1, -1), 0.75, TAN),
+        ("LINEBEFORE", (1, 0), (1, -1), 0.5, colors.white),
+        ("LINEBEFORE", (2, 0), (2, -1), 0.5, colors.white),
+        ("TOPPADDING", (0, 0), (-1, 0), 10), ("BOTTOMPADDING", (0, 0), (-1, 0), 1),
+        ("TOPPADDING", (0, 1), (-1, 1), 0), ("BOTTOMPADDING", (0, 1), (-1, 1), 9),
+        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
     ]))
-    story += [kpi_table, Spacer(1, 10),
-              Image(buf1, width=6.6 * inch, height=2.05 * inch), Spacer(1, 6),
-              Image(buf2, width=6.6 * inch, height=2.2 * inch), Spacer(1, 10)]
+    story += [kpi_tbl, Spacer(1, 8),
+              Image(_pdf_chart("revenue", data), width=6.9 * inch, height=1.7 * inch),
+              Spacer(1, 4),
+              Image(_pdf_chart("products", data), width=6.9 * inch, height=1.9 * inch)]
 
-    takeaways = (list(alerts)[:2] + list(insights))[:5]
-    if takeaways:
-        story.append(Paragraph("Key takeaways", styles["Heading3"]))
-        for line in takeaways:
-            story.append(Paragraph("• " + _pdf_text(line), styles["Normal"]))
-            story.append(Spacer(1, 3))
+    # --- detailed takeaways ---
+    if insights:
+        story.append(Paragraph("Key insights", section))
+        for line in insights:
+            story.append(Paragraph("&#8226;&#160;&#160;" + _pdf_text(line), bullet))
+    if alerts:
+        story.append(Paragraph("Unusual sales days", section))
+        for line in list(alerts)[:2]:
+            story.append(Paragraph("&#8226;&#160;&#160;" + _pdf_text(line), bullet))
 
-    doc.build(story)
+    story += [
+        Spacer(1, 8),
+        HRFlowable(width="100%", thickness=0.5, color=TAN, spaceAfter=4),
+        Paragraph(f"Generated {datetime.now():%b %d, %Y at %I:%M %p} "
+                  f"&#183; Sales Insights Dashboard", footer),
+    ]
+
+    out = _io.BytesIO()
+    SimpleDocTemplate(out, pagesize=letter, title="Sales Summary Report",
+                      topMargin=0.55 * inch, bottomMargin=0.5 * inch,
+                      leftMargin=0.7 * inch, rightMargin=0.7 * inch).build(story)
     return out.getvalue()
 
 
@@ -832,18 +902,39 @@ def main() -> None:
     flags = detect_flags(data_all)
     render_load_summary(report, source_label, is_sample, flags)
 
-    # --- Sidebar: date filter -------------------------------------------------
-    st.sidebar.header("② Filter")
+    # --- Sidebar: date range (clear presets + optional custom calendar) -------
+    from datetime import timedelta
+    st.sidebar.header("② Date range")
     min_date = data_all["transaction_date"].min().date()
     max_date = data_all["transaction_date"].max().date()
-    date_range = st.sidebar.date_input(
-        "Date range", value=(min_date, max_date),
-        min_value=min_date, max_value=max_date,
+
+    preset = st.sidebar.radio(
+        "Show sales from",
+        ["All time", "Last 30 days", "Last 90 days", "Last 12 months", "Custom range…"],
+        index=0,
     )
-    if not isinstance(date_range, (list, tuple)) or len(date_range) != 2:
-        st.info("Pick a start date **and** an end date in the sidebar to continue.")
-        return
-    start_date, end_date = date_range
+    if preset == "All time":
+        start_date, end_date = min_date, max_date
+    elif preset == "Last 30 days":
+        start_date, end_date = max(min_date, max_date - timedelta(days=29)), max_date
+    elif preset == "Last 90 days":
+        start_date, end_date = max(min_date, max_date - timedelta(days=89)), max_date
+    elif preset == "Last 12 months":
+        start_date, end_date = max(min_date, max_date - timedelta(days=364)), max_date
+    else:  # Custom range… -> show the calendar only when it's actually needed
+        picked = st.sidebar.date_input(
+            "Pick a start and end date",
+            value=(min_date, max_date),
+            min_value=min_date, max_value=max_date, format="MM/DD/YYYY",
+        )
+        if not isinstance(picked, (list, tuple)) or len(picked) != 2:
+            st.sidebar.info("👆 Pick **both** a start and an end date.")
+            st.info("Choose a start date **and** an end date in the sidebar to continue.")
+            return
+        start_date, end_date = picked
+
+    st.sidebar.caption(f"📅 Showing **{start_date:%b %d, %Y} → {end_date:%b %d, %Y}**")
+
     mask = ((data_all["transaction_date"].dt.date >= start_date)
             & (data_all["transaction_date"].dt.date <= end_date))
     data = data_all.loc[mask]
@@ -868,9 +959,35 @@ def main() -> None:
     k2.metric(orders_label, f"{n_orders:,}")
     k3.metric("Average Order Value", f"${avg_order_value:,.2f}")
 
+    # --- Compute insights + alerts (shown on the page and put in the PDF) ----
+    insights = compute_insights(data, flags)
+    alerts = compute_outlier_alerts(data)
+
+    # --- Download report (prominent section right under the numbers) ---------
+    with st.container(border=True):
+        st.markdown("#### 📄 One-page report")
+        st.caption("Download a clean, printable PDF of this view — the headline "
+                   "numbers, the two key charts, and the plain-English takeaways. "
+                   "Perfect for sharing or emailing a co-owner.")
+        try:
+            pdf_bytes = build_pdf_summary(
+                data,
+                (total_revenue, n_orders, avg_order_value, orders_label),
+                tuple(insights), tuple(alerts),
+                f"{start_date:%b %d, %Y} – {end_date:%b %d, %Y}",
+            )
+            st.download_button(
+                "⬇️  Download PDF summary",
+                data=pdf_bytes,
+                file_name=f"sales-summary_{start_date:%Y%m%d}_{end_date:%Y%m%d}.pdf",
+                mime="application/pdf",
+                type="primary",
+            )
+        except Exception as exc:  # never let the export crash the dashboard
+            st.caption(f"(PDF export is unavailable right now: {exc})")
+
     # --- Key insights (the headline feature) ---------------------------------
     st.subheader("💡 Key insights")
-    insights = compute_insights(data, flags)
     if insights:
         with st.container(border=True):
             for line in insights:
@@ -881,30 +998,11 @@ def main() -> None:
                    "data to unlock automatic insights.")
 
     # --- Automatic outlier / spike alerts ------------------------------------
-    alerts = compute_outlier_alerts(data)
     if alerts:
         st.subheader("🚨 Unusual sales days")
         with st.container(border=True):
             for alert in alerts:
                 st.markdown(escape_dollars(alert))
-
-    # --- One-page PDF summary (download) -------------------------------------
-    try:
-        pdf_bytes = build_pdf_summary(
-            data,
-            (total_revenue, n_orders, avg_order_value, orders_label),
-            tuple(insights),
-            tuple(alerts),
-            f"{start_date:%b %d, %Y} – {end_date:%b %d, %Y}",
-        )
-        st.download_button(
-            "📄 Download one-page summary (PDF)",
-            data=pdf_bytes,
-            file_name=f"sales-summary_{start_date:%Y%m%d}_{end_date:%Y%m%d}.pdf",
-            mime="application/pdf",
-        )
-    except Exception as exc:  # never let the export crash the dashboard
-        st.caption(f"(One-page PDF export is unavailable right now: {exc})")
 
     st.divider()
 
