@@ -22,9 +22,18 @@ to swallow messy real-world exports without breaking.
 **💡 Key insights** — written as plain sentences an owner can act on, for example:
 - 📅 *"Saturdays are your busiest day (~$X), Wednesdays the slowest — ~68% more on Saturdays."*
 - ⏰ *"Your busiest time is around 8 AM; your three busiest hours are 43% of all orders."* (needs a timestamp)
+- 🍞 *"Your top 3 products bring 70% of revenue — the other 15 make just 30%."* (the "bread & butter" / long-tail split)
 - 🤝 *"'Drip Coffee' and 'Latte' are often bought together (19 orders) — try a combo deal."* (needs an order/receipt ID)
 - 📉 *"Heads up: 'Americano' sales are down 47% recently."*
 - 🔁 *"Repeat customers are 56% of customers but bring 90% of revenue."* (needs a customer ID)
+
+**🚨 Automatic outlier alerts** — flags unusually busy or slow days without you
+staring at a chart, comparing each day to a baseline for the *same weekday*
+(e.g. *"Nov 26 was a spike — 314% above a typical Wednesday"*).
+
+**📄 One-page PDF summary** — a single "Download" button builds a clean, printable
+executive summary (headline numbers + two charts + the plain-English takeaways)
+you can save or email to a co-owner.
 
 **Charts:** revenue over time, top products, revenue by category, busiest days of
 the week, repeat-vs-one-time customers, plus the raw transaction table.

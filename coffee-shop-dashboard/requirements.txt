@@ -5,3 +5,5 @@ streamlit==1.58.0
 pandas==3.0.3
 plotly==6.8.0
 numpy==2.4.6     # used by generate_sample_data.py (the dashboard pulls it in anyway)
+reportlab==5.0.0 # builds the downloadable one-page PDF summary
+matplotlib==3.11.1  # renders the charts embedded in the PDF

@@ -474,11 +474,88 @@ def insight_retention(data: pd.DataFrame, has_customer: bool, has_txn: bool):
     )
 
 
+def insight_pareto(data: pd.DataFrame, threshold: float = 0.70):
+    """'Bread & butter' vs 'long tail': the few products that drive most revenue.
+
+    Sorts products by revenue, walks the cumulative share, and reports the
+    smallest set of items that make up ~`threshold` of total revenue.
+    """
+    rev = data.groupby("product_name")["total_amount"].sum().sort_values(ascending=False)
+    total = rev.sum()
+    if total <= 0 or len(rev) < 4:
+        return None
+    cum_share = rev.cumsum() / total
+    # smallest k whose cumulative share reaches the threshold
+    k = int((cum_share < threshold).sum()) + 1
+    k = min(k, len(rev))
+    top_share = float(cum_share.iloc[k - 1])
+    top_names = list(rev.index[:k])
+    others = len(rev) - k
+    names_str = ", ".join(top_names[:5]) + ("…" if k > 5 else "")
+    plural = "s" if k > 1 else ""
+    return (
+        f"🍞 **Your top {k} product{plural} bring {top_share * 100:.0f}% of revenue** "
+        f"({names_str}), while the other {others} items together make just "
+        f"{(1 - top_share) * 100:.0f}%. These few are your 'bread and butter' — "
+        f"protect and promote them."
+    )
+
+
+def compute_outlier_alerts(data: pd.DataFrame, z_threshold: float = 2.0,
+                           max_alerts: int = 5) -> list:
+    """Flag unusually high/low sales days automatically.
+
+    Compares each day's revenue to a baseline for the *same weekday* (so a busy
+    Saturday isn't flagged just for being a Saturday), and reports days that are
+    more than `z_threshold` standard deviations from that weekday's average.
+    Returns plain-English strings, most extreme first.
+    """
+    daily = data.groupby(data["transaction_date"].dt.normalize())["total_amount"].sum()
+    if len(daily) < 14:  # need a couple of weeks of history to have a baseline
+        return []
+
+    df = daily.reset_index()
+    df.columns = ["date", "revenue"]
+    df["weekday"] = df["date"].dt.day_name()
+
+    found = []  # (abs_z, date, revenue, weekday_mean, pct_diff, weekday)
+    for weekday, group in df.groupby("weekday"):
+        if len(group) < 4:  # not enough of this weekday to judge "normal"
+            continue
+        mean = group["revenue"].mean()
+        std = group["revenue"].std(ddof=0)
+        if not std or pd.isna(std) or mean <= 0:
+            continue
+        for _, row in group.iterrows():
+            z = (row["revenue"] - mean) / std
+            if abs(z) >= z_threshold:
+                pct = (row["revenue"] / mean - 1) * 100
+                found.append((abs(z), row["date"], row["revenue"], mean, pct, weekday))
+
+    found.sort(key=lambda t: t[0], reverse=True)
+    alerts = []
+    for _, date, revenue, mean, pct, weekday in found[:max_alerts]:
+        # Avoid %-d (not portable): format the day number by hand.
+        nice_date = date.strftime("%A, %b ") + f"{date.day}, {date.year}"
+        if pct >= 0:
+            alerts.append(
+                f"📈 **{nice_date}** was an unusual spike — revenue **${revenue:,.0f}** "
+                f"was **{pct:.0f}% above** a typical {weekday} (~${mean:,.0f})."
+            )
+        else:
+            alerts.append(
+                f"📉 **{nice_date}** was unusually slow — revenue **${revenue:,.0f}** "
+                f"was **{abs(pct):.0f}% below** a typical {weekday} (~${mean:,.0f})."
+            )
+    return alerts
+
+
 def compute_insights(data: pd.DataFrame, flags: dict) -> list:
     """Run every insight, skipping any that don't apply or error out."""
     builders = [
         lambda: insight_busiest_day(data),
         lambda: insight_peak_hours(data, flags["time"]),
+        lambda: insight_pareto(data),
         lambda: insight_pairings(data, flags["txn"]),
         lambda: insight_trending_down(data),
         lambda: insight_retention(data, flags["customer"], flags["txn"]),
@@ -538,6 +615,90 @@ def read_csv_bytes(file_bytes: bytes) -> pd.DataFrame:
 def read_csv_path(path: str) -> pd.DataFrame:
     """Read the bundled sample CSV from disk (cached)."""
     return pd.read_csv(path)
+
+
+def _pdf_text(line: str) -> str:
+    """Turn an insight/alert string into reportlab paragraph markup: drop the
+    leading emoji, escape XML special chars, and convert **bold** to <b>bold</b>."""
+    import re
+    from xml.sax.saxutils import escape as xml_escape
+    line = re.sub(r"^[^\w$(*]+", "", line).strip()   # strip a leading emoji
+    line = xml_escape(line)                           # neutralize & < > from names
+    line = re.sub(r"\*\*(.+?)\*\*", r"<b>\1</b>", line)
+    return line
+
+
+@st.cache_data(show_spinner=False)
+def build_pdf_summary(data: pd.DataFrame, kpis: tuple, insights: tuple,
+                      alerts: tuple, date_label: str) -> bytes:
+    """Render a clean one-page PDF: headline numbers, two charts, and the
+    plain-English takeaways. Cached so it only rebuilds when the inputs change."""
+    import io as _io
+    import matplotlib
+    matplotlib.use("Agg")  # headless backend, no display needed
+    import matplotlib.pyplot as plt
+    from reportlab.lib import colors
+    from reportlab.lib.pagesizes import letter
+    from reportlab.lib.styles import getSampleStyleSheet
+    from reportlab.lib.units import inch
+    from reportlab.platypus import (Image, Paragraph, SimpleDocTemplate, Spacer,
+                                    Table, TableStyle)
+
+    brown = "#6f4e37"
+
+    # chart 1 — revenue over time (monthly)
+    monthly = data.set_index("transaction_date")["total_amount"].resample("MS").sum()
+    fig1, ax1 = plt.subplots(figsize=(6.6, 2.05))
+    ax1.plot(monthly.index, monthly.values, color=brown, marker="o", ms=3)
+    ax1.set_title("Revenue over time", fontsize=10, loc="left")
+    ax1.grid(alpha=0.25)
+    ax1.tick_params(labelsize=7)
+    fig1.tight_layout()
+    buf1 = _io.BytesIO(); fig1.savefig(buf1, format="png", dpi=150); plt.close(fig1); buf1.seek(0)
+
+    # chart 2 — top products by revenue
+    top = (data.groupby("product_name")["total_amount"].sum()
+           .sort_values(ascending=False).head(8).iloc[::-1])
+    fig2, ax2 = plt.subplots(figsize=(6.6, 2.2))
+    ax2.barh(top.index, top.values, color=brown)
+    ax2.set_title("Top products by revenue", fontsize=10, loc="left")
+    ax2.tick_params(labelsize=7)
+    fig2.tight_layout()
+    buf2 = _io.BytesIO(); fig2.savefig(buf2, format="png", dpi=150); plt.close(fig2); buf2.seek(0)
+
+    styles = getSampleStyleSheet()
+    out = _io.BytesIO()
+    doc = SimpleDocTemplate(out, pagesize=letter, topMargin=0.6 * inch,
+                            bottomMargin=0.5 * inch, leftMargin=0.6 * inch,
+                            rightMargin=0.6 * inch)
+    story = [Paragraph("Sales Summary", styles["Title"]),
+             Paragraph(date_label, styles["Normal"]), Spacer(1, 10)]
+
+    total_revenue, n_orders, aov, orders_label = kpis
+    kpi_table = Table(
+        [[f"${total_revenue:,.0f}", f"{n_orders:,}", f"${aov:,.2f}"],
+         ["Total revenue", orders_label, "Avg order value"]],
+        colWidths=[2.3 * inch] * 3)
+    kpi_table.setStyle(TableStyle([
+        ("FONTSIZE", (0, 0), (-1, 0), 18),
+        ("FONTSIZE", (0, 1), (-1, 1), 9),
+        ("TEXTCOLOR", (0, 0), (-1, 0), colors.HexColor(brown)),
+        ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+        ("BOTTOMPADDING", (0, 0), (-1, 0), 2),
+    ]))
+    story += [kpi_table, Spacer(1, 10),
+              Image(buf1, width=6.6 * inch, height=2.05 * inch), Spacer(1, 6),
+              Image(buf2, width=6.6 * inch, height=2.2 * inch), Spacer(1, 10)]
+
+    takeaways = (list(alerts)[:2] + list(insights))[:5]
+    if takeaways:
+        story.append(Paragraph("Key takeaways", styles["Heading3"]))
+        for line in takeaways:
+            story.append(Paragraph("• " + _pdf_text(line), styles["Normal"]))
+            story.append(Spacer(1, 3))
+
+    doc.build(story)
+    return out.getvalue()
 
 
 def render_how_to(expanded: bool = False) -> None:
@@ -718,6 +879,32 @@ def main() -> None:
     else:
         st.caption("Add category, customer, order-ID, or timestamp columns to your "
                    "data to unlock automatic insights.")
+
+    # --- Automatic outlier / spike alerts ------------------------------------
+    alerts = compute_outlier_alerts(data)
+    if alerts:
+        st.subheader("🚨 Unusual sales days")
+        with st.container(border=True):
+            for alert in alerts:
+                st.markdown(escape_dollars(alert))
+
+    # --- One-page PDF summary (download) -------------------------------------
+    try:
+        pdf_bytes = build_pdf_summary(
+            data,
+            (total_revenue, n_orders, avg_order_value, orders_label),
+            tuple(insights),
+            tuple(alerts),
+            f"{start_date:%b %d, %Y} – {end_date:%b %d, %Y}",
+        )
+        st.download_button(
+            "📄 Download one-page summary (PDF)",
+            data=pdf_bytes,
+            file_name=f"sales-summary_{start_date:%Y%m%d}_{end_date:%Y%m%d}.pdf",
+            mime="application/pdf",
+        )
+    except Exception as exc:  # never let the export crash the dashboard
+        st.caption(f"(One-page PDF export is unavailable right now: {exc})")
 
     st.divider()
 
