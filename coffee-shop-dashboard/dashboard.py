@@ -631,37 +631,91 @@ def read_excel_bytes(file_bytes: bytes) -> pd.DataFrame:
     return best if best is not None else pd.DataFrame()
 
 
-@st.cache_data(show_spinner=False)
-def read_pdf_bytes(file_bytes: bytes) -> pd.DataFrame:
-    """Best-effort: pull a sales *table* out of a text-based PDF.
+def _frame_from_table(table: list) -> pd.DataFrame:
+    """Turn one extracted table (list of rows) into a DataFrame; first row = header."""
+    header = [(str(h).strip().replace("\n", " ") if h and str(h).strip() else f"col{i}")
+              for i, h in enumerate(table[0])]
+    return pd.DataFrame(table[1:], columns=header)
 
-    Works for PDFs that contain a real table (lines/grid). Scanned/image PDFs
-    and summary-only reports return an empty frame, and the caller shows a
-    friendly message. We keep the largest group of same-shaped tables, which
-    handles a transaction table that spans several pages.
-    """
+
+def _combine_same_shape(frames: list):
+    """From many extracted tables, keep the largest group that shares a header
+    (this stitches a transaction table that spans several pages)."""
     from collections import defaultdict
-    import pdfplumber
-
-    frames = []
-    with pdfplumber.open(io.BytesIO(file_bytes)) as pdf:
-        for page in pdf.pages:
-            for table in (page.extract_tables() or []):
-                if not table or len(table) < 2:
-                    continue
-                header = [(str(h).strip().replace("\n", " ") if h else f"col{i}")
-                          for i, h in enumerate(table[0])]
-                frames.append(pd.DataFrame(table[1:], columns=header))
     if not frames:
-        return pd.DataFrame()
-
+        return None
     groups = defaultdict(list)
     for frame in frames:
         groups[tuple(frame.columns)].append(frame)
     best_key = max(groups, key=lambda k: sum(len(f) for f in groups[k]))
-    combined = pd.concat(groups[best_key], ignore_index=True)
-    # tidy cells: strip whitespace, keep real missing values as None
-    return combined.map(lambda v: str(v).strip() if v is not None else None)
+    return pd.concat(groups[best_key], ignore_index=True)
+
+
+def _parse_text_rows(text: str):
+    """Last resort: parse a plain-text PDF whose rows are separated by 2+ spaces
+    or tabs (a printed transaction list that isn't a 'real' table)."""
+    import re
+    from collections import Counter
+    rows = []
+    for raw in text.splitlines():
+        line = raw.strip()
+        if not line:
+            continue
+        cells = [c.strip() for c in re.split(r"\s{2,}|\t", line) if c.strip()]
+        if len(cells) >= 3:
+            rows.append(cells)
+    if len(rows) < 3:
+        return None
+    width = Counter(len(r) for r in rows).most_common(1)[0][0]  # most common column count
+    rows = [r for r in rows if len(r) == width]
+    if len(rows) < 3:
+        return None
+    return pd.DataFrame(rows[1:], columns=[str(h).strip() for h in rows[0]])
+
+
+@st.cache_data(show_spinner=False)
+def read_pdf_bytes(file_bytes: bytes) -> pd.DataFrame:
+    """Best-effort: pull a sales table out of a text-based PDF, trying three
+    strategies in order of reliability:
+      1. ruled tables (drawn grid lines),
+      2. borderless / whitespace-aligned tables,
+      3. a plain-text line parser.
+    Scanned/image PDFs and reports with no transaction rows return an empty
+    frame, and the caller shows a friendly message.
+    """
+    import pdfplumber
+
+    line_cfg = {}  # pdfplumber default: detect columns from drawn lines
+    text_cfg = {"vertical_strategy": "text", "horizontal_strategy": "text",
+                "snap_tolerance": 4, "join_tolerance": 4}
+
+    # Extract everything up front while the PDF is open (pages are lazy).
+    frames_by_strategy = {0: [], 1: []}
+    texts = []
+    with pdfplumber.open(io.BytesIO(file_bytes)) as pdf:
+        for page in pdf.pages:
+            texts.append(page.extract_text() or "")
+            for i, cfg in enumerate((line_cfg, text_cfg)):
+                try:
+                    tables = page.extract_tables(table_settings=cfg) or []
+                except Exception:
+                    tables = []
+                for table in tables:
+                    if table and len(table) >= 2 and len(table[0]) >= 2:
+                        frames_by_strategy[i].append(_frame_from_table(table))
+
+    def _tidy(df):
+        return df.map(lambda v: str(v).strip() if v is not None else None)
+
+    # Prefer ruled tables, then borderless tables, then the text parser.
+    for i in (0, 1):
+        combined = _combine_same_shape(frames_by_strategy[i])
+        if combined is not None and combined.shape[1] >= 2:
+            return _tidy(combined)
+    parsed = _parse_text_rows("\n".join(texts))
+    if parsed is not None and parsed.shape[1] >= 2:
+        return _tidy(parsed)
+    return pd.DataFrame()
 
 
 def _pdf_text(line: str) -> str:
