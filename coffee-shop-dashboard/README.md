@@ -107,16 +107,23 @@ terminal running while you use it; press **Ctrl + C** to stop.
 
 ### The easy way: the upload button
 
-Run the app, then in the sidebar use **"Upload your sales CSV"** and pick your
+Run the app, then in the sidebar use **"Upload your sales file"** and pick your
 file. Everything updates instantly. (This is the recommended way — nothing to
 rename on disk.)
 
+**Accepted formats:**
+- **CSV** and **Excel (`.xlsx` / `.xls`)** — most reliable. For Excel, the app
+  picks the sheet with the most data automatically.
+- **Text-based PDF** — the app will try to pull a sales *table* out of it. This
+  works for PDFs with a real table, but **scanned/image PDFs and summary-only
+  reports (just totals or a chart) can't be read** — use CSV or Excel for those.
+
 ### What your file needs
 
-A **`.csv`** with a header row. **Good news: column names are flexible** — the app
-automatically recognizes common variations, so `Date`, `transaction_date` and
-`Sale Date` all work, as do `Item`/`product`, `Qty`/`quantity`, `Price`/`unit_price`,
-and so on.
+Whatever the format, it should contain a **table with a header row**.
+**Good news: column names are flexible** — the app automatically recognizes
+common variations, so `Date`, `transaction_date` and `Sale Date` all work, as do
+`Item`/`product`, `Qty`/`quantity`, `Price`/`unit_price`, and so on.
 
 **Required** (the app needs all three pieces of information):
 

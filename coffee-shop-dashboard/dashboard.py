@@ -617,6 +617,53 @@ def read_csv_path(path: str) -> pd.DataFrame:
     return pd.read_csv(path)
 
 
+@st.cache_data(show_spinner=False)
+def read_excel_bytes(file_bytes: bytes) -> pd.DataFrame:
+    """Read an uploaded Excel file. If it has several sheets, use the one with
+    the most data (people often keep the sales on a busy sheet)."""
+    xls = pd.ExcelFile(io.BytesIO(file_bytes))
+    best, best_score = None, -1
+    for sheet in xls.sheet_names:
+        df = xls.parse(sheet)
+        score = df.shape[0] * df.shape[1]
+        if score > best_score:
+            best, best_score = df, score
+    return best if best is not None else pd.DataFrame()
+
+
+@st.cache_data(show_spinner=False)
+def read_pdf_bytes(file_bytes: bytes) -> pd.DataFrame:
+    """Best-effort: pull a sales *table* out of a text-based PDF.
+
+    Works for PDFs that contain a real table (lines/grid). Scanned/image PDFs
+    and summary-only reports return an empty frame, and the caller shows a
+    friendly message. We keep the largest group of same-shaped tables, which
+    handles a transaction table that spans several pages.
+    """
+    from collections import defaultdict
+    import pdfplumber
+
+    frames = []
+    with pdfplumber.open(io.BytesIO(file_bytes)) as pdf:
+        for page in pdf.pages:
+            for table in (page.extract_tables() or []):
+                if not table or len(table) < 2:
+                    continue
+                header = [(str(h).strip().replace("\n", " ") if h else f"col{i}")
+                          for i, h in enumerate(table[0])]
+                frames.append(pd.DataFrame(table[1:], columns=header))
+    if not frames:
+        return pd.DataFrame()
+
+    groups = defaultdict(list)
+    for frame in frames:
+        groups[tuple(frame.columns)].append(frame)
+    best_key = max(groups, key=lambda k: sum(len(f) for f in groups[k]))
+    combined = pd.concat(groups[best_key], ignore_index=True)
+    # tidy cells: strip whitespace, keep real missing values as None
+    return combined.map(lambda v: str(v).strip() if v is not None else None)
+
+
 def _pdf_text(line: str) -> str:
     """Turn an insight/alert string into reportlab paragraph markup: drop the
     leading emoji, escape XML special chars, and convert **bold** to <b>bold</b>."""
@@ -777,12 +824,16 @@ def render_how_to(expanded: bool = False) -> None:
                      expanded=expanded):
         st.markdown(
             """
-**1. Export your sales as a CSV from your point-of-sale (POS) system.**
+**1. Export your sales from your point-of-sale (POS) system.**
 It's usually under *Reports → Sales → Export* (or "Download CSV"):
 - **Square:** Dashboard → Reports → Transactions → *Export*.
 - **Toast / Clover / Lightspeed:** Reports → Sales → *Export to CSV*.
 - **Shopify:** Analytics → Reports (or Orders → *Export*).
-- **Just a spreadsheet (Excel / Google Sheets)?** File → *Save As / Download → CSV*.
+- **Just a spreadsheet (Excel / Google Sheets)?** Upload it directly, or File → *Save As / Download → CSV*.
+
+**Accepted files:** **CSV** and **Excel (.xlsx)** are the most reliable. A
+**text-based PDF** that contains a sales *table* also works — but scanned/image
+PDFs and summary-only reports (just totals or a chart) can't be read.
 
 **2. Make sure it has these columns.** Names are flexible — the app
 auto-detects common variations (e.g. `Date`, `Item`, `Qty`, `Price`):
@@ -814,8 +865,8 @@ def render_landing() -> None:
         "— the kind of thing your point-of-sale system probably doesn't show you. "
         "**No spreadsheets, no setup.**"
     )
-    st.info("👈 To begin, upload a CSV of your sales using **Upload your sales CSV** "
-            "in the sidebar.")
+    st.info("👈 To begin, upload your sales file — **CSV, Excel, or a text-based PDF** "
+            "— using **Upload your sales file** in the sidebar.")
     render_how_to(expanded=True)
 
 
@@ -868,18 +919,36 @@ def main() -> None:
     # --- Sidebar: choose the data source --------------------------------------
     st.sidebar.header("① Your data")
     uploaded = st.sidebar.file_uploader(
-        "Upload your sales CSV", type=["csv"],
-        help="Export from your POS as CSV. See 'How to use this' on the page.",
+        "Upload your sales file", type=["csv", "tsv", "txt", "xlsx", "xls", "pdf"],
+        help="CSV or Excel works best. A text-based PDF with a sales table can also "
+             "be read (scanned or summary-only PDFs can't).",
     )
 
     if uploaded is not None:
+        name = uploaded.name.lower()
+        file_bytes = uploaded.getvalue()
         try:
-            raw = read_csv_bytes(uploaded.getvalue())
+            if name.endswith((".xlsx", ".xls")):
+                raw = read_excel_bytes(file_bytes)
+            elif name.endswith(".pdf"):
+                raw = read_pdf_bytes(file_bytes)
+                if raw is None or raw.empty:
+                    st.title("📊 Sales Insights Dashboard")
+                    st.warning(
+                        "I couldn't find a sales **table** inside that PDF. PDFs vary "
+                        "a lot — scanned/image PDFs and summary-only reports (just "
+                        "totals or a chart) can't be turned into data. **A CSV or "
+                        "Excel export works best** — see the guide below.")
+                    render_how_to(expanded=True)
+                    return
+            else:  # csv / tsv / txt
+                raw = read_csv_bytes(file_bytes)
         except Exception as exc:
             st.title("📊 Sales Insights Dashboard")
-            st.error(f"Sorry, I couldn't read **{uploaded.name}** as a CSV file.\n\n"
-                     f"Details: {exc}\n\nMake sure it's a `.csv` exported from your "
-                     "POS or spreadsheet, then try again.")
+            st.error(
+                f"Sorry, I couldn't read **{uploaded.name}**.\n\nDetails: {exc}\n\n"
+                "Supported files: **CSV**, **Excel (.xlsx)**, or a **text-based PDF** "
+                "that contains a sales table.")
             render_how_to(expanded=True)
             return
         source_label, is_sample = uploaded.name, False

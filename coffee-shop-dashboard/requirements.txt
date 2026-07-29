@@ -7,3 +7,6 @@ plotly==6.8.0
 numpy==2.4.6     # used by generate_sample_data.py (the dashboard pulls it in anyway)
 reportlab==5.0.0 # builds the downloadable one-page PDF summary
 matplotlib==3.11.1  # renders the charts embedded in the PDF
+openpyxl==3.1.5  # read Excel (.xlsx) uploads
+xlrd==2.0.2      # read older Excel (.xls) uploads
+pdfplumber==0.11.10  # pull sales tables out of text-based PDF uploads
