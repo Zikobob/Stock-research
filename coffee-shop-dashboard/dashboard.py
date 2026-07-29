@@ -491,7 +491,13 @@ def insight_pareto(data: pd.DataFrame, threshold: float = 0.70):
     top_share = float(cum_share.iloc[k - 1])
     top_names = list(rev.index[:k])
     others = len(rev) - k
-    names_str = ", ".join(top_names[:5]) + ("…" if k > 5 else "")
+    # List every "bread & butter" product (cap a very long list so the sentence
+    # stays readable). Previously this showed only the first 5 + "…", which
+    # wrongly omitted products that the "top k" claim counted.
+    if k <= 8:
+        names_str = ", ".join(top_names)
+    else:
+        names_str = ", ".join(top_names[:8]) + f", and {k - 8} more"
     plural = "s" if k > 1 else ""
     return (
         f"🍞 **Your top {k} product{plural} bring {top_share * 100:.0f}% of revenue** "
