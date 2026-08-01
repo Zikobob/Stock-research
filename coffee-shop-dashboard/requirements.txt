@@ -10,6 +10,7 @@ matplotlib==3.11.1  # renders the charts embedded in the PDF
 openpyxl==3.1.5  # read Excel (.xlsx) uploads
 xlrd==2.0.2      # read older Excel (.xls) uploads
 pdfplumber==0.11.10  # pull sales tables out of text-based PDF uploads
-anthropic==0.120.2   # OPTIONAL: only the "AI chart explainer" uses this. That one
-                     # feature calls Claude's paid vision API (needs your own API
-                     # key); the rest of the dashboard is free and works without it.
+google-genai==2.16.0  # OPTIONAL: only the "AI chart explainer" uses this. That one
+                      # feature calls Google's Gemini vision API, which has a FREE
+                      # tier (needs a free Google AI Studio key). The rest of the
+                      # dashboard is free/local and works without it.

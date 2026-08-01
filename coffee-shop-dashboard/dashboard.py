@@ -593,19 +593,26 @@ def escape_dollars(text: str) -> str:
 
 
 # ===========================================================================
-# 3B. AI CHART EXPLAINER  (the ONLY part that calls a paid, non-local API)
+# 3B. AI CHART EXPLAINER  (the one feature that calls an outside service)
 # ---------------------------------------------------------------------------
-# Everything else in this app is free and runs entirely on your computer. This
-# one optional feature sends a *picture* of a chart to Anthropic's Claude vision
-# API and gets back a plain-English description. It needs your own (paid) API
-# key, and — being a photo/screenshot reader — it DESCRIBES a chart, it does not
-# recover the exact underlying numbers. For real number-crunching, use the main
-# dashboard with a CSV/Excel file instead.
+# Everything else in this app is free and runs entirely on your own computer.
+# This one optional feature sends a *picture* of a chart to Google's Gemini
+# vision API and gets back a plain-English description. It runs on Gemini's
+# FREE tier (you just need a free Google AI Studio key), but two things are
+# worth knowing: (1) your image is uploaded to Google to be read, and on the
+# free tier Google may use it to improve their products; and (2) being a
+# photo/screenshot reader, it DESCRIBES a chart — it does NOT recover the exact
+# underlying numbers. For real number-crunching, use the main dashboard with a
+# CSV/Excel file instead.
 # ===========================================================================
 
-# Default vision model. `claude-opus-5` is Anthropic's current flagship; you can
-# swap in a cheaper model (e.g. "claude-haiku-4-5") to spend less per image.
-AI_VISION_MODEL = "claude-opus-5"
+# Fast "flash" Gemini vision models available on the free tier. We default to the
+# first; the UI lets the user switch if one isn't available on their key's tier.
+AI_VISION_MODELS = ["gemini-2.5-flash", "gemini-3.5-flash", "gemini-2.0-flash"]
+AI_VISION_MODEL = AI_VISION_MODELS[0]
+
+# Image formats Gemini accepts inline (note: GIF is NOT supported), plus PDF.
+AI_UPLOAD_TYPES = ["png", "jpg", "jpeg", "webp", "pdf"]
 
 AI_CHART_PROMPT = (
     "You are a friendly data analyst helping a small-business owner who is NOT "
@@ -624,9 +631,9 @@ AI_CHART_PROMPT = (
 
 
 def image_media_type(filename: str) -> str:
-    """Map an uploaded file's name to the media type the Claude API expects.
+    """Map an uploaded file's name to the MIME type the Gemini API expects.
 
-    Images use an `image/*` type; a PDF is sent as a `document` instead. Anything
+    A PDF becomes `application/pdf`; images use an `image/*` type. Anything
     unrecognised is assumed to be a PNG (the most common screenshot format).
     """
     name = str(filename).lower()
@@ -634,8 +641,6 @@ def image_media_type(filename: str) -> str:
         return "application/pdf"
     if name.endswith((".jpg", ".jpeg")):
         return "image/jpeg"
-    if name.endswith(".gif"):
-        return "image/gif"
     if name.endswith(".webp"):
         return "image/webp"
     return "image/png"
@@ -643,45 +648,33 @@ def image_media_type(filename: str) -> str:
 
 def explain_chart_image(file_bytes: bytes, media_type: str, api_key: str,
                         model: str = AI_VISION_MODEL) -> str:
-    """Send a chart image (or PDF) to Claude's vision API; return its plain-English
-    explanation as text.
+    """Send a chart image (or PDF) to Google's Gemini vision API; return its
+    plain-English explanation as text.
 
     Kept free of Streamlit so it can be reasoned about / tested in isolation. It
-    lets the SDK's typed exceptions (AuthenticationError, RateLimitError,
-    APIStatusError, …) propagate so the UI layer can turn each into a friendly
-    message. The API key is passed in explicitly and never hard-coded or logged.
+    lets the SDK's typed errors (google.genai.errors.ClientError / ServerError)
+    propagate so the UI layer can turn each into a friendly message. The API key
+    is passed in explicitly and never hard-coded or logged.
     """
-    import base64
+    from google import genai        # imported lazily: the rest of the app
+    from google.genai import types  # doesn't need google-genai installed
 
-    import anthropic  # imported lazily: the rest of the app doesn't need it
-
-    b64 = base64.standard_b64encode(file_bytes).decode("utf-8")
-    if media_type == "application/pdf":
-        # A PDF goes in as a `document` block (Claude reads the page directly).
-        media_block = {"type": "document",
-                       "source": {"type": "base64",
-                                  "media_type": "application/pdf", "data": b64}}
-    else:
-        media_block = {"type": "image",
-                       "source": {"type": "base64",
-                                  "media_type": media_type, "data": b64}}
-
-    client = anthropic.Anthropic(api_key=api_key)
-    response = client.messages.create(
+    client = genai.Client(api_key=api_key)
+    media_part = types.Part.from_bytes(data=file_bytes, mime_type=media_type)
+    response = client.models.generate_content(
         model=model,
-        max_tokens=1200,
-        messages=[{"role": "user",
-                   "content": [media_block,
-                               {"type": "text", "text": AI_CHART_PROMPT}]}],
+        contents=[media_part, AI_CHART_PROMPT],
     )
-    # A safety refusal comes back as a normal response with this stop_reason.
-    if getattr(response, "stop_reason", None) == "refusal":
+    # response.text is None (or raises) when the reply was blocked or held no text.
+    try:
+        text = response.text
+    except Exception:
+        text = None
+    if not text:
         raise RuntimeError(
-            "Claude declined to analyze this image. Try a different chart.")
-    return "".join(
-        block.text for block in response.content
-        if getattr(block, "type", None) == "text"
-    ).strip()
+            "Gemini didn't return any text — the image may have been blocked or "
+            "couldn't be read. Try a clearer screenshot or a different chart.")
+    return text.strip()
 
 
 # ===========================================================================
@@ -1092,120 +1085,144 @@ def render_load_summary(report: dict, label: str, is_sample: bool, flags: dict) 
                 st.caption("Extra features active for your data: " + ", ".join(active) + ".")
 
 
-def find_anthropic_key() -> str:
-    """Look for an Anthropic API key in Streamlit secrets, then the environment.
+def find_gemini_key() -> str:
+    """Look for a Google Gemini API key in Streamlit secrets, then the environment
+    (checking both GEMINI_API_KEY and GOOGLE_API_KEY).
 
     Returns "" if none is set (the UI then offers a password box to type one in).
     Accessing st.secrets can raise when there's no secrets file at all, so it's
     guarded. The key is never written to disk or logged.
     """
-    try:
-        key = st.secrets.get("ANTHROPIC_API_KEY", "")
-        if key:
-            return str(key)
-    except Exception:
-        pass  # no secrets.toml configured -> fall back to the environment
-    return os.environ.get("ANTHROPIC_API_KEY", "")
+    for name in ("GEMINI_API_KEY", "GOOGLE_API_KEY"):
+        try:
+            val = st.secrets.get(name, "")
+        except Exception:
+            val = ""  # no secrets.toml configured -> fall back to the environment
+        if not val:
+            val = os.environ.get(name, "")
+        if val:
+            return str(val)
+    return ""
 
 
 def render_ai_chart_explainer() -> None:
     """The '🤖 AI chart explainer' screen: upload a picture of a chart and have
-    Claude describe it in plain English. This is the one feature that leaves the
-    free/local design — it calls Anthropic's paid API with the user's own key."""
+    Google's Gemini describe it in plain English. This runs on Gemini's free
+    tier, so it needs a (free) Google AI Studio key rather than a paid one."""
     st.title("🤖 AI Chart Explainer")
     st.markdown(
         "Upload a **picture of a chart or graph** — a screenshot, a photo, or a "
-        "PDF page — and Claude will read it and explain what it shows in plain "
-        "English, then suggest what to do about it."
+        "PDF page — and Google's **Gemini** AI will read it and explain what it "
+        "shows in plain English, then suggest what to do about it."
     )
 
-    st.warning(
-        "**Heads-up — this feature works differently from the rest of the app:**\n\n"
-        "- 💳 It sends your image to **Anthropic's Claude API**, so it needs *your "
-        "own* **paid API key** and costs roughly a few cents per chart. Everything "
-        "else in this dashboard is **free and runs locally** — only this part isn't.\n"
+    st.info(
+        "**Good news: this runs on Gemini's _free_ tier** — you just need a free "
+        "Google AI Studio key (below, ~2 minutes). A few things to know:\n\n"
         "- 👀 It **describes** a chart in words; it **can't pull the exact numbers** "
         "back out of a picture. For real analysis of your figures, use the "
         "**📊 Sales dashboard** with a CSV or Excel file instead.\n"
-        "- 🔐 Your image is uploaded to Anthropic to be processed."
+        "- 🔐 Your image is **uploaded to Google** to be read, and on the free tier "
+        "Google may use it to improve their products — so don't send anything "
+        "confidential.\n"
+        "- ⏳ The free tier has **rate limits** (a few requests per minute), so give "
+        "it a moment between charts."
     )
 
     # --- API key: from secrets/env if present, otherwise ask for one ---
-    key = find_anthropic_key()
+    key = find_gemini_key()
     if key:
-        st.caption("🔑 Using the Anthropic API key from this app's secrets / environment.")
+        st.caption("🔑 Using the Google Gemini API key from this app's secrets / environment.")
     else:
-        with st.expander("🔑 Set your Anthropic API key (required)", expanded=True):
+        with st.expander("🔑 Get a free Google API key (required, ~2 minutes)",
+                         expanded=True):
             st.markdown(
-                "Get a key at "
-                "[console.anthropic.com](https://console.anthropic.com/settings/keys) "
-                "(you'll need a small amount of paid credit on your account). It is "
-                "**not stored** — it lives only in this browser session.\n\n"
+                "1. Open [Google AI Studio → API keys]"
+                "(https://aistudio.google.com/app/apikey) and sign in with a Google "
+                "account.\n"
+                "2. Click **Create API key** — the free tier needs **no credit card**.\n"
+                "3. Copy it and paste it below. It is **not stored** — it lives only "
+                "in this browser session.\n\n"
                 "*Deploying on Streamlit Community Cloud? Add it once under* "
-                "**App → Settings → Secrets** *as* `ANTHROPIC_API_KEY = \"sk-ant-...\"` "
-                "*and it'll be picked up here automatically.*"
+                "**App → Settings → Secrets** *as* `GEMINI_API_KEY = \"...\"` *and "
+                "it'll be picked up here automatically.*"
             )
-            key = st.text_input("Anthropic API key", type="password",
-                                placeholder="sk-ant-...")
+            key = st.text_input("Google Gemini API key", type="password",
+                                placeholder="AIza...")
 
     # --- Upload the chart ---
     uploaded = st.file_uploader(
         "Upload a chart image or PDF",
-        type=["png", "jpg", "jpeg", "gif", "webp", "pdf"],
-        help="A screenshot or photo of a chart (PNG/JPG) works best. A PDF page is "
-             "sent to Claude as-is.",
+        type=AI_UPLOAD_TYPES,
+        help="A screenshot or photo of a chart (PNG/JPG/WebP) works best. A PDF "
+             "page is sent to Gemini as-is.",
     )
     if uploaded is not None:
         if image_media_type(uploaded.name) == "application/pdf":
-            st.caption(f"📄 **{uploaded.name}** — will be sent to Claude as a PDF.")
+            st.caption(f"📄 **{uploaded.name}** — will be sent to Gemini as a PDF.")
         else:
             st.image(uploaded.getvalue(), caption=uploaded.name, width="stretch")
+
+    # --- Model (most people can leave this on the default) ---
+    model = st.selectbox(
+        "AI model", AI_VISION_MODELS, index=0,
+        help="All are free-tier Gemini vision models. If the default isn't "
+             "available on your key's tier, try another one.",
+    )
 
     # --- Run it ---
     if st.button("✨ Explain this chart", type="primary", disabled=(uploaded is None)):
         if not key:
-            st.error("Please enter your Anthropic API key above first.")
+            st.error("Please add your free Google Gemini API key above first.")
             return
         try:
-            import anthropic
+            from google.genai import errors as genai_errors
         except ModuleNotFoundError:
-            st.error("The `anthropic` package isn't installed. Run "
+            st.error("The `google-genai` package isn't installed. Run "
                      "`pip install -r requirements.txt` and try again.")
             return
 
         try:
-            with st.spinner("Claude is reading your chart…"):
+            with st.spinner("Gemini is reading your chart…"):
                 answer = explain_chart_image(
-                    uploaded.getvalue(), image_media_type(uploaded.name), key)
-        except anthropic.AuthenticationError:
-            st.error("🔑 That API key was rejected. Double-check it at "
-                     "console.anthropic.com and try again.")
+                    uploaded.getvalue(), image_media_type(uploaded.name), key, model)
+        except genai_errors.ClientError as exc:
+            code = getattr(exc, "code", None)
+            detail = getattr(exc, "message", None) or str(exc)
+            if code == 429:
+                st.error("⏳ You've hit the free-tier rate limit (or used up today's "
+                         "quota). Wait a minute or two and try again.")
+            elif code in (400, 401, 403):
+                st.error("🔑 Your Google API key was rejected or isn't permitted. "
+                         "Double-check it at aistudio.google.com/app/apikey.\n\n"
+                         f"Details: {detail}")
+            elif code == 404:
+                st.error("That model isn't available on your key's tier — pick a "
+                         "different one from the **AI model** dropdown above.\n\n"
+                         f"Details: {detail}")
+            else:
+                st.error(f"Gemini rejected the request (HTTP {code}).\n\nDetails: {detail}")
             return
-        except anthropic.RateLimitError:
-            st.error("⏳ Rate limit hit, or your account is out of credit. Wait a "
-                     "moment (or top up your Anthropic billing), then try again.")
-            return
-        except anthropic.APIConnectionError:
-            st.error("🌐 Couldn't reach the Anthropic API. Check your internet "
-                     "connection and try again.")
-            return
-        except anthropic.APIStatusError as exc:
-            st.error(f"The Anthropic API returned an error (HTTP {exc.status_code}). "
+        except genai_errors.ServerError:
+            st.error("🌐 Google's servers had a hiccup (or couldn't be reached). "
                      "Please try again in a moment.")
+            return
+        except RuntimeError as exc:  # e.g. blocked / empty response
+            st.warning(str(exc))
             return
         except Exception as exc:  # never let it crash the app
             st.error(f"Something went wrong talking to the API: {exc}")
             return
 
         if answer:
-            st.markdown("### 🧾 What Claude sees")
+            st.markdown("### 🧾 What Gemini sees")
             with st.container(border=True):
                 st.markdown(escape_dollars(answer))
             st.caption("⚠️ These figures are **estimates read off the picture**. For "
                        "exact numbers, analyze the underlying CSV in the 📊 Sales "
                        "dashboard.")
         else:
-            st.warning("Claude didn't return any text for that image. Try another "
+            st.warning("Gemini didn't return any text for that image. Try another "
                        "chart, or a clearer screenshot.")
 
 
@@ -1219,17 +1236,17 @@ def main() -> None:
 
     # --- Sidebar: pick a mode -------------------------------------------------
     # Two tools in one app: the free/local sales dashboard (default), and an
-    # optional AI chart explainer that reads a *picture* of a chart via Claude's
-    # paid API. Kept as a top-level switch so the explainer never interferes with
-    # the core, no-API-needed experience.
+    # optional AI chart explainer that reads a *picture* of a chart via Google's
+    # Gemini API (free tier). Kept as a top-level switch so the explainer never
+    # interferes with the core, no-API-needed experience.
     mode = st.sidebar.radio(
         "Mode",
         ["📊 Sales dashboard", "🤖 AI chart explainer"],
         index=0,
         key="app_mode",
         help="Sales dashboard: analyze a CSV/Excel/PDF of sales — free and local. "
-             "AI chart explainer: read a *picture* of a chart using Claude's API "
-             "(needs your own paid API key).",
+             "AI chart explainer: read a *picture* of a chart using Google's Gemini "
+             "API (free tier, needs a free Google AI Studio key).",
     )
     st.sidebar.divider()
     if mode.startswith("🤖"):

@@ -42,9 +42,9 @@ Every chart and insight **degrades gracefully** — if your file is missing an
 optional column, that piece is replaced with a short note instead of an error.
 
 **🤖 Optional AI chart explainer** — only have a *picture* of a chart and no
-spreadsheet? A separate mode can send the image to Claude's vision API for a
-plain-English explanation. It's the one feature that isn't free/local (it needs
-your own paid API key) — [details below](#-ai-chart-explainer-optional--the-one-paid-feature).
+spreadsheet? A separate mode sends the image to Google's **Gemini** vision AI
+for a plain-English explanation. It runs on Gemini's **free tier** (needs a free
+Google AI Studio key) — [details below](#-ai-chart-explainer-optional--free-gemini).
 
 ---
 
@@ -173,41 +173,46 @@ File → Save As / Download → CSV.
 
 ---
 
-## 🤖 AI Chart Explainer (optional — the one paid feature)
+## 🤖 AI Chart Explainer (optional — free, Gemini)
 
 Sometimes all you have is a **picture** of a chart — a screenshot, a photo, or a
 PDF page — with no underlying spreadsheet. Switch the sidebar **Mode** to
-**🤖 AI chart explainer**, upload the image, and Claude reads it and explains what
-it shows in plain English (what's on each axis, the headline, the trends, and a
-couple of practical suggestions).
+**🤖 AI chart explainer**, upload the image, and Google's **Gemini** AI reads it
+and explains what it shows in plain English (what's on each axis, the headline,
+the trends, and a couple of practical suggestions).
 
-> **⚠️ This feature is deliberately different from the rest of the app — read this first:**
-> - **It's not free and not local.** It sends your image to **Anthropic's Claude
->   API**, which needs **your own paid API key** and costs roughly a few cents per
->   chart. Everything else in this dashboard is free and runs on your machine —
->   only this part isn't.
+> **⚠️ A few things to know — this is the one part that calls an outside service:**
+> - **It's free, but it needs a (free) key.** It runs on Google Gemini's **free
+>   tier** — no credit card required — but you do need a free Google AI Studio API
+>   key (steps below). The free tier has **rate limits** (a few requests per minute).
 > - **It describes, it doesn't extract.** It reads a *picture*, so it can tell you
 >   what the chart *shows* but **can't recover the exact underlying numbers**. For
 >   real analysis of your figures, use the **📊 Sales dashboard** with a CSV/Excel
 >   file — that's what the rest of this app is for.
-> - **Your image leaves your computer** — it's uploaded to Anthropic to be read.
+> - **Your image leaves your computer** — it's uploaded to Google to be read, and on
+>   the free tier Google may use it to improve their products. Don't send anything
+>   confidential.
 
-**Setting your API key:**
-- Get a key at [console.anthropic.com](https://console.anthropic.com/settings/keys)
-  (you'll need a little paid credit on the account).
-- **Running locally:** either paste the key into the box the app shows, or set it
-  as an environment variable before launching:
-  ```bash
-  export ANTHROPIC_API_KEY="sk-ant-..."   # macOS/Linux  (Windows: setx ANTHROPIC_API_KEY "sk-ant-...")
-  streamlit run dashboard.py
-  ```
-- **Deployed on Streamlit Cloud:** add it once under **App → Settings → Secrets**
-  as `ANTHROPIC_API_KEY = "sk-ant-..."` and the app picks it up automatically.
+**Getting your free API key (~2 minutes):**
+1. Open [Google AI Studio → API keys](https://aistudio.google.com/app/apikey) and
+   sign in with a Google account.
+2. Click **Create API key** (no credit card needed for the free tier).
+3. Use it one of these ways:
+   - **Running locally:** paste it into the box the app shows, or set it as an
+     environment variable before launching:
+     ```bash
+     export GEMINI_API_KEY="AIza..."   # macOS/Linux  (Windows: setx GEMINI_API_KEY "AIza...")
+     streamlit run dashboard.py
+     ```
+   - **Deployed on Streamlit Cloud:** add it once under **App → Settings → Secrets**
+     as `GEMINI_API_KEY = "AIza..."` and the app picks it up automatically.
 
-The key is never written to disk by the app; when typed into the box it lives only
-in that browser session. If you don't want this feature at all, just ignore the
-mode switch — the dashboard works fully without a key (and the `anthropic` package
-it uses is the only "extra" in `requirements.txt`).
+The default model is `gemini-2.5-flash`; if it isn't available on your key's tier
+you can pick another from the **AI model** dropdown. The key is never written to
+disk by the app; when typed into the box it lives only in that browser session. If
+you don't want this feature at all, just ignore the mode switch — the dashboard
+works fully without a key (and the `google-genai` package it uses is the only
+"extra" in `requirements.txt`).
 
 ---
 
