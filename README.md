@@ -27,6 +27,25 @@ affiliation footer).*
 
 ---
 
+## Also in this repo: the equity research portfolio system
+
+Alongside the correlation-regime study, [`portfolio/`](portfolio/) is a
+self-contained, institutional-style **equity research desk**: it collects free
+public data for eight large-cap stocks (AAPL, MSFT, NVDA, AMZN, TSLA, GOOGL,
+META, JPM) plus SPY, computes returns/volatility/Sharpe/beta/correlation and
+rolling metrics, renders a publication-quality chart deck, writes a structured
+research note per company, and produces a portfolio-level summary.
+
+```bash
+python -m portfolio.src.main             # full pipeline
+python -m portfolio.src.main --offline   # reuse cached data
+```
+
+See [`portfolio/README.md`](portfolio/README.md) for details. *(Educational —
+not investment advice.)*
+
+---
+
 ## What it does
 
 1. **Collects** 5+ years of daily adjusted-close prices for XLK, XLV, XLE, XLF
