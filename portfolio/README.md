@@ -3,8 +3,9 @@
 A college-level, institutional-style equity research desk in miniature. It
 collects free public market data, computes the risk-and-return statistics a
 buy-side analyst actually uses, renders a publication-quality chart deck,
-writes a structured research note for every holding, and rolls the names up
-into a portfolio-level view.
+writes a structured research note for every holding, rolls the names up into a
+portfolio-level view, and — closing the loop — builds honest, walk-forward
+models that try to **predict** each stock's next-day move.
 
 > **Educational research project. Nothing here is investment advice.** Past
 > performance and historical statistics do not guarantee future results.
@@ -26,6 +27,7 @@ Discretionary) · GOOGL · META (Communication Services) · JPM (Financials).
 | A structured research note per company | `reports/<TICKER>_report.md` |
 | Company index / leaderboard | `reports/INDEX.md` |
 | Portfolio-level summary | `reports/PORTFOLIO_SUMMARY.md` |
+| Prediction study (forecast accuracy) | `reports/PREDICTION_REPORT.md` |
 | Interactive walk-through | `notebooks/equity_research.ipynb` |
 
 ## Quick start
@@ -63,7 +65,8 @@ portfolio/
 │   ├── visualization.py     # (3) eight consistent PNG charts
 │   ├── report_generator.py  # (4) per-stock research notes + index
 │   ├── portfolio_summary.py # (5) weighted return, diversification, sector risk
-│   └── main.py              # orchestrates all five layers
+│   ├── prediction.py        # (6) walk-forward next-day forecasting + honest scoring
+│   └── main.py              # orchestrates all six layers
 ├── notebooks/
 │   ├── equity_research.ipynb   # narrative walk-through (executed)
 │   └── build_notebook.py       # regenerates the notebook
@@ -105,6 +108,18 @@ cross-asset diversification is captured, not just a weighted average of
 standalone vols), plus the diversification ratio, average pairwise correlation,
 Herfindahl concentration / effective number of holdings, sector-exposure
 breakdown, portfolio beta/alpha, and a correlation-risk discussion.
+
+### 6. Prediction
+Closes the loop from *analysis* to *forecasting*. For each stock it builds
+**one-day-ahead, walk-forward, out-of-sample** models — a random-walk baseline,
+a Ridge return model, and logistic-regression and random-forest direction
+classifiers (scikit-learn) — using lagged returns, momentum, and realized
+volatility as features. The headline metric is **directional accuracy** (up/down
+hit rate), which does not scale with move size. The honest result: accuracy sits
+near 50% (best ≈ 53%), barely beating the random walk — exactly what efficient
+short-horizon markets predict, and a built-in guard against the look-ahead bias
+that makes naive predictors look deceptively good. See
+[`reports/PREDICTION_REPORT.md`](reports/PREDICTION_REPORT.md).
 
 ## Configuration
 

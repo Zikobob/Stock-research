@@ -9,6 +9,10 @@ and summary document:
     Layer 3  Visualization       -> charts/*.png
     Layer 4  Research reports     -> reports/<TICKER>_report.md, reports/INDEX.md
     Layer 5  Portfolio summary    -> reports/PORTFOLIO_SUMMARY.md
+    Layer 6  Prediction          -> prediction_metrics.csv, PREDICTION_REPORT.md
+
+(Execution order differs slightly: prediction runs before visualization so the
+prediction charts can be drawn alongside the rest of the deck.)
 
 Usage:
     python -m portfolio.src.main              # full run (downloads fresh data)
@@ -22,6 +26,7 @@ import sys
 from . import config
 from . import data_engine
 from . import quant_analysis
+from . import prediction
 from . import visualization
 from . import report_generator
 from . import portfolio_summary
@@ -43,8 +48,11 @@ def run(offline: bool = False) -> None:
     # Layer 2 -- analytics
     analysis = quant_analysis.run(datasets["log_returns"])
 
-    # Layer 3 -- charts
-    visualization.run(datasets, analysis)
+    # Layer 6 -- prediction (runs before charts so its figures join the deck)
+    pred = prediction.run(datasets["log_returns"])
+
+    # Layer 3 -- charts (including the two prediction charts)
+    visualization.run(datasets, analysis, pred_metrics=pred["metrics"])
 
     # Layer 4 -- per-stock reports
     report_generator.run(analysis)

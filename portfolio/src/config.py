@@ -176,6 +176,16 @@ PORTFOLIO_WEIGHTS: dict[str, float] = {t: 1.0 / len(TICKERS) for t in TICKERS}
 SHARPE_BUY = 1.0
 SHARPE_HOLD = 0.4
 
+# --------------------------------------------------------------------------- #
+# Prediction (Layer 6) parameters
+# --------------------------------------------------------------------------- #
+# One-day-ahead, walk-forward forecasting on the individual stocks.
+PRED_LAGS = 5              # number of lagged daily returns used as features
+PRED_TRAIN_WINDOW = 252   # rolling training window (trading days) for each refit
+PRED_REFIT_EVERY = 21     # refit the models every N days (monthly); predict daily
+PRED_RF_TREES = 120       # random-forest size (direction model)
+PRED_RF_MAX_DEPTH = 4     # shallow trees to resist overfitting noisy returns
+
 # Plot styling
 FIGSIZE = (11, 6)
 DPI = 130

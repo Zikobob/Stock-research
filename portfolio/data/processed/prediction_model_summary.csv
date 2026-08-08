@@ -1,0 +1,5 @@
+model,directional_accuracy
+RidgeReturn,0.5053048185438598
+RandomWalk,0.5051758736160721
+RandomForest,0.5050484619801027
+LogisticDir,0.5034051305114587

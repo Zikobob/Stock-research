@@ -30,13 +30,14 @@ cells = [
     md("""
 # Equity Research Portfolio — Interactive Walk-through
 
-A mini institutional equity-research desk in five layers:
+A mini institutional equity-research desk that both **analyzes** and **predicts** the same stocks:
 
 1. **Data engine** — daily prices, volume, log returns (Yahoo Finance).
 2. **Quantitative analysis** — returns, volatility, Sharpe, beta, correlation, rolling metrics.
 3. **Visualization** — publication-quality charts.
 4. **Research reports** — a structured note per company.
 5. **Portfolio summary** — weighted returns, diversification, sector & correlation risk.
+6. **Prediction** — walk-forward, out-of-sample next-day forecasts (with an honest baseline).
 
 *Educational research project. Nothing here is investment advice.*
 
@@ -57,7 +58,7 @@ if ROOT not in sys.path:
     sys.path.insert(0, ROOT)
 
 from portfolio.src import config, data_engine, quant_analysis as qa
-from portfolio.src import visualization as viz, report_generator, portfolio_summary
+from portfolio.src import prediction, visualization as viz, report_generator, portfolio_summary
 
 # Route requests through the pre-configured CA bundle if one is present.
 _ca = "/root/.ccr/ca-bundle.crt"
@@ -93,17 +94,29 @@ metrics.style.format({
 """),
     md("### Correlation matrix"),
     code("analysis['correlation'].style.format('{:.2f}').background_gradient(cmap='coolwarm', vmin=0, vmax=1)"),
-    md("## Layer 3 — Visualization\n\nRegenerate the full chart deck and display a few inline."),
+    md("""
+## Layer 6 — Prediction (walk-forward, out-of-sample)
+
+Can we forecast next-day *direction* for each stock better than a coin flip and
+better than a random walk? The models are trained only on prior data (no
+look-ahead), and directional accuracy is the honest metric.
+"""),
+    code("""
+pred = prediction.run(log_returns)
+pred["metrics"].pivot(index="model", columns="symbol", values="directional_accuracy").mul(100).round(1)
+"""),
+    md("## Layer 3 — Visualization\n\nRegenerate the full chart deck (including the two prediction charts) and display a few inline."),
     code("""
 viz.apply_style()
-paths = viz.run(datasets, analysis)
+paths = viz.run(datasets, analysis, pred_metrics=pred["metrics"])
 print("Charts written to:", os.path.relpath(config.CHARTS_DIR, ROOT))
 [os.path.basename(p) for p in paths]
 """),
     code("""
 from IPython.display import Image, display
 for name in ["01_normalized_prices.png", "03_correlation_heatmap.png",
-            "05_risk_return_scatter.png", "06_portfolio_allocation.png"]:
+            "05_risk_return_scatter.png", "06_portfolio_allocation.png",
+            "09_prediction_accuracy.png"]:
     display(Image(filename=os.path.join(config.CHARTS_DIR, name)))
 """),
     md("## Layer 4 — Research reports\n\nGenerate a structured Markdown note per holding (overview, quant, risk, thesis)."),

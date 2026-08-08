@@ -192,11 +192,49 @@ def plot_rolling_corr_market(roll_corr: pd.DataFrame, filename="08_rolling_corr_
     return _save(fig, filename)
 
 
+def plot_prediction_accuracy(pred_metrics: pd.DataFrame,
+                            filename="09_prediction_accuracy.png") -> str:
+    """Heatmap of directional accuracy (models x stocks), centered on a coin flip."""
+    pivot = pred_metrics.pivot(index="model", columns="symbol",
+                            values="directional_accuracy")
+    # Keep a sensible model order and the portfolio ticker order.
+    pivot = pivot.reindex(index=["RandomWalk", "RidgeReturn", "LogisticDir", "RandomForest"],
+                        columns=config.TICKERS)
+    fig, ax = plt.subplots(figsize=(11, 4.2))
+    sns.heatmap(pivot * 100, annot=True, fmt=".1f", cmap="RdYlGn", center=50,
+                vmin=44, vmax=56, linewidths=0.5,
+                cbar_kws={"label": "Directional accuracy (%)"}, ax=ax)
+    ax.set_title("Next-Day Directional Accuracy — green beats a coin flip (50%)")
+    ax.set_xlabel("")
+    ax.set_ylabel("")
+    return _save(fig, filename)
+
+
+def plot_prediction_vs_coinflip(pred_metrics: pd.DataFrame,
+                                filename="10_prediction_vs_coinflip.png") -> str:
+    """Best-model accuracy per stock as deviation from the 50% coin-flip line."""
+    best = (pred_metrics.sort_values("directional_accuracy", ascending=False)
+            .groupby("symbol").head(1).set_index("symbol").reindex(config.TICKERS))
+    fig, ax = plt.subplots()
+    vals = (best["directional_accuracy"] - 0.5) * 100
+    colors = [_PALETTE.get(s) for s in best.index]
+    ax.bar(best.index, vals, color=colors, edgecolor="black", linewidth=0.5)
+    ax.axhline(0, color="black", linewidth=1.2)
+    ax.set_title("Best Model's Edge Over a Coin Flip (percentage points)")
+    ax.set_ylabel("Directional accuracy − 50% (pp)")
+    ax.set_ylim(-2, 5)
+    for s, v in zip(best.index, vals):
+        ax.annotate(f"{best.loc[s, 'model']}", (s, v), xytext=(0, 3 if v >= 0 else -12),
+                    textcoords="offset points", ha="center", fontsize=7, rotation=0)
+    return _save(fig, filename)
+
+
 # --------------------------------------------------------------------------- #
 # Orchestration
 # --------------------------------------------------------------------------- #
 def run(datasets: dict | None = None, analysis: dict | None = None,
-        weights: dict[str, float] | None = None) -> list[str]:
+        weights: dict[str, float] | None = None,
+        pred_metrics: pd.DataFrame | None = None) -> list[str]:
     """Generate the full chart deck and return the list of saved paths."""
     from .data_engine import load_processed
     from . import quant_analysis as qa
@@ -223,6 +261,10 @@ def run(datasets: dict | None = None, analysis: dict | None = None,
         plot_drawdowns(log_returns),
         plot_rolling_corr_market(analysis["rolling_corr"]),
     ]
+    # Prediction charts (Layer 6), only if prediction metrics were supplied.
+    if pred_metrics is not None:
+        paths.append(plot_prediction_accuracy(pred_metrics))
+        paths.append(plot_prediction_vs_coinflip(pred_metrics))
     for p in paths:
         print(f"  saved {os.path.relpath(p, config.PACKAGE_ROOT)}")
     return paths

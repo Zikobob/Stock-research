@@ -34,7 +34,9 @@ self-contained, institutional-style **equity research desk**: it collects free
 public data for eight large-cap stocks (AAPL, MSFT, NVDA, AMZN, TSLA, GOOGL,
 META, JPM) plus SPY, computes returns/volatility/Sharpe/beta/correlation and
 rolling metrics, renders a publication-quality chart deck, writes a structured
-research note per company, and produces a portfolio-level summary.
+research note per company, produces a portfolio-level summary, and builds
+honest **walk-forward models that predict each stock's next-day move** (which,
+truthfully, land near a coin flip — the expected result for efficient markets).
 
 ```bash
 python -m portfolio.src.main             # full pipeline
