@@ -203,6 +203,19 @@ def add_title_page(doc: Document) -> None:
     pb.add_run().add_break(WD_BREAK.PAGE)
 
 
+def _flush_references(doc: Document) -> None:
+    """Remove first-line indent from reference entries (JEI: no hanging indent)."""
+    in_refs = False
+    for p in doc.paragraphs:
+        style = (p.style.name or "").lower()
+        if style.startswith("heading"):
+            in_refs = p.text.strip().lower() == "references"
+            continue
+        if in_refs:
+            p.paragraph_format.first_line_indent = Inches(0)
+            p.paragraph_format.left_indent = Inches(0)
+
+
 def main() -> None:
     build_reference_doc()
 
@@ -219,6 +232,7 @@ def main() -> None:
 
     doc = Document(body)
     add_title_page(doc)
+    _flush_references(doc)
     doc.save(OUT)
 
     for f in (tmp_md, body, REF):

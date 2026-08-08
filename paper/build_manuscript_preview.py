@@ -57,6 +57,7 @@ figcaption { text-indent: 0; font-size: 11pt; text-align: left; margin-top: .2em
 code { font-family: 'Courier New', monospace; font-size: 10.5pt; }
 pre { text-indent: 0; background: #f5f5f5; padding: .5em; overflow-x: auto; }
 .eq { text-align: center; text-indent: 0; margin: .6em 0; }
+.refs p { text-indent: 0; margin-bottom: .4em; }
 .titlepage { page-break-after: always; }
 .titlepage .tl { text-align: left; }
 .titlepage .gap { height: 2.4in; }
@@ -84,6 +85,13 @@ def build_html() -> None:
     body = markdown.markdown(bp.preprocess(text),
                              extensions=["tables", "fenced_code", "sane_lists"])
     body = bp.embed_images(body)
+    # Flush-left the reference entries (JEI: no hanging indent). References are
+    # the last section, so wrap from that heading to the end of the body.
+    import re as _re
+    body = _re.sub(r"(<h2[^>]*>\s*References\s*</h2>)", r'<div class="refs">\1',
+                   body, count=1)
+    if 'class="refs"' in body:
+        body += "</div>"
     html = (f'<!doctype html><html><head><meta charset="utf-8">'
             f"<style>{CSS}</style></head><body>{TITLE_PAGE}{body}</body></html>")
     with open(HTML, "w", encoding="utf-8") as f:
