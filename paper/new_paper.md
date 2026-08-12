@@ -20,7 +20,7 @@ Short-horizon equity returns are hard to predict to begin with. Standard predict
 
 The starting idea is a signal-to-noise argument. Linear forecasting models rely on weak sector-specific structure, such as mild autocorrelation and lead-lag effects between sectors. When correlation is low, that structure is visible. When correlation is high, one factor dominates the cross-section and the sector-specific part of returns shrinks. So models should forecast less accurately when cross-sector correlation is high.
 
-This paper tests that prediction and then checks it against a confound. High correlation tends to occur when volatility is high, and estimated correlations are themselves inflated during high-volatility periods (7). A result that accuracy is worse in high-correlation regimes could simply mean that accuracy is worse when moves are large. The question is therefore narrower: does the correlation regime say anything about forecast accuracy beyond what volatility already explains? In this sample, it does not.
+The analysis below tests that prediction and then checks it against a confound. High correlation tends to occur when volatility is high, and estimated correlations are themselves inflated during high-volatility periods (7). A result that accuracy is worse in high-correlation regimes could simply mean that accuracy is worse when moves are large. The question is therefore narrower: does the correlation regime say anything about forecast accuracy beyond what volatility already explains? In this sample, it does not.
 
 ---
 
