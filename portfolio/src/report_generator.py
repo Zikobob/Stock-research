@@ -51,7 +51,7 @@ def _bull_points(sym: str, row: pd.Series, market_mean: float) -> list[str]:
     if row["sharpe"] >= config.SHARPE_BUY:
         pts.append(f"Attractive risk-adjusted return (Sharpe {row['sharpe']:.2f}).")
     if row["alpha_annual"] > 0:
-        pts.append(f"Positive annualized alpha ({row['alpha_annual'] * 100:+.1f}%) — return beyond "
+        pts.append(f"Positive annualized alpha ({row['alpha_annual'] * 100:+.1f}%), i.e. return beyond "
                 f"what its market beta explains.")
     if row["beta"] > 1.15:
         pts.append(f"High beta ({row['beta']:.2f}) offers leveraged upside in market rallies.")
@@ -69,7 +69,7 @@ def _bear_points(sym: str, row: pd.Series, market_vol: float) -> list[str]:
     pts = []
     if row["ann_volatility"] > 1.4 * market_vol:
         pts.append(f"Volatility ({row['ann_volatility'] * 100:.1f}%) runs well above the market "
-                f"({market_vol * 100:.1f}%) — a rough ride.")
+                f"({market_vol * 100:.1f}%), a rough ride.")
     if row["sharpe"] < config.SHARPE_HOLD:
         pts.append(f"Weak Sharpe ({row['sharpe']:.2f}): risk has not been rewarded over this window.")
     if row["max_drawdown"] < -0.5:
@@ -120,7 +120,7 @@ def build_report(sym: str, metrics: pd.DataFrame) -> str:
     bull_md = "\n".join(f"- {p}" for p in bull)
     bear_md = "\n".join(f"- {p}" for p in bear)
 
-    md = f"""# {info['name']} ({sym}) — Equity Research Note
+    md = f"""# {info['name']} ({sym}): Equity Research Note
 
 **Sector:** {info['sector']}  |  **Industry:** {info['industry']}
 *Educational research project. Not investment advice.*
@@ -200,7 +200,7 @@ def build_index(metrics: pd.DataFrame, paths: dict[str, str]) -> str:
             f"| {row['sharpe']:.2f} | {row['beta']:.2f} | `{label}` |"
         )
     table = "\n".join(rows)
-    md = f"""# Equity Research — Company Reports Index
+    md = f"""# Equity Research: Company Reports Index
 
 *Educational research project. Not investment advice. Ranked by Sharpe ratio.*
 

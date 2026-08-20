@@ -1,4 +1,4 @@
-# Apple Inc. (AAPL) — Equity Research Note
+# Apple Inc. (AAPL): Equity Research Note
 
 **Sector:** Information Technology  |  **Industry:** Consumer Electronics
 *Educational research project. Not investment advice.*
@@ -45,12 +45,12 @@
 
 **Bullish arguments**
 - Outperformed the market on an absolute basis (15.2% vs 11.1% annualized).
-- Positive annualized alpha (+2.2%) — return beyond what its market beta explains.
+- Positive annualized alpha (+2.2%), i.e. return beyond what its market beta explains.
 - High beta (1.17) offers leveraged upside in market rallies.
 - Comparatively shallow worst drawdown (-33.4%) for a single stock.
 
 **Bearish arguments**
-- Volatility (28.0%) runs well above the market (17.2%) — a rough ride.
+- Volatility (28.0%) runs well above the market (17.2%), a rough ride.
 - Weak Sharpe (0.40): risk has not been rewarded over this window.
 - High correlation to the market (0.72) limits its diversification value in a book.
 

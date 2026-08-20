@@ -1,152 +1,150 @@
 # Equity Research Portfolio System
 
-A college-level, institutional-style equity research desk in miniature. It
-collects free public market data, computes the risk-and-return statistics a
-buy-side analyst actually uses, renders a publication-quality chart deck,
-writes a structured research note for every holding, rolls the names up into a
-portfolio-level view, and — closing the loop — builds honest, walk-forward
-models that try to **predict** each stock's next-day move.
+A Python project that studies eight large-cap stocks the way a research analyst
+would. It downloads their price history, measures how much each one returned and
+how much risk it carried, draws the charts, writes a short research note on every
+company, combines them into a portfolio view, and then tries to predict each
+stock's next-day move to see whether that is even possible.
 
-> **Educational research project. Nothing here is investment advice.** Past
-> performance and historical statistics do not guarantee future results.
+> Educational project. None of this is investment advice, and past performance
+> does not predict future results.
 
-**Universe (8 large caps across 4 GICS sectors) + SPY benchmark:**
-AAPL · MSFT · NVDA (Information Technology) · AMZN · TSLA (Consumer
-Discretionary) · GOOGL · META (Communication Services) · JPM (Financials).
-
----
+The universe is eight companies across four sectors, benchmarked against SPY:
+Apple, Microsoft, and Nvidia (technology); Amazon and Tesla (consumer
+discretionary); Alphabet and Meta (communication services); and JPMorgan
+(financials).
 
 ## What it produces
 
 | Output | Location |
 |---|---|
-| Per-stock price/volume/adj-close CSVs | `data/raw/<TICKER>.csv` |
-| Master aligned price / volume / log-return matrices | `data/processed/master_*.csv` |
-| Metric tables (returns, vol, Sharpe, beta, correlation, rolling) | `data/processed/*.csv` |
-| Eight publication-quality charts (PNG) | `charts/` |
-| A structured research note per company | `reports/<TICKER>_report.md` |
-| Company index / leaderboard | `reports/INDEX.md` |
+| Price/volume/adjusted-close CSV for each stock | `data/raw/<TICKER>.csv` |
+| Aligned master price, volume, and log-return tables | `data/processed/master_*.csv` |
+| Metric tables: returns, volatility, Sharpe, beta, correlation, rolling stats | `data/processed/*.csv` |
+| Ten charts (PNG) | `charts/` |
+| A research note for each company | `reports/<TICKER>_report.md` |
+| Company index and leaderboard | `reports/INDEX.md` |
 | Portfolio-level summary | `reports/PORTFOLIO_SUMMARY.md` |
-| Prediction study (forecast accuracy) | `reports/PREDICTION_REPORT.md` |
-| Interactive walk-through | `notebooks/equity_research.ipynb` |
+| Prediction study | `reports/PREDICTION_REPORT.md` |
+| Notebook walk-through | `notebooks/equity_research.ipynb` |
 
 ## Quick start
 
 ```bash
 pip install -r requirements.txt          # from the repo root
-python -m portfolio.src.main             # full pipeline (downloads ~5y of daily data once)
-python -m portfolio.src.main --offline   # reuse cached data/processed CSVs
+python -m portfolio.src.main             # full run (downloads ~5y of daily data once)
+python -m portfolio.src.main --offline   # reuse the cached CSVs instead of downloading
 ```
 
-Or explore interactively:
+To step through it interactively:
 
 ```bash
 jupyter notebook portfolio/notebooks/equity_research.ipynb
 ```
 
-Each layer is also runnable on its own:
+Any single layer also runs on its own, for example
+`python -m portfolio.src.quant_analysis`.
 
-```bash
-python -m portfolio.src.data_engine       # Layer 1
-python -m portfolio.src.quant_analysis    # Layer 2
-python -m portfolio.src.visualization     # Layer 3
-python -m portfolio.src.report_generator  # Layer 4
-python -m portfolio.src.portfolio_summary # Layer 5
-```
-
-## Architecture — five layers
+## How it is organized
 
 ```
 portfolio/
 ├── src/
-│   ├── config.py            # every tunable parameter + company metadata
+│   ├── config.py            # every setting, plus the company descriptions
 │   ├── data_engine.py       # (1) fetch, clean, align, log returns  -> CSVs
-│   ├── quant_analysis.py    # (2) returns, vol, Sharpe, beta, corr, rolling
-│   ├── visualization.py     # (3) eight consistent PNG charts
-│   ├── report_generator.py  # (4) per-stock research notes + index
+│   ├── quant_analysis.py    # (2) returns, volatility, Sharpe, beta, correlation, rolling
+│   ├── visualization.py     # (3) the chart deck
+│   ├── report_generator.py  # (4) per-stock research notes and index
 │   ├── portfolio_summary.py # (5) weighted return, diversification, sector risk
-│   ├── prediction.py        # (6) walk-forward next-day forecasting + honest scoring
-│   └── main.py              # orchestrates all six layers
+│   ├── prediction.py        # (6) walk-forward next-day forecasting and scoring
+│   └── main.py              # runs all six layers in order
 ├── notebooks/
-│   ├── equity_research.ipynb   # narrative walk-through (executed)
+│   ├── equity_research.ipynb   # narrative walk-through (already executed)
 │   └── build_notebook.py       # regenerates the notebook
 ├── data/{raw,processed}/    # datasets
-├── charts/                  # PNG deck
-└── reports/                 # Markdown research notes + summaries
+├── charts/                  # PNG charts
+└── reports/                 # research notes and summaries
 ```
 
 ### 1. Data engine
-Daily OHLCV and adjusted close from free public Yahoo Finance data. Series are
-forward-filled for isolated gaps, aligned onto a common trading calendar, and
-converted to continuously compounded (log) returns. Two fetch backends are
-provided — the `yfinance` library and a dependency-light `requests` client
-against Yahoo's public v8 chart API (with retry/backoff) — so the download is
-robust to either being unavailable.
+Pulls daily open/high/low/close, volume, and adjusted close from free Yahoo
+Finance data. It fills isolated gaps, lines every stock up on the same trading
+calendar, and converts prices to log returns. There are two ways to fetch the
+data: the `yfinance` library, and a small `requests` client that talks to
+Yahoo's public chart API directly (with retry and backoff). If one is blocked,
+the other still works.
 
 ### 2. Quantitative analysis
-Per asset: annualized return and volatility, Sharpe ratio, CAPM beta/alpha and
-R² vs SPY (OLS), correlation to market, max drawdown, historical VaR/CVaR, and
-downside deviation. Plus the full correlation matrix and 60-day **rolling**
-volatility and **rolling** correlation-to-market series.
+For each stock it computes annualized return and volatility, the Sharpe ratio,
+beta and alpha against SPY from an OLS regression, R-squared, correlation to the
+market, maximum drawdown, historical VaR and CVaR, and downside deviation. It
+also builds the full correlation matrix and 60-day rolling volatility and
+rolling correlation-to-market series.
 
 ### 3. Visualization
-One house style across the deck (stable per-name colours, consistent DPI/labels):
-normalized prices (growth of $1), return comparison, correlation heatmap,
-rolling volatility, risk-vs-return scatter, portfolio allocation (by name and by
-sector), drawdown curves, and rolling correlation to the market.
+Ten charts that share one visual style, so a given stock keeps the same color
+everywhere: normalized prices (growth of one dollar), a return comparison, the
+correlation heatmap, rolling volatility, a risk-versus-return scatter, portfolio
+allocation by name and by sector, drawdown curves, rolling correlation to the
+market, and the two prediction charts.
 
 ### 4. Research reports
-Each note has four sections — **A. Company overview**, **B. Quantitative
-performance**, **C. Risk analysis**, **D. Investment thesis** (bullish case,
-bearish case, and a rules-based Buy/Hold/Avoid *tilt*). The bull/bear points and
-the tilt are generated mechanically from the computed statistics, so every
-sentence traces back to a number.
+Every note has four sections: company overview, quantitative performance, risk
+analysis, and an investment thesis with a bullish case, a bearish case, and a
+rules-based Buy, Hold, or Avoid tilt. The bull and bear points and the tilt come
+straight from the computed numbers, so each claim traces back to a statistic.
 
 ### 5. Portfolio summary
-Weighted return and volatility computed from the full **covariance matrix** (so
-cross-asset diversification is captured, not just a weighted average of
-standalone vols), plus the diversification ratio, average pairwise correlation,
-Herfindahl concentration / effective number of holdings, sector-exposure
-breakdown, portfolio beta/alpha, and a correlation-risk discussion.
+Portfolio return and volatility come from the full covariance matrix, not a
+weighted average of the individual volatilities, so the diversification benefit
+is measured properly. The summary also reports the diversification ratio, the
+average pairwise correlation, a concentration measure (the Herfindahl index and
+the effective number of holdings), the sector breakdown, portfolio beta and
+alpha, and a short discussion of correlation risk.
 
 ### 6. Prediction
-Closes the loop from *analysis* to *forecasting*. For each stock it builds
-**one-day-ahead, walk-forward, out-of-sample** models — a random-walk baseline,
-a Ridge return model, and logistic-regression and random-forest direction
-classifiers (scikit-learn) — using lagged returns, momentum, and realized
-volatility as features. The headline metric is **directional accuracy** (up/down
-hit rate), which does not scale with move size. The honest result: accuracy sits
-near 50% (best ≈ 53%), barely beating the random walk — exactly what efficient
-short-horizon markets predict, and a built-in guard against the look-ahead bias
-that makes naive predictors look deceptively good. See
+This is where the project goes from describing the stocks to forecasting them.
+For each name it builds one-day-ahead models trained only on prior data: a
+random-walk baseline, a Ridge regression on the returns, and logistic-regression
+and random-forest classifiers for direction (all from scikit-learn). The
+features are lagged returns, momentum, and recent volatility. The main score is
+directional accuracy, the share of days the up-or-down call is right, which does
+not get easier just because a move is large.
+
+The result is honest. Accuracy lands near 50%, with the best stock around 53%,
+barely ahead of the random walk. That is the expected outcome for efficient
+short-horizon markets, and the walk-forward design is what keeps the number
+real: it blocks the look-ahead bias that makes naive predictors look far better
+than they are. Full write-up in
 [`reports/PREDICTION_REPORT.md`](reports/PREDICTION_REPORT.md).
 
 ## Configuration
 
-Everything tunable lives in [`src/config.py`](src/config.py): the universe and
-its company metadata, the benchmark, the history window (`5y`), the rolling
-window (60 days), the assumed risk-free rate (4%), the portfolio weights
-(default equal-weight), and the Sharpe thresholds for the recommendation engine.
-Change a value there and re-run `python -m portfolio.src.main --offline`.
+Every setting lives in [`src/config.py`](src/config.py): the list of companies
+and their descriptions, the benchmark, the history window (5 years), the rolling
+window (60 days), the assumed risk-free rate (4%), the portfolio weights (equal
+by default), and the Sharpe thresholds behind the Buy/Hold/Avoid tilt. Change a
+value and re-run `python -m portfolio.src.main --offline`.
 
 ## Methodology notes
 
-- **Log returns** are used throughout — additive across time and closer to
-  normal than simple returns.
-- **Square-root-of-time** annualization on 252 trading days.
-- **Portfolio volatility** uses the covariance matrix (`√(wᵀΣw)`), not a naïve
-  weighted average, so the reported diversification benefit is real.
-- **Beta/alpha** come from an OLS regression of asset returns on market returns.
-- The **recommendation is rules-based** (a transparent Sharpe screen), not a
-  fundamental valuation and not advice.
+- Log returns are used throughout, because they add across time and sit closer to
+  a normal distribution than simple returns.
+- Annualization uses the square-root-of-time rule on 252 trading days.
+- Portfolio volatility uses the covariance matrix, `sqrt(wᵀΣw)`, so the
+  diversification benefit it reports is real rather than assumed.
+- Beta and alpha come from an OLS regression of each stock's returns on the
+  market's.
+- The Buy/Hold/Avoid tilt is a transparent rule on the Sharpe ratio. It is not a
+  valuation, and it is not advice.
 
 ## Dependencies
 
-`pandas`, `numpy`, `matplotlib`, `seaborn`, `yfinance`, `statsmodels`,
-`scikit-learn`, `scipy`, plus `jupyter`/`nbformat` for the notebook. See the
+pandas, numpy, matplotlib, seaborn, yfinance, statsmodels, scikit-learn, and
+scipy, plus jupyter and nbformat for the notebook. The full list is in the
 repository-root [`requirements.txt`](../requirements.txt).
 
 ## Disclaimer
 
-This is an educational research project. Nothing here is investment advice, a
+This is an educational project. Nothing here is investment advice, a
 recommendation, or a solicitation. Do your own research.

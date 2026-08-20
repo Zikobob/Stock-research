@@ -1,4 +1,4 @@
-# NVIDIA Corporation (NVDA) — Equity Research Note
+# NVIDIA Corporation (NVDA): Equity Research Note
 
 **Sector:** Information Technology  |  **Industry:** Semiconductors
 *Educational research project. Not investment advice.*
@@ -45,11 +45,11 @@
 
 **Bullish arguments**
 - Outperformed the market on an absolute basis (47.8% vs 11.1% annualized).
-- Positive annualized alpha (+24.2%) — return beyond what its market beta explains.
+- Positive annualized alpha (+24.2%), i.e. return beyond what its market beta explains.
 - High beta (2.12) offers leveraged upside in market rallies.
 
 **Bearish arguments**
-- Volatility (51.5%) runs well above the market (17.2%) — a rough ride.
+- Volatility (51.5%) runs well above the market (17.2%), a rough ride.
 - Deep peak-to-trough drawdown (-66.4%) shows how far it can fall.
 - Very high beta (2.12) amplifies losses in market sell-offs.
 - High correlation to the market (0.71) limits its diversification value in a book.

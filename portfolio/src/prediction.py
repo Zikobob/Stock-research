@@ -9,7 +9,7 @@ Design choices that keep the evaluation credible:
 
 * **Walk-forward, out-of-sample.** For each test day the models are trained only
   on a rolling window of prior days (``config.PRED_TRAIN_WINDOW``), refit on a
-  weekly cadence (``config.PRED_REFIT_EVERY``). Nothing from day *t* — or after —
+  weekly cadence (``config.PRED_REFIT_EVERY``). Nothing from day *t*, or after,
   ever enters the forecast for day *t*. This is the single most important guard
   against the look-ahead bias that makes most amateur "stock predictors" look
   far better than they are.
@@ -53,7 +53,7 @@ def build_features(returns: pd.Series, lags: int = config.PRED_LAGS) -> pd.DataF
     """Turn a single stock's return series into a supervised-learning table.
 
     Every feature is known at the *close of day t-1*, and the target is the
-    return on day *t* — so a row never contains information from its own target
+    return on day *t*, so a row never contains information from its own target
     day. Returns a DataFrame with feature columns plus ``y_ret`` and ``y_dir``.
     """
     df = pd.DataFrame(index=returns.index)
@@ -193,32 +193,32 @@ def write_prediction_report(metrics: pd.DataFrame, summary: pd.Series) -> str:
     overall_best = best_rows["directional_accuracy"].max()
     best_name = best_rows["directional_accuracy"].idxmax()
 
-    md = f"""# Prediction Study — Can We Forecast These Stocks?
+    md = f"""# Prediction Study: Can We Forecast These Stocks?
 
 *Educational research project. Not investment advice.*
 
 This module asks a concrete question about the eight portfolio holdings: **using
 only past data, can a model predict whether each stock goes up or down the next
-day — better than a coin flip, and better than a naive "no change" guess?**
+day, better than a coin flip, and better than a naive "no change" guess?**
 
 ## Method (why the result is trustworthy)
 
 - **One-day-ahead, walk-forward, out-of-sample.** For each test day the models
   see only a rolling {config.PRED_TRAIN_WINDOW}-day window of *prior* data, refit
   monthly. No information from a day (or later) is ever used to predict that day.
-  This is the guard against **look-ahead bias** — the mistake that makes most
+  This is the guard against **look-ahead bias**, the mistake that makes most
   amateur stock predictors look great and fail in reality.
 - **Features:** the last {config.PRED_LAGS} daily returns, 5-day momentum, and
-  10-day realized volatility — all known at yesterday's close.
+  10-day realized volatility, all known at yesterday's close.
 - **Four models:** a **random walk** baseline (predict no change; direction =
   yesterday's sign), a **Ridge** regression on the returns, a **logistic
   regression** direction classifier, and a **random forest** direction
   classifier (the machine-learning model).
-- **Headline metric — directional accuracy:** the share of days the up/down call
+- **Headline metric, directional accuracy:** the share of days the up/down call
   is right. It is used instead of return error because it does **not** scale with
   the size of the move, so it measures skill rather than luck on big days.
 
-## Results — mean directional accuracy by model
+## Results: mean directional accuracy by model
 
 | Model | Mean directional accuracy |
 |---|---|
@@ -232,7 +232,7 @@ day — better than a coin flip, and better than a naive "no change" guess?**
 
 ## What this means (the honest read)
 
-Every model lands within a few points of **50%** — a coin flip. The best
+Every model lands within a few points of **50%**, a coin flip. The best
 single result is **{best_name} at {overall_best * 100:.1f}%**, and the models
 barely separate from the random-walk baseline on average. **This is the
 expected, correct result**, not a failure of the code:
@@ -240,22 +240,22 @@ expected, correct result**, not a failure of the code:
 - Short-horizon stock returns are very close to unpredictable from price history
   alone. Decades of research find the same thing (Welch & Goyal, 2008; Campbell &
   Thompson, 2008): beating a random walk out of sample is genuinely hard.
-- A model that claimed 70–90% accuracy on daily direction would almost certainly
-  have **look-ahead bias** or be **overfit** — the walk-forward design here is
+- A model that claimed 70% to 90% accuracy on daily direction would almost certainly
+  have **look-ahead bias** or be **overfit**. The walk-forward design here is
   specifically what prevents that flattering illusion.
-- A 1–3 point edge over 50% is *not* nothing in principle, but it is far too
-  small and noisy to trade on after costs — so the honest conclusion is that
+- A one-to-three-point edge over 50% is *not* nothing in principle, but it is far too
+  small and noisy to trade on after costs, so the honest conclusion is that
   these names are close to a random walk day-to-day.
 
 The takeaway connects straight back to the portfolio work: because you can't
 reliably time these stocks day-to-day, the durable levers are the ones Layers
-1–5 measure — **diversification, risk-adjusted return (Sharpe), and position
-sizing** — not short-horizon prediction.
+1 to 5 measure: **diversification, risk-adjusted return (Sharpe), and position
+sizing**, not short-horizon prediction.
 
 *See `charts/09_prediction_accuracy.png` and `charts/10_prediction_vs_coinflip.png`.*
 
 ---
-*Generated by the equity research portfolio system. Educational use only — not investment advice.*
+*Generated by the equity research portfolio system. Educational use only. Not investment advice.*
 """
     path = os.path.join(config.REPORTS_DIR, "PREDICTION_REPORT.md")
     with open(path, "w") as f:

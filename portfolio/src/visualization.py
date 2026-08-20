@@ -75,7 +75,7 @@ def plot_normalized_prices(adj_close: pd.DataFrame, filename="01_normalized_pric
         ax.plot(norm.index, norm[sym], label=sym, color=_color(sym),
                 linewidth=2 if sym == config.BENCHMARK else 1.3,
                 linestyle="--" if sym == config.BENCHMARK else "-")
-    ax.set_title("Normalized Price History — Growth of $1")
+    ax.set_title("Normalized Price History: Growth of $1")
     ax.set_ylabel("Value of $1 invested")
     ax.set_xlabel("Date")
     ax.legend(ncol=3, fontsize=9)
@@ -204,7 +204,7 @@ def plot_prediction_accuracy(pred_metrics: pd.DataFrame,
     sns.heatmap(pivot * 100, annot=True, fmt=".1f", cmap="RdYlGn", center=50,
                 vmin=44, vmax=56, linewidths=0.5,
                 cbar_kws={"label": "Directional accuracy (%)"}, ax=ax)
-    ax.set_title("Next-Day Directional Accuracy — green beats a coin flip (50%)")
+    ax.set_title("Next-Day Directional Accuracy: green beats a coin flip (50%)")
     ax.set_xlabel("")
     ax.set_ylabel("")
     return _save(fig, filename)

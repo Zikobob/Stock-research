@@ -1,4 +1,4 @@
-# Amazon.com, Inc. (AMZN) — Equity Research Note
+# Amazon.com, Inc. (AMZN): Equity Research Note
 
 **Sector:** Consumer Discretionary  |  **Industry:** Broadline Retail
 *Educational research project. Not investment advice.*
@@ -47,7 +47,7 @@
 - High beta (1.49) offers leveraged upside in market rallies.
 
 **Bearish arguments**
-- Volatility (36.3%) runs well above the market (17.2%) — a rough ride.
+- Volatility (36.3%) runs well above the market (17.2%), a rough ride.
 - Weak Sharpe (0.16): risk has not been rewarded over this window.
 - Deep peak-to-trough drawdown (-55.7%) shows how far it can fall.
 - Negative annualized alpha (-6.7%): underperformed what its market exposure alone would imply.

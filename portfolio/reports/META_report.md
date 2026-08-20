@@ -1,4 +1,4 @@
-# Meta Platforms, Inc. (META) — Equity Research Note
+# Meta Platforms, Inc. (META): Equity Research Note
 
 **Sector:** Communication Services  |  **Industry:** Interactive Media & Services
 *Educational research project. Not investment advice.*
@@ -47,7 +47,7 @@
 - High beta (1.58) offers leveraged upside in market rallies.
 
 **Bearish arguments**
-- Volatility (45.2%) runs well above the market (17.2%) — a rough ride.
+- Volatility (45.2%) runs well above the market (17.2%), a rough ride.
 - Weak Sharpe (0.13): risk has not been rewarded over this window.
 - Deep peak-to-trough drawdown (-76.7%) shows how far it can fall.
 - Very high beta (1.58) amplifies losses in market sell-offs.

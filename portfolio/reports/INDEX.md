@@ -1,4 +1,4 @@
-# Equity Research — Company Reports Index
+# Equity Research: Company Reports Index
 
 *Educational research project. Not investment advice. Ranked by Sharpe ratio.*
 

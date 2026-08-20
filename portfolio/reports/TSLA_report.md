@@ -1,4 +1,4 @@
-# Tesla, Inc. (TSLA) — Equity Research Note
+# Tesla, Inc. (TSLA): Equity Research Note
 
 **Sector:** Consumer Discretionary  |  **Industry:** Automobile Manufacturers
 *Educational research project. Not investment advice.*
@@ -47,7 +47,7 @@
 - High beta (2.01) offers leveraged upside in market rallies.
 
 **Bearish arguments**
-- Volatility (59.6%) runs well above the market (17.2%) — a rough ride.
+- Volatility (59.6%) runs well above the market (17.2%), a rough ride.
 - Weak Sharpe (0.04): risk has not been rewarded over this window.
 - Deep peak-to-trough drawdown (-73.6%) shows how far it can fall.
 - Very high beta (2.01) amplifies losses in market sell-offs.

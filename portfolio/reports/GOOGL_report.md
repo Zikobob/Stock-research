@@ -1,4 +1,4 @@
-# Alphabet Inc. (GOOGL) — Equity Research Note
+# Alphabet Inc. (GOOGL): Equity Research Note
 
 **Sector:** Communication Services  |  **Industry:** Interactive Media & Services
 *Educational research project. Not investment advice.*
@@ -45,11 +45,11 @@
 
 **Bullish arguments**
 - Outperformed the market on an absolute basis (19.8% vs 11.1% annualized).
-- Positive annualized alpha (+5.9%) — return beyond what its market beta explains.
+- Positive annualized alpha (+5.9%), i.e. return beyond what its market beta explains.
 - High beta (1.25) offers leveraged upside in market rallies.
 
 **Bearish arguments**
-- Volatility (32.0%) runs well above the market (17.2%) — a rough ride.
+- Volatility (32.0%) runs well above the market (17.2%), a rough ride.
 
 **Recommendation (rules-based): `HOLD`**
 

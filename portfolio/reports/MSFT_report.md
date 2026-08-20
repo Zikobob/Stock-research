@@ -1,4 +1,4 @@
-# Microsoft Corporation (MSFT) — Equity Research Note
+# Microsoft Corporation (MSFT): Equity Research Note
 
 **Sector:** Information Technology  |  **Industry:** Systems Software
 *Educational research project. Not investment advice.*
@@ -47,7 +47,7 @@
 - Franchise quality and scale (see overview) are not fully captured by the trailing-window statistics.
 
 **Bearish arguments**
-- Volatility (28.0%) runs well above the market (17.2%) — a rough ride.
+- Volatility (28.0%) runs well above the market (17.2%), a rough ride.
 - Weak Sharpe (0.23): risk has not been rewarded over this window.
 - Negative annualized alpha (-2.0%): underperformed what its market exposure alone would imply.
 
