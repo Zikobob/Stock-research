@@ -1,0 +1,73 @@
+{
+  "table_name": "Carbonate System Equations, Constants, and Software",
+  "description": "Equilibrium constants and formulations used to compute the ocean carbonate system. All chemistry columns in the dataset are deterministic outputs of these equations, not sampled values.",
+  "core_equilibria": [
+    "CO2(atm) <=> CO2(aq)",
+    "CO2(aq) + H2O <=> H2CO3",
+    "H2CO3 <=> H+ + HCO3-",
+    "HCO3- <=> H+ + CO3(2-)"
+  ],
+  "master_variables": {
+    "DIC": "[CO2*] + [HCO3-] + [CO3(2-)]  (CO2* = dissolved CO2 + true carbonic acid)",
+    "TA": "[HCO3-] + 2[CO3(2-)] + [B(OH)4-] + [OH-] - [H+]  (phosphate/silicate/organic alkalinity neglected)"
+  },
+  "components": [
+    {
+      "component": "K0 (CO2 solubility)",
+      "formulation": "function of temperature and salinity",
+      "source": "Weiss (1974)"
+    },
+    {
+      "component": "K1, K2 (carbonic acid dissociation)",
+      "formulation": "function of temperature and salinity, total pH scale",
+      "source": "Lueker et al. (2000)"
+    },
+    {
+      "component": "KB (boric acid dissociation)",
+      "formulation": "function of temperature and salinity",
+      "source": "Dickson (1990)"
+    },
+    {
+      "component": "KW (water dissociation)",
+      "formulation": "function of temperature and salinity",
+      "source": "Millero (1995)"
+    },
+    {
+      "component": "Total borate from salinity",
+      "formulation": "proportional to salinity",
+      "source": "Uppstrom (1974) / Lee et al. (2010)"
+    },
+    {
+      "component": "Aragonite and calcite solubility products (Ksp)",
+      "formulation": "function of temperature and salinity",
+      "source": "Mucci (1983)"
+    },
+    {
+      "component": "[Ca2+] from salinity",
+      "formulation": "conservative relationship with salinity",
+      "source": "Riley & Tongudai (1967)"
+    },
+    {
+      "component": "Saturation state (Omega)",
+      "formulation": "Omega = [Ca2+][CO3(2-)] / Ksp",
+      "source": "standard definition"
+    },
+    {
+      "component": "Revelle factor",
+      "formulation": "numerical d(ln pCO2) / d(ln DIC) at constant total alkalinity",
+      "source": "Zeebe & Wolf-Gladrow (2001)"
+    },
+    {
+      "component": "Primary system solver",
+      "formulation": "solves for full carbonate speciation given any two of {TA, DIC, pH, pCO2}",
+      "source": "PyCO2SYS (Humphreys et al., 2022)"
+    },
+    {
+      "component": "Cross-check solver",
+      "formulation": "independent bisection solver for [H+] built from the equations above, used for quality control",
+      "source": "built for this project; validated against PyCO2SYS and published check values"
+    }
+  ],
+  "known_constraint": "Lueker et al. (2000) constants are calibrated for approximately 2-35 degrees C and salinity 19-43 psu. Polar draws below 2 degrees C represent a mild extrapolation; this will be stated explicitly and tested with an alternative constant set (e.g., Millero 2010) as a sensitivity case.",
+  "validation_reference": "Solver outputs are checked against the published reference values in Dickson, Sabine & Christian (2007), Guide to Best Practices for Ocean CO2 Measurements."
+}

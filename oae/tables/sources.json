@@ -1,0 +1,137 @@
+{
+  "table_name": "Scientific Source Table",
+  "description": "Every important scientific assumption or numerical parameter range, mapped to the source that justifies it. Verification status distinguishes sources located with enough confidence to build against from claims that still need to be tracked down before appearing on the poster.",
+  "verification_status_legend": {
+    "verified": "Full citation confirmed and will be printed on the poster/methodology as-is",
+    "to_verify_phase_2": "Source is expected to exist and is believed correct, but full citation details (exact year/journal/DOI) must be confirmed before use",
+    "SOURCE_VERIFICATION_REQUIRED": "No credible source has been confirmed yet; must not be cited until verified, per project rules"
+  },
+  "sources": [
+    {
+      "parameter_or_claim": "CO2 solubility constant (K0) as a function of temperature and salinity",
+      "source": "Weiss, R. F. (1974). Carbon dioxide in water and seawater: the solubility of a non-ideal gas. Marine Chemistry.",
+      "why_used": "Standard, widely used formulation for CO2 gas solubility in seawater",
+      "verification_status": "to_verify_phase_2"
+    },
+    {
+      "parameter_or_claim": "Carbonic acid dissociation constants K1 and K2",
+      "source": "Lueker, T. J., Dickson, A. G., & Keeling, C. D. (2000). Ocean pCO2 calculated from dissolved inorganic carbon, alkalinity, and equations for K1 and K2.",
+      "why_used": "Widely adopted constants for carbonate speciation calculations, valid over typical surface-ocean T/S range",
+      "verification_status": "to_verify_phase_2"
+    },
+    {
+      "parameter_or_claim": "Boric acid dissociation constant (KB)",
+      "source": "Dickson, A. G. (1990). Thermodynamics of the dissociation of boric acid in synthetic seawater.",
+      "why_used": "Standard constant needed to compute total alkalinity from carbonate speciation",
+      "verification_status": "to_verify_phase_2"
+    },
+    {
+      "parameter_or_claim": "Water dissociation constant (KW)",
+      "source": "Millero, F. J. (1995). Thermodynamics of the carbon dioxide system in the oceans.",
+      "why_used": "Standard constant for the water dissociation term in the total alkalinity equation",
+      "verification_status": "to_verify_phase_2"
+    },
+    {
+      "parameter_or_claim": "Total borate concentration from salinity",
+      "source": "Uppstrom, L. R. (1974); Lee, K. et al. (2010)",
+      "why_used": "Relates total borate to salinity, needed for the borate term in total alkalinity",
+      "verification_status": "to_verify_phase_2"
+    },
+    {
+      "parameter_or_claim": "Aragonite and calcite solubility products (Ksp)",
+      "source": "Mucci, A. (1983). The solubility of calcite and aragonite in seawater at various salinities, temperatures, and one atmosphere total pressure.",
+      "why_used": "Required to compute aragonite and calcite saturation states (Omega)",
+      "verification_status": "to_verify_phase_2"
+    },
+    {
+      "parameter_or_claim": "Calcium ion concentration from salinity",
+      "source": "Riley, J. P., & Tongudai, M. (1967). The major cation/chlorinity ratios in seawater.",
+      "why_used": "Conservative relationship used to estimate [Ca2+] from salinity for saturation-state calculations",
+      "verification_status": "to_verify_phase_2"
+    },
+    {
+      "parameter_or_claim": "Primary carbonate system solver",
+      "source": "Humphreys, M. P. et al. (2022). PyCO2SYS: marine carbonate system calculations in Python.",
+      "why_used": "Established, peer-reviewed, community-standard software for carbonate system speciation, used as the primary calculation engine",
+      "verification_status": "to_verify_phase_2"
+    },
+    {
+      "parameter_or_claim": "Reference/check values for validating the carbonate system solver",
+      "source": "Dickson, A. G., Sabine, C. L., & Christian, J. R. (Eds.) (2007). Guide to Best Practices for Ocean CO2 Measurements.",
+      "why_used": "Standard reference guide containing check values used to validate solver correctness (rule V11)",
+      "verification_status": "to_verify_phase_2"
+    },
+    {
+      "parameter_or_claim": "Foundational carbonate chemistry theory (Revelle factor, buffering)",
+      "source": "Zeebe, R. E., & Wolf-Gladrow, D. (2001). CO2 in Seawater: Equilibrium, Kinetics, Isotopes.",
+      "why_used": "Standard reference textbook for the theoretical carbonate-system relationships used throughout the project",
+      "verification_status": "to_verify_phase_2"
+    },
+    {
+      "parameter_or_claim": "Total alkalinity - salinity relationship used to generate baseline alkalinity from sampled salinity",
+      "source": "Lee, K. et al. (2006). Global relationships of total alkalinity with salinity and temperature in surface waters of the world's oceans.",
+      "why_used": "Provides an empirically grounded relationship so sampled salinity and baseline alkalinity covary realistically instead of being independently randomized",
+      "verification_status": "to_verify_phase_2"
+    },
+    {
+      "parameter_or_claim": "Baseline surface-ocean DIC and pH ranges used for plausibility checks (rule V5)",
+      "source": "GLODAPv2 (Lauvset, S. K. et al.); Jiang, L.-Q. et al. (2019) surface ocean pH climatology",
+      "why_used": "Observed global surface-ocean data products used to bound realistic baseline chemistry ranges",
+      "verification_status": "to_verify_phase_2"
+    },
+    {
+      "parameter_or_claim": "Atmospheric CO2 concentration used as the reference/background level (~425 ppm)",
+      "source": "NOAA Global Monitoring Laboratory (GML)",
+      "why_used": "Authoritative, continuously updated source for current atmospheric CO2 concentration",
+      "verification_status": "to_verify_phase_2"
+    },
+    {
+      "parameter_or_claim": "Overview of Ocean Alkalinity Enhancement as a carbon dioxide removal approach",
+      "source": "Renforth, P., & Henderson, G. (2017). Assessing ocean alkalinity for carbon sequestration. Reviews of Geophysics.",
+      "why_used": "Foundational review establishing the OAE concept, mechanisms, and deployment considerations",
+      "verification_status": "to_verify_phase_2"
+    },
+    {
+      "parameter_or_claim": "Research priorities and open questions for ocean-based carbon dioxide removal",
+      "source": "National Academies of Sciences, Engineering, and Medicine (NASEM) (2021). A Research Strategy for Ocean-Based Carbon Dioxide Removal and Sequestration.",
+      "why_used": "Authoritative national-academy assessment used to frame deployment-scale considerations and research needs",
+      "verification_status": "to_verify_phase_2"
+    },
+    {
+      "parameter_or_claim": "Equilibrated CO2 uptake efficiency (~0.75-0.85 mol CO2 per mol alkalinity) and the concept of incomplete equilibration",
+      "source": "He, J., & Tyka, M. D. (2023). Limits and CO2 equilibration of near-coast alkalinity enhancement.",
+      "why_used": "Directly supports the two-state (immediate vs. equilibrated) modeling approach and the equilibration-fraction parameter",
+      "verification_status": "to_verify_phase_2"
+    },
+    {
+      "parameter_or_claim": "Aragonite saturation state threshold associated with abiotic/runaway calcium carbonate precipitation (Omega approx. 5)",
+      "source": "Moras, C. A. et al. (2022); Hartmann, J. et al. (2023)",
+      "why_used": "Basis for the precipitation-risk index and threshold used in the perturbation analysis",
+      "verification_status": "to_verify_phase_2"
+    },
+    {
+      "parameter_or_claim": "Best-practice guidance for OAE research methodology",
+      "source": "Oschlies, A. et al. (2023). Guide to Best Practices in Ocean Alkalinity Enhancement Research.",
+      "why_used": "Field-wide methodological guidance used to frame assumptions and limitations",
+      "verification_status": "to_verify_phase_2"
+    },
+    {
+      "parameter_or_claim": "Broader ocean acidification and carbon dioxide removal context",
+      "source": "IPCC AR6 (Sixth Assessment Report)",
+      "why_used": "Authoritative synthesis used for background framing on ocean acidification and CDR approaches",
+      "verification_status": "to_verify_phase_2"
+    },
+    {
+      "parameter_or_claim": "Regulatory pH-change guideline (e.g., +/- 0.2 pH units at discharge/mixing zones) proposed as a possible perturbation-threshold reference",
+      "source": "Not yet located",
+      "why_used": "Would provide a regulatory (rather than purely experimental) anchor for the perturbation-risk threshold",
+      "verification_status": "SOURCE_VERIFICATION_REQUIRED"
+    },
+    {
+      "parameter_or_claim": "Exact mesocosm/experimental total alkalinity addition ranges used to justify the 150-500 umol/kg 'stress test' dose levels",
+      "source": "Not yet located",
+      "why_used": "Would confirm that the upper dose ladder matches ranges actually used in published OAE mesocosm experiments",
+      "verification_status": "SOURCE_VERIFICATION_REQUIRED"
+    }
+  ]
+}

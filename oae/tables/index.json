@@ -1,0 +1,12 @@
+{
+  "project": "Optimizing Ocean Alkalinity Enhancement: Balancing Atmospheric Carbon Removal and Marine Carbonate Chemistry",
+  "status": "Phase 1 - scientific design, no dataset generated yet",
+  "description": "Structured reference tables extracted from oae/phase1_scientific_design.md",
+  "files": {
+    "dose_levels.json": "The 12-level alkalinity-addition treatment ladder and justification for each range",
+    "environment_archetypes.json": "The 6 baseline ocean environment archetypes and their sampling ranges",
+    "equations_and_constants.json": "Carbonate-system equations, equilibrium constants, and the software used to solve them",
+    "validation_rules.json": "The 14-rule dataset validation and sanity-check table",
+    "sources.json": "Parameter/claim -> scientific source -> why it is used, including items still flagged for verification"
+  }
+}

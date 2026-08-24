@@ -1,0 +1,76 @@
+{
+  "table_name": "Dataset Validation and Sanity-Check Rules",
+  "description": "Rules applied to every generated scenario to catch impossible, inconsistent, or out-of-range synthetic data before it enters the final dataset. Scenarios failing a rule are logged and rejected, not silently dropped.",
+  "rules": [
+    {
+      "id": "V1",
+      "type": "range",
+      "rule": "Salinity in [20, 41] psu; temperature in [-2, 32] deg C; no negative concentrations anywhere"
+    },
+    {
+      "id": "V2",
+      "type": "consistency",
+      "rule": "final_total_alkalinity - initial_total_alkalinity = alkalinity_added exactly (mass balance of treatment)"
+    },
+    {
+      "id": "V3",
+      "type": "consistency",
+      "rule": "DIC = CO2* + HCO3- + CO3(2-) reproduced within numerical tolerance"
+    },
+    {
+      "id": "V4",
+      "type": "consistency",
+      "rule": "Total alkalinity recomputed from full speciation matches the input total alkalinity within tolerance"
+    },
+    {
+      "id": "V5",
+      "type": "plausibility",
+      "rule": "Baseline pH in [7.6, 8.4]; baseline aragonite saturation state in [0.5, 6]; baseline DIC in [1700, 2400] umol/kg, checked against published surface-ocean ranges (GLODAPv2 / Jiang et al. 2019)"
+    },
+    {
+      "id": "V6",
+      "type": "directional",
+      "rule": "Increasing dose must increase pH (state 1), decrease pCO2 (state 1), increase aragonite saturation state (state 1), and increase potential CO2 uptake, in every environment"
+    },
+    {
+      "id": "V7",
+      "type": "physical_bound",
+      "rule": "Uptake efficiency (eta) strictly between 0 and 1 for every row with dose > 0 (cannot absorb more CO2 mol-for-mol than alkalinity added at these conditions)"
+    },
+    {
+      "id": "V8",
+      "type": "logical",
+      "rule": "Equilibrated-state pH must fall between baseline pH and immediate-state pH; dose = 0 rows show identically zero change in every derived quantity"
+    },
+    {
+      "id": "V9",
+      "type": "consistency",
+      "rule": "Saturation state is monotonically consistent with carbonate ion concentration at fixed temperature and salinity"
+    },
+    {
+      "id": "V10",
+      "type": "software",
+      "rule": "PyCO2SYS and the independent cross-check solver agree to within |delta pH| < 0.001 on a 500-row audit sample"
+    },
+    {
+      "id": "V11",
+      "type": "external",
+      "rule": "Solver reproduces the published reference check values in Dickson, Sabine & Christian (2007)"
+    },
+    {
+      "id": "V12",
+      "type": "units",
+      "rule": "Every column's unit is derived and explicitly stated in the data dictionary; a full units audit is performed before export"
+    },
+    {
+      "id": "V13",
+      "type": "outliers",
+      "rule": "Statistical outlier scan (|z| > 4) on all calculated columns; each flagged row is either manually explained or its environment draw is rejected and logged"
+    },
+    {
+      "id": "V14",
+      "type": "provenance",
+      "rule": "A rejected-scenario log is retained and reported in the methodology so nothing is silently dropped from the dataset"
+    }
+  ]
+}
