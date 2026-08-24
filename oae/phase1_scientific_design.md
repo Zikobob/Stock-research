@@ -1,0 +1,450 @@
+# PHASE 1 — Scientific Design
+## Optimizing Ocean Alkalinity Enhancement: Balancing Atmospheric Carbon Removal and Marine Carbonate Chemistry
+
+**Status:** DESIGN ONLY — no dataset has been generated. This document is for review and approval
+before any data generation (Phase 2).
+
+**Project type:** TSA Data Science & Analytics — AI-generated synthetic dataset, Climate and
+Environmental Sustainability theme.
+
+**Dataset label (fixed):** *AI-Generated Synthetic Ocean Alkalinity Enhancement Scenario Dataset*
+
+---
+
+## 1. Titles
+
+**Working title (recommended, kept from brief):**
+
+> Optimizing Ocean Alkalinity Enhancement: Balancing Atmospheric Carbon Removal and Marine
+> Carbonate Chemistry
+
+**Five alternative poster titles (non-sensationalized):**
+
+1. Dose–Response Behavior of Ocean Alkalinity Enhancement: A Synthetic-Scenario Analysis of CO₂
+   Uptake and Carbonate-System Perturbation
+2. Identifying an Operating Window for Ocean Alkalinity Enhancement: Modeled Tradeoffs Between
+   Carbon Removal and Carbonate Chemistry Change
+3. Diminishing Returns and Chemical Thresholds in Modeled Ocean Alkalinity Enhancement Scenarios
+4. Ocean Alkalinity Enhancement Across Contrasting Ocean Environments: A Multi-Objective Analysis
+   of Synthetic Carbonate-Chemistry Scenarios
+5. Constraining Effective Dosing Ranges for Ocean Alkalinity Enhancement Using a Synthetic
+   Carbonate-System Scenario Dataset
+
+---
+
+## 2. Research question
+
+### Candidate refinements (in increasing sophistication)
+
+- **RQ-A (original):** How does the amount of alkalinity added during OAE affect modeled
+  atmospheric CO₂ uptake and marine carbonate chemistry, and can an optimal treatment range be
+  identified?
+- **RQ-B (adds mechanism):** Across contrasting surface-ocean environments, how do equilibrated
+  CO₂ uptake and transient carbonate-system perturbation scale with alkalinity dose, and does the
+  marginal molar uptake efficiency (ΔDIC/ΔTA) decline as dose increases?
+- **RQ-C (adds thresholds):** As alkalinity dose increases, at what point does the modeled
+  transient aragonite saturation state cross ranges associated in the experimental literature with
+  abiotic carbonate precipitation, and how does that crossing point depend on baseline conditions?
+- **RQ-D (multi-objective; strongest):** Across modeled surface-ocean environments, how does
+  alkalinity dose control the tradeoff between equilibrated CO₂ uptake and transient
+  carbonate-chemistry perturbation, and can a Pareto-optimal dosing window be identified that
+  remains stable across environments and under parameter uncertainty?
+- **RQ-E (interaction-focused):** Which baseline environmental properties (temperature, salinity,
+  initial pH, initial DIC, buffering capacity) most strongly modify the carbon-removal benefit and
+  chemical perturbation produced by a fixed alkalinity dose?
+
+### Selected primary question: **RQ-D**, with RQ-B and RQ-C as named secondary questions.
+
+RQ-D subsumes the others, is explicitly an optimization question (matching the analysis plan),
+and builds in the robustness requirement (uncertainty analysis) so the headline answer cannot be a
+fragile point estimate.
+
+---
+
+## 3. Hypothesis
+
+The original hypothesis is directionally sound but needs one scientific correction. In carbonate
+chemistry, the *benefit* of OAE (equilibrated CO₂ uptake) is expected to grow nearly linearly with
+dose with only **modest** decline in marginal molar efficiency (published equilibrium uptake
+efficiencies span roughly 0.75–0.85 mol CO₂ per mol TA; He & Tyka 2023). The strong nonlinearity
+is expected on the *risk* side: the transient (pre-equilibration) pH and saturation-state spike
+grows faster than linearly and can cross experimentally observed precipitation-risk ranges. An
+honest hypothesis should predict where the optimum comes from rather than vaguely predicting
+"diminishing returns."
+
+**Refined hypothesis (three testable parts):**
+
+- **H1 (benefit):** Modeled equilibrated CO₂ uptake will increase monotonically with alkalinity
+  dose in every environment, but the marginal molar efficiency (Δuptake/Δdose, mol/mol) will
+  decline modestly as dose increases, because larger additions shift the equilibrated carbonate
+  speciation further toward CO₃²⁻, which stores alkalinity without storing proportionally more
+  carbon.
+- **H2 (perturbation):** The transient (pre-equilibration) perturbation — ΔpH and Δ aragonite
+  saturation immediately after addition — will grow at least linearly with dose, and modeled
+  aragonite saturation will cross literature-derived precipitation-risk ranges (Ω_arag ≈ 5, with
+  uncertainty) at doses that are lower in warm, high-Ω waters than in cold, low-Ω waters.
+- **H3 (tradeoff):** Consequently, an intermediate dose window — set primarily by the perturbation
+  constraint rather than by collapse of the carbon-removal benefit — will dominate both very low
+  doses (little removal) and very high doses (threshold exceedance) in a multi-objective
+  comparison.
+
+**Falsifiability commitment:** If marginal efficiency does not measurably decline within the
+modeled range, or thresholds are not crossed, the project reports that outcome and the "optimum"
+becomes the top of the modeled range subject to constraints. Nothing in the generator forces H1–H3
+to be true; all three follow (or fail to follow) from equilibrium chemistry computed at run time.
+
+---
+
+## 4. The single most important design decision: model TWO post-treatment states
+
+A scientifically common error would be to compute one "after" state. In reality OAE has two
+distinct chemical moments, and the benefit and the risk live in *different* moments:
+
+- **State 1 — immediate / unequilibrated** (minutes–days after addition, before air–sea CO₂
+  exchange): TA is raised, DIC is unchanged. pH, CO₃²⁻, and Ω spike. Seawater pCO₂ drops below
+  atmospheric. **This is where chemical perturbation and precipitation risk are maximal, and where
+  carbon removal is still ≈ 0.**
+- **State 2 — equilibrated** (weeks–months later): CO₂ has invaded from the atmosphere until
+  seawater pCO₂ approaches atmospheric. DIC has risen (this rise *is* the carbon removal); pH and
+  Ω relax back toward (slightly above) baseline. **This is where the benefit is realized and the
+  residual perturbation is small.**
+
+If only State 2 were modeled, the tradeoff would look artificially tiny; if only State 1, the
+benefit would look artificially absent. The dataset therefore carries both states per row, plus an
+**equilibration fraction** parameter *f* (sampled ~0.55–0.95; He & Tyka 2023 show equilibration is
+often incomplete because water can be subducted before full exchange) so realized uptake =
+*f* × potential uptake. This is also the honest answer to "where does the tradeoff come from" —
+it is a real, literature-documented feature of OAE, not something painted onto the data.
+
+**Counterfactual definition of uptake (prevents a subtle bias):** baseline water may itself be
+out of equilibrium with the atmosphere. Uptake attributable to OAE is defined against the
+untreated counterfactual equilibrated to the same atmosphere:
+
+```
+potential_uptake = DIC_eq(TA0 + dose, pCO2_atm) − DIC_eq(TA0, pCO2_atm)
+realized_uptake  = f × potential_uptake
+efficiency η     = potential_uptake / dose        (mol CO2 per mol TA, dimensionless)
+```
+
+---
+
+## 5. Scientific background to be modeled (poster BACKGROUND section)
+
+The carbonate system, stated at the level the project must defend:
+
+- CO₂(atm) ⇌ CO₂(aq); CO₂(aq) + H₂O ⇌ H₂CO₃; H₂CO₃ ⇌ H⁺ + HCO₃⁻; HCO₃⁻ ⇌ H⁺ + CO₃²⁻
+- **DIC** = [CO₂*] + [HCO₃⁻] + [CO₃²⁻]  (CO₂* = dissolved CO₂ + true carbonic acid)
+- **TA** ≈ [HCO₃⁻] + 2[CO₃²⁻] + [B(OH)₄⁻] + [OH⁻] − [H⁺]  (borate and water terms included;
+  phosphate/silicate/organic alkalinity neglected — documented assumption)
+- Given temperature, salinity, and pressure, any two of {TA, DIC, pH, pCO₂} determine the entire
+  system through the equilibrium constants K₀, K₁, K₂, K_B, K_W.
+
+**Why adding alkalinity increases carbon storage capacity (the non-oversimplified version):**
+Adding alkalinity at constant DIC consumes H⁺, shifting speciation from CO₂* toward HCO₃⁻ and
+CO₃²⁻. This lowers seawater pCO₂ below the atmosphere's, creating an air–sea disequilibrium that
+drives CO₂ invasion. The invading CO₂ is converted mostly into bicarbonate rather than remaining
+as dissolved gas, so the water can hold more *total* inorganic carbon at the same atmospheric
+pCO₂. The capacity gain is not "because pH is higher" — pH returns nearly to baseline after
+equilibration; it is because the TA:DIC ratio sets how much DIC the water holds at a given pCO₂.
+The buffering context is quantified with the Revelle factor, computed per scenario.
+
+---
+
+## 6. Variables
+
+### 6.1 Independent (treatment) variable
+
+`alkalinity_added_umol_kg` — 12 levels: **0, 10, 25, 50, 75, 100, 150, 200, 250, 300, 400, 500 µmol/kg**
+
+Justification (to be verified against sources in Phase 2 before locking):
+
+- 10–100 µmol/kg spans perturbations comparable to near-field, post-dilution conditions
+  contemplated for field deployment (Renforth & Henderson 2017; NASEM 2021).
+- 150–500 µmol/kg spans mesocosm/laboratory experimental additions (OAE mesocosm studies have
+  used ΔTA of several hundred µmol/kg) and deliberately stress-tests the system so that
+  threshold behavior, if real, appears *inside* the modeled range rather than at its edge.
+- Extending to 500 (beyond the brief's 300) is proposed because cold, low-Ω waters may not cross
+  precipitation-risk ranges below 300, and a threshold analysis that never reaches the threshold
+  in half the environments is uninformative. The 400–500 rows are flagged `stress_test = True` so
+  headline statistics can be reported with and without them.
+
+### 6.2 Sampled environmental variables (the "AI-generated scenario" layer)
+
+Six baseline environment archetypes (explicitly *not* claimed to reproduce specific real
+locations), with per-archetype sampling ranges to be pinned to GLODAPv2 / published surface
+climatologies in Phase 2:
+
+| Archetype | T (°C) | S (psu) | Baseline TA (µmol/kg) | Notes |
+|---|---|---|---|---|
+| Polar / subpolar | −1 to 8 | 32–34.5 | ~2150–2320 | low Ω, high Revelle factor |
+| Temperate | 8–18 | 33–35.5 | ~2250–2350 | |
+| Subtropical gyre | 18–26 | 35–37 | ~2350–2450 | high TA, high Ω |
+| Tropical | 26–30 | 34–36.5 | ~2280–2400 | highest Ω |
+| Coastal, lower salinity | 5–25 | 25–33 | ~1900–2300 | TA from TA–S relation + larger noise |
+| High-salinity marginal sea | 18–28 | 36.5–39.5 | ~2450–2600 | Mediterranean-like, not "the Med" |
+
+Sampling structure per environment draw:
+
+- `temperature_c`, `salinity_psu`: sampled within archetype ranges.
+- `ta0_umol_kg`: from a published TA–salinity relationship (Lee et al. 2006) + bounded noise, so
+  TA and S covary realistically (multicollinearity handled in analysis — see §9).
+- `atm_co2_ppm`: fixed at ~425 ppm (NOAA GML, mid-2020s) in the core dataset; varied in
+  sensitivity runs.
+- `baseline_disequilibrium_uatm`: sampled ±40 µatm around atmospheric, representing natural
+  seasonal/biological disequilibrium; `pco2_0 = atm + disequilibrium`.
+- `equilibration_fraction f`: sampled 0.55–0.95 (uncertain-parameter layer).
+- `dic0_umol_kg` is then **calculated** from (TA₀, pCO₂₀, T, S) — never sampled independently, so
+  baseline chemistry is internally consistent by construction.
+
+### 6.3 Calculated variables (deterministic chemistry; the majority of columns)
+
+Baseline (state 0): `ph0_total`, `dic0`, `hco3_0`, `co3_0`, `co2aq_0`, `omega_arag_0`,
+`omega_calc_0`, `revelle_factor_0`.
+
+Immediate post-addition (state 1, TA₁ = TA₀ + dose, DIC unchanged): `ph1`, `pco2_1`, `co3_1`,
+`omega_arag_1`, `omega_calc_1`, `delta_ph_immediate`, `delta_omega_arag_immediate`,
+`air_sea_disequilibrium_uatm` (pCO₂_atm − pCO₂_1).
+
+Equilibrated (state 2, TA₁ with pCO₂ relaxed toward atmospheric by fraction f): `dic2`, `ph2`,
+`hco3_2`, `co3_2`, `co2aq_2`, `omega_arag_2`, `delta_ph_equilibrated`.
+
+Carbon removal: `co2_uptake_potential_umol_kg`, `co2_uptake_realized_umol_kg`,
+`co2_removed_mg_kg` (× 44.01 g/mol), `uptake_efficiency_mol_mol`, and
+`marginal_efficiency_mol_mol` (finite difference between adjacent dose levels **within the same
+environment draw** — the design pairs every environment draw with the full dose ladder precisely
+so this is computable without confounding).
+
+### 6.4 Derived indices (transparent, documented, and quarantined from "discovery" claims)
+
+- `precipitation_risk_index`: distance of Ω_arag(state 1) above a literature-derived risk range
+  (runaway CaCO₃ precipitation observed in experiments at Ω_arag ≳ 5 in particle-rich water;
+  Moras et al. 2022, Hartmann et al. 2023). Implemented as a smooth function with the threshold
+  treated as uncertain (varied in Monte Carlo), plus a hard flag `precip_risk_flag`.
+- `perturbation_index`: normalized composite of |ΔpH_immediate|, ΔΩ_arag_immediate, and relative
+  ΔCO₃²⁻ — weights documented in the data dictionary, and a weight-sensitivity analysis showing
+  conclusions are (or are not) robust to the weighting.
+- `treatment_classification` ∈ {LOW TREATMENT, EFFECTIVE, OPTIMAL TRADEOFF, REVIEW, EXCESSIVE
+  PERTURBATION}: assigned by an explicit published rule table (e.g., realized uptake percentile ×
+  perturbation/risk thresholds), printed in full in the methodology. Not learned, not tuned to
+  produce a pretty distribution.
+
+### 6.5 Controlled / context variables
+
+Surface mixed layer only (pressure ≈ 0 dbar); alkalinity feedstock treated as NaOH-equivalent
+(pure TA addition, no added Ca²⁺, DIC, or trace metals); no biology; no dilution/transport beyond
+the equilibration-fraction abstraction; nutrients/phosphate/silicate set to zero in the TA
+equation. Each is a documented limitation.
+
+---
+
+## 7. Equations, constants, and software
+
+| Component | Formulation | Source |
+|---|---|---|
+| CO₂ solubility K₀ | f(T, S) | Weiss (1974) |
+| K₁, K₂ (carbonic acid) | f(T, S), total pH scale | Lueker et al. (2000) |
+| K_B (boric acid) | f(T, S) | Dickson (1990) |
+| K_W (water) | f(T, S) | Millero (1995) |
+| Total borate from S | B_T ∝ S | Uppström (1974) / Lee et al. (2010) |
+| Aragonite/calcite K_sp | f(T, S) | Mucci (1983) |
+| [Ca²⁺] from S | conservative with salinity | Riley & Tongudai (1967) |
+| Ω | [Ca²⁺][CO₃²⁻]/K_sp | standard |
+| Revelle factor | numerical ∂ln pCO₂/∂ln DIC at constant TA | Zeebe & Wolf-Gladrow (2001) |
+| System solver | **PyCO2SYS** (established community package) | Humphreys et al. (2022) |
+| Cross-check solver | independent bisection solver for [H⁺] written from the equations above | this project |
+
+Two solver note: using PyCO2SYS as primary and a from-scratch solver as validation is both a
+genuine QC step and a strong judge-defense ("we did not trust a black box; we reproduced it").
+
+Known constraint to document: Lueker et al. (2000) constants are calibrated for T ≈ 2–35 °C,
+S ≈ 19–43. Polar draws below 2 °C are a mild extrapolation; PyCO2SYS offers alternative constant
+sets (e.g., Millero 2010) valid to colder temperatures — the choice will be stated and tested as
+a sensitivity case.
+
+**What is "AI-generated" here (TSA compliance framing):** the AI tool designs the generator,
+writes the code, and specifies scenario distributions; scenario draws are pseudo-random (seeded)
+and all chemistry columns are deterministic physics. The disclosure will state exactly this and
+preserve the full prompt. The dataset is never described as ocean observations.
+
+---
+
+## 8. Dataset shape
+
+- **1,500 environment draws × 12 dose levels = 18,000 rows** (within the 10k–25k target).
+- `env_id` groups the 12 rows sharing one environment (paired design → clean marginal-efficiency
+  and within-environment dose–response analysis).
+- ~38 columns; every column enters `oae_data_dictionary.csv` with definition, unit, type
+  (sampled / calculated / derived-index / flag), source or formula, and allowed range.
+
+---
+
+## 9. Statistical analysis plan
+
+1. **Descriptives & distributions** for all key variables, by archetype.
+2. **Dose–response curves**: realized uptake, ΔpH_immediate, Ω_arag_1 vs dose, per archetype,
+   with within-environment pairing.
+3. **Marginal efficiency analysis (diminishing returns)**: Δuptake/Δdose vs dose; changepoint /
+   piecewise-linear fit to locate where (if anywhere) marginal efficiency measurably declines;
+   report the curve even if flat.
+4. **Correlations**: Spearman throughout (monotonic, nonlinear-safe); Pearson only where linearity
+   holds. TA₀–salinity collinearity is handled by (a) reporting the correlation matrix openly and
+   (b) using the TA-residual (TA₀ minus its salinity prediction) as the independent TA signal in
+   regression.
+5. **Regression**: multiple regression with standardized coefficients for equilibrated uptake and
+   for Ω_arag_1; explicit interaction terms (dose×T, dose×S, dose×pH₀, dose×DIC₀, dose×Revelle);
+   nonlinear terms where residual analysis demands them. Report R², effect sizes, CIs, residual
+   diagnostics — not p-values alone (with n = 18,000, near-everything is "significant";
+   this is stated on the poster).
+6. **Sensitivity analysis, two-track (methodologically the right way):**
+   - *On the simulator directly*: Sobol variance decomposition (SALib, Saltelli sampling) of the
+     chemistry model itself — the correct object for "which inputs matter."
+   - *On the dataset*: permutation importance + partial-dependence from a random-forest
+     **emulator** of the simulator, cross-checked against Spearman and standardized coefficients.
+7. **Multi-objective optimization**: per-row (benefit = realized uptake; cost = perturbation
+   index); Pareto frontier per archetype and pooled; identify the dose window that is
+   Pareto-efficient *and* below the precipitation-risk range. Pareto optimality explained for
+   judges as: "a dose is kept only if no other dose removes more carbon with less chemical
+   disturbance."
+8. **Uncertainty (Monte Carlo)**: re-run the pipeline ≥ 200 times perturbing f, the Ω risk
+   threshold, pK₁/pK₂ within stated uncertainties, and atmospheric CO₂; report the optimal window
+   as median [5th, 95th percentile] and state whether it is stable.
+9. **Optional ML (kept subordinate)**: linear model vs gradient boosting predicting realized
+   uptake from (archetype, T, S, TA₀, DIC₀, dose, f); train/test split by `env_id` (not by row —
+   rows within an environment are not independent, and splitting by row would leak); report
+   MAE/RMSE/R²; discuss interpretability tradeoff. Framed honestly as *emulation* of a known
+   simulator, not discovery.
+
+**Anti-circularity rules (printed in the methodology):**
+
+- No analysis may "discover" a relationship that is definitional (e.g., sustainability-type
+  scores vs their own ingredients). Any figure involving a derived index carries a caption note
+  that the index is constructed, with a pointer to its formula.
+- The legitimate discoveries this design can support are emergent properties of the chemistry:
+  the *size* of efficiency decline, *where* thresholds fall per environment, *which* baseline
+  variables control the response, and whether an optimum window *exists and is robust*. None of
+  these are typed into the generator.
+- ML never has derived indices as features or targets.
+
+---
+
+## 10. Validation strategy (rule table to be shipped as part of methodology)
+
+| # | Rule | Type |
+|---|---|---|
+| V1 | S ∈ [20, 41]; T ∈ [−2, 32] °C; no negative concentrations anywhere | range |
+| V2 | TA₁ − TA₀ = dose exactly (mass balance of treatment) | consistency |
+| V3 | DIC = CO₂* + HCO₃⁻ + CO₃²⁻ reproduced within numerical tolerance | consistency |
+| V4 | TA recomputed from speciation matches input TA within tolerance | consistency |
+| V5 | pH₀ ∈ [7.6, 8.4]; baseline Ω_arag ∈ [0.5, 6]; baseline DIC ∈ [1700, 2400] µmol/kg (vs published surface ranges, GLODAPv2 / Jiang et al. 2019) | plausibility |
+| V6 | Directional checks: dose ↑ ⇒ pH₁ ↑, pCO₂_1 ↓, Ω₁ ↑, potential uptake ↑ (every environment) | directional |
+| V7 | 0 < η < 1 for every row with dose > 0 (thermodynamic bound: cannot absorb more CO₂ mol-for-mol than TA added at these conditions) | physical bound |
+| V8 | State-2 pH between state-0 and state-1 pH; dose = 0 rows show identically zero change | logical |
+| V9 | Ω consistent with CO₃²⁻ (Ω monotone in CO₃²⁻ at fixed T, S) | consistency |
+| V10 | PyCO2SYS vs independent solver agree (|ΔpH| < 0.001) on a 500-row audit sample | software |
+| V11 | Solver reproduces the published check values in Dickson, Sabine & Christian (2007) | external |
+| V12 | Units audit table: every column's unit derived and stated | units |
+| V13 | Outlier scan (|z| > 4) on all calculated columns → each flagged row manually explained or the environment draw rejected and logged | outliers |
+| V14 | Rejected-scenario log retained and counted in the methodology (nothing silently dropped) | provenance |
+
+---
+
+## 11. Planned figures (8 candidates → best 4–6 for poster)
+
+1. Realized CO₂ uptake vs dose, by archetype (with f-uncertainty band) — *the benefit curve*
+2. Marginal efficiency (mol/mol) vs dose — *the diminishing-returns test, H1*
+3. Transient ΔpH and Ω_arag(state 1) vs dose with precipitation-risk band — *the risk curve, H2*
+4. **Pareto frontier**: realized uptake vs perturbation index, optimal window shaded — *centerpiece, H3*
+5. Heatmap: dose × temperature → realized uptake (and/or → Ω_arag_1) — *interactions*
+6. Sensitivity: Sobol indices / permutation importance, side by side — *drivers*
+7. Two-state schematic: TA–DIC diagram showing baseline → immediate → equilibrated path — *the concept figure judges will remember*
+8. Robustness: optimal-window bounds across Monte Carlo runs (distribution strip) — *uncertainty*
+
+All with units, uncertainty where meaningful, and captions that state the finding, not the axes.
+
+---
+
+## 12. Poster story (conditional — used only if results support it)
+
+Take-home candidate: *"In 18,000 modeled scenarios, alkalinity enhancement raised seawater
+carbon storage in every environment, but the transient chemistry spike — not the carbon benefit —
+set the ceiling: an intermediate dose window balanced removal against perturbation, and its
+location depended on where you are in the ocean."* To be rewritten from actual results.
+
+Sections: TAKE-HOME MESSAGE → BACKGROUND → RESEARCH QUESTION → HYPOTHESIS → METHODS (8-step
+numbered workflow) → DATASET (n, variables, generation, AI disclosure pointer, validation) →
+RESULTS AT A GLANCE (3–5 quantified headlines, filled only after analysis) → KEY TAKEAWAYS →
+LIMITATIONS → FUTURE WORK.
+
+---
+
+## 13. Limitations (declared up front)
+
+Synthetic scenarios, not observations; equilibration reduced to a single fraction (no explicit
+mixing, dilution, or circulation); no biology (calcifier response, primary production, ecosystem
+feedbacks absent); feedstock idealized as NaOH-equivalent (no Ca²⁺/trace-metal/particle effects of
+lime or olivine); precipitation represented as a risk index, not simulated kinetics; constants
+extrapolated slightly below 2 °C for polar draws; archetypes are stylized, not site predictions;
+no lifecycle emissions of the alkalinity source; results are conditional on the parameterizations
+cited and require experimental/field validation.
+
+---
+
+## 14. Sources to locate and verify in Phase 2 (none cited on poster until verified)
+
+Core (high confidence these exist; exact details to be verified, not invented):
+Zeebe & Wolf-Gladrow (2001) *CO₂ in Seawater*; Dickson, Sabine & Christian (2007) *Guide to Best
+Practices for Ocean CO₂ Measurements*; Lueker et al. (2000); Weiss (1974); Dickson (1990);
+Millero (1995, 2010); Mucci (1983); Uppström (1974); Lee et al. (2006, TA–S); Lee et al. (2010,
+borate); Riley & Tongudai (1967); Humphreys et al. (2022, PyCO2SYS); Renforth & Henderson (2017,
+OAE review); NASEM (2021) *A Research Strategy for Ocean-Based CDR*; He & Tyka (2023, uptake
+efficiency & equilibration); Moras et al. (2022) and Hartmann et al. (2023) (runaway
+precipitation thresholds); Oschlies et al. (2023) *Guide to Best Practices in OAE Research*;
+GLODAPv2 (Lauvset et al.); Jiang et al. (2019, surface pH climatology); NOAA GML (atmospheric
+CO₂); IPCC AR6 (acidification & CDR context).
+
+Marked **SOURCE VERIFICATION REQUIRED**: any regulatory ΔpH guideline (e.g., ±0.2 pH at mixing
+zones) used to motivate perturbation thresholds; exact mesocosm ΔTA ranges used to justify the
+150–500 µmol/kg stress-test doses.
+
+A `Parameter/Claim | Source | Why used` table ships as `oae_sources.md`.
+
+---
+
+## 15. Scientific weaknesses found in the original brief (and fixes adopted)
+
+1. **"CO₂ uptake" was undefined in time** — uptake without an equilibration state is ambiguous.
+   *Fix:* two-state model + equilibration fraction (§4).
+2. **The tradeoff was implicitly located in the wrong place** — the brief expects benefit to
+   saturate; chemistry says benefit is near-linear (η ~0.75–0.85) and *risk* is the nonlinear
+   term. *Fix:* hypothesis restructured (H1–H3) so the project cannot be accused of hiding a flat
+   benefit curve.
+3. **delta_pH was ambiguous** — equilibrated ΔpH is small and transient ΔpH is large; one column
+   would mislead. *Fix:* both reported.
+4. **Circularity risk in scores/classifications** — *Fix:* rule-table construction, quarantine
+   from ML, caption disclosure (§9).
+5. **"Sustainability score" overclaims** — nothing biological is modeled, so "sustainability"
+   isn't measured. *Fix:* renamed **treatment suitability score**; ecosystem language excluded.
+6. **Sampling DIC and pH independently would create impossible water** — *Fix:* only TA, T, S,
+   and pCO₂ disequilibrium are sampled; DIC/pH are computed.
+7. **TA–salinity collinearity** would corrupt naive regressions. *Fix:* residualized TA in
+   regression; collinearity reported.
+8. **Dose ladder capped at 300** may keep thresholds out of range in cold water. *Fix:* extended
+   to 500 with `stress_test` flag.
+9. **Depth/pressure adds complexity without insight** for a surface intervention. *Fix:* surface
+   mixed layer only, documented.
+10. **Row-wise ML splits would leak** (12 rows share an environment). *Fix:* group split by
+    `env_id`.
+11. **p-values nearly meaningless at n = 18,000** — *Fix:* effect sizes and CIs lead; stated on
+    poster.
+12. **Feedstock identity matters in reality** (Ca(OH)₂ adds Ca²⁺ and raises Ω per mole more than
+    NaOH) — out of scope but must be a named limitation, not silently ignored.
+
+---
+
+## 16. Phase 2 gate
+
+On approval of this design: implement generator + validation + solver cross-check; produce
+`oae_synthetic_dataset.csv`, `oae_data_dictionary.csv`, `oae_methodology.md`,
+`oae_ai_disclosure.md` (naming the AI tool and model and preserving the full generation prompt,
+as TSA requires), `oae_sources.md` (verified), analysis code, `oae_analysis_summary.csv`,
+`/figures/`, and `README.md` with full reproduction instructions (fixed seed).
