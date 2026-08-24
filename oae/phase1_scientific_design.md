@@ -81,8 +81,9 @@ honest hypothesis should predict where the optimum comes from rather than vaguel
   carbon.
 - **H2 (perturbation):** The transient (pre-equilibration) perturbation — ΔpH and Δ aragonite
   saturation immediately after addition — will grow at least linearly with dose, and modeled
-  aragonite saturation will cross literature-derived precipitation-risk ranges (Ω_arag ≈ 5, with
-  uncertainty) at doses that are lower in warm, high-Ω waters than in cold, low-Ω waters.
+  aragonite saturation will enter literature-derived precipitation-risk *ranges* (tiered and
+  uncertain, not a single universal threshold — see §6.4) at doses that are lower in warm,
+  high-Ω waters than in cold, low-Ω waters.
 - **H3 (tradeoff):** Consequently, an intermediate dose window — set primarily by the perturbation
   constraint rather than by collapse of the carbon-removal benefit — will dominate both very low
   doses (little removal) and very high doses (threshold exceedance) in a multi-objective
@@ -111,20 +112,39 @@ distinct chemical moments, and the benefit and the risk live in *different* mome
 
 If only State 2 were modeled, the tradeoff would look artificially tiny; if only State 1, the
 benefit would look artificially absent. The dataset therefore carries both states per row, plus an
-**equilibration fraction** parameter *f* (sampled ~0.55–0.95; He & Tyka 2023 show equilibration is
-often incomplete because water can be subducted before full exchange) so realized uptake =
-*f* × potential uptake. This is also the honest answer to "where does the tradeoff come from" —
-it is a real, literature-documented feature of OAE, not something painted onto the data.
+**equilibration fraction** parameter *f* so realized uptake = *f* × potential uptake. This is also
+the honest answer to "where does the tradeoff come from" — it is a real, literature-documented
+feature of OAE, not something painted onto the data.
+
+**Two quantities that must never be conflated** (an earlier draft of this design cited them
+loosely; corrected in Revision 1):
+
+- **Thermodynamic uptake efficiency η_thermo = potential ΔDIC / ΔTA** at full re-equilibration.
+  A pure equilibrium-chemistry quantity, *computed per row as a model output*, expected from the
+  literature to fall near 0.75–0.85 mol CO₂ per mol TA (He & Tyka 2023; Renforth & Henderson
+  2017). It is never an input and never sampled.
+- **Equilibration fraction f** — a *kinetic/transport* quantity: how far toward air–sea
+  equilibrium the treated water has come by the evaluation horizon, limited by gas-exchange
+  velocity, mixed-layer depth, and subduction. Sampled as an uncertain input (provisional range
+  0.55–0.95 at a ~1-year horizon; this range is itself flagged for verification against the
+  regional equilibration results in He & Tyka 2023). f scales the realized uptake; it does not
+  change η_thermo.
+
+State-2 chemistry is computed consistently with f: DIC₂ = DIC₀ + f × (DIC_eq − DIC₀), then pH₂,
+Ω₂, and speciation are recomputed from (TA₁, DIC₂).
 
 **Counterfactual definition of uptake (prevents a subtle bias):** baseline water may itself be
 out of equilibrium with the atmosphere. Uptake attributable to OAE is defined against the
 untreated counterfactual equilibrated to the same atmosphere:
 
 ```
-potential_uptake = DIC_eq(TA0 + dose, pCO2_atm) − DIC_eq(TA0, pCO2_atm)
-realized_uptake  = f × potential_uptake
-efficiency η     = potential_uptake / dose        (mol CO2 per mol TA, dimensionless)
+potential_uptake = DIC_eq(TA0 + dose, pCO2_atm) − DIC_eq(TA0, pCO2_atm)   [thermodynamic]
+realized_uptake  = f × potential_uptake                                    [kinetic scaling]
+eta_thermo       = potential_uptake / dose    (mol CO2 per mol TA, dimensionless)
 ```
+
+The diminishing-returns (marginal-efficiency) analysis is defined on **potential** uptake, so the
+sampled kinetic parameter f cannot contaminate the thermodynamic question it is meant to answer.
 
 ---
 
@@ -156,17 +176,24 @@ The buffering context is quantified with the Revelle factor, computed per scenar
 
 `alkalinity_added_umol_kg` — 12 levels: **0, 10, 25, 50, 75, 100, 150, 200, 250, 300, 400, 500 µmol/kg**
 
-Justification (to be verified against sources in Phase 2 before locking):
+Tier structure (Revision 1 — labels reconciled; an earlier draft flagged only 400–500 as stress
+tests while the JSON tables flagged 150+; the stricter policy below is now the single source of
+truth in both places):
 
-- 10–100 µmol/kg spans perturbations comparable to near-field, post-dilution conditions
-  contemplated for field deployment (Renforth & Henderson 2017; NASEM 2021).
-- 150–500 µmol/kg spans mesocosm/laboratory experimental additions (OAE mesocosm studies have
-  used ΔTA of several hundred µmol/kg) and deliberately stress-tests the system so that
-  threshold behavior, if real, appears *inside* the modeled range rather than at its edge.
-- Extending to 500 (beyond the brief's 300) is proposed because cold, low-Ω waters may not cross
-  precipitation-risk ranges below 300, and a threshold analysis that never reaches the threshold
-  in half the environments is uninformative. The 400–500 rows are flagged `stress_test = True` so
-  headline statistics can be reported with and without them.
+- **0** — control.
+- **10–100 µmol/kg — deployment-relevant tier** (`stress_test = False`): perturbations comparable
+  to near-field, post-dilution conditions contemplated for field deployment (Renforth & Henderson
+  2017; NASEM 2021 — to be verified before locking).
+- **150–500 µmol/kg — exploratory stress-test tier** (`stress_test = True`, all of it): believed
+  comparable to mesocosm/laboratory additions, but that comparison is **not asserted anywhere
+  until the mesocosm ΔTA sourcing is verified** (currently SOURCE VERIFICATION REQUIRED). Until
+  then these doses are described only as model stress tests. Extending to 500 (beyond the brief's
+  300) is kept because cold, low-Ω waters may not reach precipitation-risk ranges below 300, and
+  a threshold analysis that never reaches the threshold in half the environments is uninformative.
+
+Reporting policy: headline deployment-relevant conclusions (including any recommended dose
+window) are computed on the 0–100 tier; results from the 150–500 tier are reported separately as
+*model-behavior characterization* (where thresholds fall), never as deployment predictions.
 
 ### 6.2 Sampled environmental variables (the "AI-generated scenario" layer)
 
@@ -183,11 +210,33 @@ climatologies in Phase 2:
 | Coastal, lower salinity | 5–25 | 25–33 | ~1900–2300 | TA from TA–S relation + larger noise |
 | High-salinity marginal sea | 18–28 | 36.5–39.5 | ~2450–2600 | Mediterranean-like, not "the Med" |
 
+**Note on the TA column (Revision 1):** the TA ranges in the table above are *expected-output
+plausibility bounds used as a validation check*, not sampling targets. Baseline TA is generated
+by the region-appropriate empirical relationship below, and a draw whose resulting TA falls
+outside its archetype's expected range is flagged for review.
+
 Sampling structure per environment draw:
 
 - `temperature_c`, `salinity_psu`: sampled within archetype ranges.
-- `ta0_umol_kg`: from a published TA–salinity relationship (Lee et al. 2006) + bounded noise, so
-  TA and S covary realistically (multicollinearity handled in analysis — see §9).
+- `ta0_umol_kg` (Revision 1 — refined): generated from the **actual zone-specific Lee et al.
+  (2006) TA = f(S, T) regional equations** (which include temperature and quadratic terms, not a
+  single global TA–S line), plus bounded noise, so TA covaries realistically with both S and T:
+  - Archetype → Lee et al. zone mapping: tropical and subtropical gyre → (Sub)tropics equation;
+    temperate → North Atlantic / North Pacific equation as appropriate to the draw; polar /
+    subpolar → the high-latitude (Southern Ocean / North Pacific) equations. Coefficients are
+    transcribed from the paper at implementation time and unit-tested against published example
+    values — never typed from memory.
+  - Each Lee et al. equation has a published (T, S) validity domain; a sampled (T, S) pair
+    falling outside its mapped equation's domain is **rejected at the sampling stage** and
+    logged (new validation rule V15).
+  - **Coastal, lower salinity** archetype: Lee et al. is an open-ocean product, so coastal TA is
+    instead generated from a two-end-member mixing line between the regional open-ocean TA
+    (from the mapped Lee equation at the salinity ceiling) and a freshwater TA end-member
+    sampled within a range that is currently SOURCE VERIFICATION REQUIRED, with a larger noise
+    term. Documented as an explicit assumption.
+  - **High-salinity marginal sea** archetype: Lee et al. excludes marginal seas, so TA comes
+    from a published Mediterranean-type TA–S relationship (candidate: Schneider et al. 2007;
+    coefficients to be transcribed and verified at implementation).
 - `atm_co2_ppm`: fixed at ~425 ppm (NOAA GML, mid-2020s) in the core dataset; varied in
   sensitivity runs.
 - `baseline_disequilibrium_uatm`: sampled ±40 µatm around atmospheric, representing natural
@@ -209,17 +258,37 @@ Equilibrated (state 2, TA₁ with pCO₂ relaxed toward atmospheric by fraction 
 `hco3_2`, `co3_2`, `co2aq_2`, `omega_arag_2`, `delta_ph_equilibrated`.
 
 Carbon removal: `co2_uptake_potential_umol_kg`, `co2_uptake_realized_umol_kg`,
-`co2_removed_mg_kg` (× 44.01 g/mol), `uptake_efficiency_mol_mol`, and
-`marginal_efficiency_mol_mol` (finite difference between adjacent dose levels **within the same
-environment draw** — the design pairs every environment draw with the full dose ladder precisely
-so this is computable without confounding).
+`co2_removed_mg_kg` (× 44.01 g/mol), `thermo_efficiency_eta_mol_mol` (potential uptake / dose —
+the thermodynamic quantity, deliberately named to prevent confusion with the kinetic
+equilibration fraction f), and `marginal_thermo_efficiency_mol_mol` (finite difference of
+*potential* uptake between adjacent dose levels **within the same environment draw** — the
+design pairs every environment draw with the full dose ladder precisely so this is computable
+without confounding, and it is defined on potential rather than realized uptake so f cannot
+contaminate the diminishing-returns test). Bookkeeping columns added in Revision 1:
+`constants_set` (which K₁/K₂ formulation was used for the row — see §7) and `extreme_flag`
+(chemically valid but statistically extreme rows retained and marked — see V13).
 
 ### 6.4 Derived indices (transparent, documented, and quarantined from "discovery" claims)
 
-- `precipitation_risk_index`: distance of Ω_arag(state 1) above a literature-derived risk range
-  (runaway CaCO₃ precipitation observed in experiments at Ω_arag ≳ 5 in particle-rich water;
-  Moras et al. 2022, Hartmann et al. 2023). Implemented as a smooth function with the threshold
-  treated as uncertain (varied in Monte Carlo), plus a hard flag `precip_risk_flag`.
+- `precipitation_risk_index` (Revision 1 — the largest correction in this revision). **There is
+  no universal Ω threshold for CaCO₃ precipitation**, and an earlier draft wrongly implied
+  Ω_arag ≈ 5 acts as one. Experimentally, the critical Ω depends on whether reactive particle
+  surfaces are available to nucleate on. The index is therefore tiered and particle-context
+  dependent:
+  - *Heterogeneous / particle-mediated tier*: runaway precipitation has been observed in
+    particle-rich experimental conditions (mineral feedstock grains, resuspended sediment) at
+    roughly Ω_arag ≈ 4–7 (Moras et al. 2022; Hartmann et al. 2023 — exact ranges to be verified
+    from the papers, not asserted from memory). Lower bound θ_het sampled ~4–7 in Monte Carlo.
+  - *Pseudo-homogeneous tier*: without abundant particles, nucleation requires much higher
+    supersaturation, roughly Ω_arag ≳ 10–12 (candidate sources exist but are currently
+    SOURCE VERIFICATION REQUIRED). Bound θ_hom sampled ~10–12.5 in Monte Carlo.
+  - Implementation: a continuous index computed against *both* uncertain bounds, plus two flags
+    (`precip_risk_het_flag`, `precip_risk_hom_flag`) and a documented `particle_context`
+    assumption. Because this project idealizes the feedstock as fully dissolved NaOH-equivalent,
+    the low-particle framing is the nominal case, but results are reported under both framings
+    since real solid-feedstock deployments are particle-rich.
+  - Language rule: the project never states "Ω above X causes precipitation" — only that a
+    scenario enters a literature-derived, particle-context-dependent risk range.
 - `perturbation_index`: normalized composite of |ΔpH_immediate|, ΔΩ_arag_immediate, and relative
   ΔCO₃²⁻ — weights documented in the data dictionary, and a weight-sensitivity analysis showing
   conclusions are (or are not) robust to the weighting.
@@ -256,10 +325,17 @@ equation. Each is a documented limitation.
 Two solver note: using PyCO2SYS as primary and a from-scratch solver as validation is both a
 genuine QC step and a strong judge-defense ("we did not trust a black box; we reproduced it").
 
-Known constraint to document: Lueker et al. (2000) constants are calibrated for T ≈ 2–35 °C,
-S ≈ 19–43. Polar draws below 2 °C are a mild extrapolation; PyCO2SYS offers alternative constant
-sets (e.g., Millero 2010) valid to colder temperatures — the choice will be stated and tested as
-a sensitivity case.
+Constants policy for cold water (Revision 1 — upgraded from "accept a mild extrapolation" to an
+explicit per-row policy): Lueker et al. (2000) constants are calibrated for T ≈ 2–35 °C,
+S ≈ 19–43 and are used **only inside that domain**. Rows with T < 2 °C use an alternative
+PyCO2SYS constant set whose documented validity extends below 2 °C (candidate: Millero 2010;
+the final choice is confirmed against the stated validity ranges in the PyCO2SYS documentation
+at implementation time, never assumed). Every row records which formulation was used in a
+`constants_set` column — the two sets are never mixed silently — and the entire dataset is
+re-run under the alternative set as a sensitivity case to show conclusions do not hinge on the
+choice. A further documented caveat: published work has questioned K₁/K₂ accuracy in polar
+waters generally (candidate: Sulpis et al. 2020 — to be verified), so polar-archetype results
+carry an explicit constants-uncertainty note in the limitations.
 
 **What is "AI-generated" here (TSA compliance framing):** the AI tool designs the generator,
 writes the code, and specifies scenario distributions; scenario draws are pseudo-random (seeded)
@@ -343,8 +419,9 @@ preserve the full prompt. The dataset is never described as ocean observations.
 | V10 | PyCO2SYS vs independent solver agree (|ΔpH| < 0.001) on a 500-row audit sample | software |
 | V11 | Solver reproduces the published check values in Dickson, Sabine & Christian (2007) | external |
 | V12 | Units audit table: every column's unit derived and stated | units |
-| V13 | Outlier scan (|z| > 4) on all calculated columns → each flagged row manually explained or the environment draw rejected and logged | outliers |
+| V13 | Outlier scan (\|z\| > 4) on all calculated columns → flagged rows are **reviewed, not removed**: a row is rejected only if it violates a physical/consistency rule (V1–V9) or came from an invalid input draw; rows that are extreme but chemically valid (e.g., high-dose polar scenarios) are **retained** with `extreme_flag = True` and a logged explanation. Statistical extremeness alone is never grounds for removal — rejection happens at the input-sampling stage, never at the output stage (Revision 1) | outliers |
 | V14 | Rejected-scenario log retained and counted in the methodology (nothing silently dropped) | provenance |
+| V15 | Domain check: every sampled (T, S) pair must fall inside the published validity domain of the TA equation mapped to its archetype; violations are rejected at the sampling stage and logged (Revision 1) | range |
 
 ---
 
@@ -397,14 +474,21 @@ Practices for Ocean CO₂ Measurements*; Lueker et al. (2000); Weiss (1974); Dic
 Millero (1995, 2010); Mucci (1983); Uppström (1974); Lee et al. (2006, TA–S); Lee et al. (2010,
 borate); Riley & Tongudai (1967); Humphreys et al. (2022, PyCO2SYS); Renforth & Henderson (2017,
 OAE review); NASEM (2021) *A Research Strategy for Ocean-Based CDR*; He & Tyka (2023, uptake
-efficiency & equilibration); Moras et al. (2022) and Hartmann et al. (2023) (runaway
-precipitation thresholds); Oschlies et al. (2023) *Guide to Best Practices in OAE Research*;
+efficiency & equilibration); Moras et al. (2022) and Hartmann et al. (2023)
+(particle-mediated precipitation-risk ranges — exact experimental Ω ranges to be transcribed
+from the papers); Oschlies et al. (2023) *Guide to Best Practices in OAE Research*;
 GLODAPv2 (Lauvset et al.); Jiang et al. (2019, surface pH climatology); NOAA GML (atmospheric
-CO₂); IPCC AR6 (acidification & CDR context).
+CO₂); IPCC AR6 (acidification & CDR context). Added in Revision 1: Millero (2010) carbonate
+constants (candidate low-temperature alternative set); Sulpis et al. (2020) (polar K₁/K₂
+caution); Schneider et al. (2007) (Mediterranean-type TA–S relationship for the marginal-sea
+archetype).
 
 Marked **SOURCE VERIFICATION REQUIRED**: any regulatory ΔpH guideline (e.g., ±0.2 pH at mixing
 zones) used to motivate perturbation thresholds; exact mesocosm ΔTA ranges used to justify the
-150–500 µmol/kg stress-test doses.
+150–500 µmol/kg stress-test tier (until verified, those doses are described only as model
+stress tests); the pseudo-homogeneous nucleation Ω range (~10–12); the freshwater TA
+end-member range for the coastal mixing line; the equilibration-fraction range (0.55–0.95 at a
+~1-year horizon) against He & Tyka (2023).
 
 A `Parameter/Claim | Source | Why used` table ships as `oae_sources.md`.
 
@@ -441,7 +525,21 @@ A `Parameter/Claim | Source | Why used` table ships as `oae_sources.md`.
 
 ---
 
-## 16. Phase 2 gate
+## 16. Revision 1 — corrections adopted from external design review (2026-08-24)
+
+| # | Reviewed item | Correction adopted |
+|---|---|---|
+| R1.1 | Dose-ladder labels inconsistent between design doc and JSON tables | Single tier policy everywhere: 0 control; 10–100 deployment-relevant; **all** of 150–500 `stress_test = True` until mesocosm sourcing is verified; headline conclusions from 0–100 only (§6.1) |
+| R1.2 | Baseline chemistry generation underspecified | TA generated from the actual zone-specific Lee et al. (2006) TA = f(S, T) regional equations with archetype→zone mapping and published validity domains; archetype TA ranges demoted to plausibility checks; coastal archetype uses a two-end-member mixing line; marginal sea uses a Mediterranean-type relation (§6.2) |
+| R1.3 | Lee et al. treated as a single TA–S line | Actual regional T+S equations implemented, coefficients transcribed from the paper and unit-tested against published example values (§6.2) |
+| R1.4 | Upper doses over-claimed as mesocosm-comparable | Strictly labeled model stress tests until sourced; reporting policy split into deployment-relevant vs model-characterization results (§6.1) |
+| R1.5 | Equilibration fraction f conflated with uptake efficiency η | Explicitly separated: η_thermo is a computed thermodynamic output (~0.75–0.85 per literature); f is a sampled kinetic input; columns renamed (`thermo_efficiency_eta_mol_mol`); marginal analysis defined on potential uptake (§4, §6.3) |
+| R1.6 | Ω ≈ 5 used as a universal precipitation threshold — biggest issue | Replaced with a tiered, particle-context-dependent risk framework: heterogeneous tier θ_het ~4–7 (particle-rich, Moras/Hartmann, to verify) and pseudo-homogeneous tier θ_hom ~10–12.5 (verification required), both uncertain in Monte Carlo; two flags plus a documented particle-context assumption; "causes precipitation" language banned (§6.4) |
+| R1.7 | Outlier rule could auto-delete valid physics | V13 rewritten: statistical extremeness alone never removes a row; rejection only for physical/consistency violations at the input stage; valid extremes retained with `extreme_flag` (§10) |
+| R1.8 | Lueker constants extrapolated below 2 °C | Per-row constants policy with a low-temperature-valid alternative set, a `constants_set` column, no silent mixing, and a whole-dataset sensitivity rerun; polar K₁/K₂ caution added to limitations (§7) |
+| R1.9 | Dataset generation | Still not generated — Phase 2 begins only after these corrections are approved |
+
+## 17. Phase 2 gate
 
 On approval of this design: implement generator + validation + solver cross-check; produce
 `oae_synthetic_dataset.csv`, `oae_data_dictionary.csv`, `oae_methodology.md`,

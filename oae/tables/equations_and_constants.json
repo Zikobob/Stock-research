@@ -1,5 +1,6 @@
 {
   "table_name": "Carbonate System Equations, Constants, and Software",
+  "revision": "R1 (2026-08-24): per-row constants policy for cold water (no silent extrapolation of Lueker constants below 2 C); zone-specific Lee et al. (2006) TA equations added; precipitation-risk framework made tiered and particle-context dependent",
   "description": "Equilibrium constants and formulations used to compute the ocean carbonate system. All chemistry columns in the dataset are deterministic outputs of these equations, not sampled values.",
   "core_equilibria": [
     "CO2(atm) <=> CO2(aq)",
@@ -11,6 +12,13 @@
     "DIC": "[CO2*] + [HCO3-] + [CO3(2-)]  (CO2* = dissolved CO2 + true carbonic acid)",
     "TA": "[HCO3-] + 2[CO3(2-)] + [B(OH)4-] + [OH-] - [H+]  (phosphate/silicate/organic alkalinity neglected)"
   },
+  "key_derived_quantities": {
+    "potential_uptake": "DIC_eq(TA0 + dose, pCO2_atm) - DIC_eq(TA0, pCO2_atm)  [thermodynamic; against the untreated counterfactual equilibrated to the same atmosphere]",
+    "realized_uptake": "f x potential_uptake  [f = kinetic equilibration fraction, a sampled input]",
+    "thermo_efficiency_eta": "potential_uptake / dose  [mol CO2 per mol TA; thermodynamic OUTPUT, expected ~0.75-0.85 per literature; never confused with f]",
+    "state_2_chemistry": "DIC2 = DIC0 + f x (DIC_eq - DIC0); then pH2, Omega2, and speciation recomputed from (TA1, DIC2)",
+    "marginal_efficiency": "Finite difference of POTENTIAL uptake between adjacent dose levels within the same environment draw, so f cannot contaminate the diminishing-returns analysis"
+  },
   "components": [
     {
       "component": "K0 (CO2 solubility)",
@@ -18,9 +26,14 @@
       "source": "Weiss (1974)"
     },
     {
-      "component": "K1, K2 (carbonic acid dissociation)",
-      "formulation": "function of temperature and salinity, total pH scale",
+      "component": "K1, K2 (carbonic acid dissociation) - primary set",
+      "formulation": "function of temperature and salinity, total pH scale; used ONLY inside its calibrated domain (T approx. 2-35 C, S approx. 19-43)",
       "source": "Lueker et al. (2000)"
+    },
+    {
+      "component": "K1, K2 - low-temperature alternative set (rows with T < 2 C)",
+      "formulation": "Alternative PyCO2SYS constants option whose documented validity extends below 2 C; candidate Millero (2010), final choice confirmed against stated validity ranges in the PyCO2SYS documentation at implementation time. Every row records its formulation in a constants_set column; the two sets are never mixed silently; the full dataset is re-run under the alternative set as a sensitivity case",
+      "source": "candidate: Millero (2010); polar K1/K2 uncertainty caution: Sulpis et al. (2020) - to verify"
     },
     {
       "component": "KB (boric acid dissociation)",
@@ -58,6 +71,16 @@
       "source": "Zeebe & Wolf-Gladrow (2001)"
     },
     {
+      "component": "Baseline total alkalinity from salinity and temperature",
+      "formulation": "Zone-specific regional equations TA = f(S, T) with published validity domains; archetype-to-zone mapping documented in environment_archetypes.json; coefficients transcribed from the paper and unit-tested against published example values. Coastal archetype uses a two-end-member mixing line; marginal-sea archetype uses a Mediterranean-type relation",
+      "source": "Lee et al. (2006); marginal sea candidate: Schneider et al. (2007)"
+    },
+    {
+      "component": "Precipitation-risk framework (NOT a single universal threshold)",
+      "formulation": "Tiered, particle-context dependent: heterogeneous/particle-mediated risk range at roughly Omega_arag 4-7 (theta_het sampled 4-7 in Monte Carlo); pseudo-homogeneous nucleation range at roughly Omega_arag >= 10-12 (theta_hom sampled 10-12.5). Continuous index against both uncertain bounds plus flags precip_risk_het_flag and precip_risk_hom_flag and a documented particle_context assumption. The project never states that a given Omega value causes precipitation - only that a scenario enters a literature-derived, particle-context-dependent risk range",
+      "source": "heterogeneous tier: Moras et al. (2022), Hartmann et al. (2023) - exact experimental ranges to verify; homogeneous tier: SOURCE VERIFICATION REQUIRED"
+    },
+    {
       "component": "Primary system solver",
       "formulation": "solves for full carbonate speciation given any two of {TA, DIC, pH, pCO2}",
       "source": "PyCO2SYS (Humphreys et al., 2022)"
@@ -68,6 +91,5 @@
       "source": "built for this project; validated against PyCO2SYS and published check values"
     }
   ],
-  "known_constraint": "Lueker et al. (2000) constants are calibrated for approximately 2-35 degrees C and salinity 19-43 psu. Polar draws below 2 degrees C represent a mild extrapolation; this will be stated explicitly and tested with an alternative constant set (e.g., Millero 2010) as a sensitivity case.",
   "validation_reference": "Solver outputs are checked against the published reference values in Dickson, Sabine & Christian (2007), Guide to Best Practices for Ocean CO2 Measurements."
 }

@@ -1,5 +1,6 @@
 {
   "table_name": "Scientific Source Table",
+  "revision": "R1 (2026-08-24): precipitation-risk claim corrected from a universal Omega threshold to a tiered particle-dependent range; equilibration fraction separated from uptake efficiency; entries added for the low-temperature constants set, polar K1/K2 caution, Mediterranean TA-S relation, homogeneous nucleation range, and the coastal freshwater TA end-member",
   "description": "Every important scientific assumption or numerical parameter range, mapped to the source that justifies it. Verification status distinguishes sources located with enough confidence to build against from claims that still need to be tracked down before appearing on the poster.",
   "verification_status_legend": {
     "verified": "Full citation confirmed and will be printed on the poster/methodology as-is",
@@ -68,9 +69,33 @@
       "verification_status": "to_verify_phase_2"
     },
     {
-      "parameter_or_claim": "Total alkalinity - salinity relationship used to generate baseline alkalinity from sampled salinity",
+      "parameter_or_claim": "Zone-specific regional equations TA = f(salinity, temperature) with published validity domains, used to generate baseline alkalinity (the actual regional equations, not a single global TA-S line)",
       "source": "Lee, K. et al. (2006). Global relationships of total alkalinity with salinity and temperature in surface waters of the world's oceans.",
-      "why_used": "Provides an empirically grounded relationship so sampled salinity and baseline alkalinity covary realistically instead of being independently randomized",
+      "why_used": "Empirically grounded per-zone relationships so baseline alkalinity covaries realistically with both salinity and temperature; coefficients transcribed from the paper and unit-tested against published example values; (T,S) draws outside a zone equation's validity domain are rejected (rule V15)",
+      "verification_status": "to_verify_phase_2"
+    },
+    {
+      "parameter_or_claim": "Mediterranean-type TA-salinity relationship for the high-salinity marginal-sea archetype (Lee et al. 2006 excludes marginal seas)",
+      "source": "Candidate: Schneider, A. et al. (2007) - coefficients to be transcribed and verified at implementation",
+      "why_used": "Provides an empirically grounded alkalinity model for high-salinity marginal-sea conditions where the open-ocean Lee et al. equations do not apply",
+      "verification_status": "to_verify_phase_2"
+    },
+    {
+      "parameter_or_claim": "Freshwater total-alkalinity end-member range for the coastal two-end-member TA-salinity mixing line",
+      "source": "Not yet located (river alkalinity varies over a wide range; a defensible sampling range needs a published basis)",
+      "why_used": "Required for the coastal, lower-salinity archetype where the open-ocean Lee et al. equations do not apply",
+      "verification_status": "SOURCE_VERIFICATION_REQUIRED"
+    },
+    {
+      "parameter_or_claim": "Low-temperature-valid alternative K1/K2 constants set for rows with T < 2 C (Lueker et al. 2000 is used only inside its calibrated 2-35 C domain; a constants_set column records the formulation per row and the full dataset is re-run under the alternative set as a sensitivity case)",
+      "source": "Candidate: Millero, F. J. (2010) - final choice confirmed against stated validity ranges in the PyCO2SYS documentation at implementation time",
+      "why_used": "Avoids silently extrapolating the primary constants below their calibrated temperature range in polar-archetype scenarios",
+      "verification_status": "to_verify_phase_2"
+    },
+    {
+      "parameter_or_claim": "Reported inconsistencies of standard K1/K2 formulations in cold polar waters (caveat attached to polar-archetype results)",
+      "source": "Candidate: Sulpis, O. et al. (2020)",
+      "why_used": "Documents an honest limitation on carbonate-constant accuracy for the polar/subpolar archetype",
       "verification_status": "to_verify_phase_2"
     },
     {
@@ -98,16 +123,28 @@
       "verification_status": "to_verify_phase_2"
     },
     {
-      "parameter_or_claim": "Equilibrated CO2 uptake efficiency (~0.75-0.85 mol CO2 per mol alkalinity) and the concept of incomplete equilibration",
-      "source": "He, J., & Tyka, M. D. (2023). Limits and CO2 equilibration of near-coast alkalinity enhancement.",
-      "why_used": "Directly supports the two-state (immediate vs. equilibrated) modeling approach and the equilibration-fraction parameter",
+      "parameter_or_claim": "THERMODYNAMIC uptake efficiency eta (~0.75-0.85 mol CO2 per mol alkalinity at full re-equilibration) - a computed model output, distinct from the kinetic equilibration fraction f",
+      "source": "He, J., & Tyka, M. D. (2023). Limits and CO2 equilibration of near-coast alkalinity enhancement; Renforth, P., & Henderson, G. (2017)",
+      "why_used": "Literature benchmark that the computed eta values should fall near, as an emergent check on the chemistry - never imposed as an input",
       "verification_status": "to_verify_phase_2"
     },
     {
-      "parameter_or_claim": "Aragonite saturation state threshold associated with abiotic/runaway calcium carbonate precipitation (Omega approx. 5)",
-      "source": "Moras, C. A. et al. (2022); Hartmann, J. et al. (2023)",
-      "why_used": "Basis for the precipitation-risk index and threshold used in the perturbation analysis",
+      "parameter_or_claim": "KINETIC equilibration fraction f (provisional range 0.55-0.95 at a ~1-year horizon): how far treated water gets toward air-sea equilibrium before subduction/mixing, limited by gas exchange and mixed-layer depth",
+      "source": "He, J., & Tyka, M. D. (2023) - regional equilibration timescales and fractions; the specific 0.55-0.95 range must be checked against their results before locking",
+      "why_used": "Sampled uncertain input that scales realized uptake (realized = f x potential); kept strictly separate from thermodynamic efficiency eta",
       "verification_status": "to_verify_phase_2"
+    },
+    {
+      "parameter_or_claim": "HETEROGENEOUS (particle-mediated) precipitation-risk range: runaway CaCO3 precipitation observed in particle-rich experimental conditions at roughly Omega_arag 4-7. NOT a universal threshold - critical Omega depends on available reactive particle surfaces",
+      "source": "Moras, C. A. et al. (2022); Hartmann, J. et al. (2023) - exact experimental Omega ranges to be transcribed from the papers",
+      "why_used": "Lower tier of the tiered precipitation-risk framework (theta_het, sampled 4-7 in Monte Carlo); applies when feedstock particles or resuspended sediment are present",
+      "verification_status": "to_verify_phase_2"
+    },
+    {
+      "parameter_or_claim": "PSEUDO-HOMOGENEOUS nucleation range: without abundant particles, spontaneous CaCO3 nucleation requires much higher supersaturation, roughly Omega_arag >= 10-12",
+      "source": "Not yet located (candidate literature exists on homogeneous vs heterogeneous CaCO3 nucleation kinetics in seawater)",
+      "why_used": "Upper tier of the tiered precipitation-risk framework (theta_hom, sampled 10-12.5 in Monte Carlo); the nominal case for this project's dissolved NaOH-equivalent feedstock idealization",
+      "verification_status": "SOURCE_VERIFICATION_REQUIRED"
     },
     {
       "parameter_or_claim": "Best-practice guidance for OAE research methodology",

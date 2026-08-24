@@ -1,14 +1,24 @@
 {
   "table_name": "Baseline Ocean Environment Archetypes",
+  "revision": "R1 (2026-08-24): baseline chemistry generation refined - alkalinity is now generated from zone-specific Lee et al. (2006) TA = f(S, T) regional equations (or documented alternatives where Lee et al. does not apply), and the archetype alkalinity ranges are demoted from sampling targets to expected-output plausibility checks",
   "description": "Six stylized surface-ocean environment categories used to sample baseline conditions. These are explicitly NOT claimed to reproduce any specific real-world location.",
-  "sampling_note": "temperature_c and salinity_psu are sampled uniformly within each archetype's range; initial_total_alkalinity_umol_kg (ta0) is then calculated from a published total alkalinity-salinity relationship plus bounded noise, so alkalinity and salinity covary realistically rather than being sampled independently.",
+  "baseline_chemistry_generation": {
+    "sampled_directly": ["temperature_c", "salinity_psu", "baseline_disequilibrium_uatm", "equilibration_fraction_f"],
+    "ta0_umol_kg": "Calculated from the archetype's mapped empirical relationship (see ta_generation_method per archetype) plus bounded noise - NOT sampled independently, so alkalinity covaries realistically with both salinity and temperature",
+    "dic0_umol_kg": "Calculated from (TA0, pCO2_0, T, S) via the carbonate-system solver - never sampled",
+    "ph0_and_speciation": "Calculated - never sampled",
+    "domain_rule": "Each Lee et al. (2006) zone equation has a published (T, S) validity domain; sampled (T, S) pairs outside the mapped equation's domain are rejected at the sampling stage and logged (validation rule V15)",
+    "coefficients_rule": "All regression coefficients are transcribed from the source papers at implementation time and unit-tested against published example values - never typed from memory"
+  },
   "archetypes": [
     {
       "archetype_id": "polar_subpolar",
       "name": "Polar / subpolar",
       "temperature_c": { "min": -1, "max": 8 },
       "salinity_psu": { "min": 32, "max": 34.5 },
-      "baseline_total_alkalinity_umol_kg": { "min": 2150, "max": 2320 },
+      "expected_baseline_total_alkalinity_umol_kg": { "min": 2150, "max": 2320, "role": "plausibility check on generated TA, not a sampling target" },
+      "ta_generation_method": "Lee et al. (2006) high-latitude zone equation (Southern Ocean / North Pacific as appropriate to the draw)",
+      "carbonate_constants_note": "Rows with T < 2 C use the low-temperature-valid alternative constants set, recorded in the constants_set column (see equations_and_constants.json)",
       "notes": "Low aragonite saturation state, high Revelle factor (low buffering capacity)"
     },
     {
@@ -16,7 +26,8 @@
       "name": "Temperate",
       "temperature_c": { "min": 8, "max": 18 },
       "salinity_psu": { "min": 33, "max": 35.5 },
-      "baseline_total_alkalinity_umol_kg": { "min": 2250, "max": 2350 },
+      "expected_baseline_total_alkalinity_umol_kg": { "min": 2250, "max": 2350, "role": "plausibility check on generated TA, not a sampling target" },
+      "ta_generation_method": "Lee et al. (2006) North Atlantic / North Pacific zone equation as appropriate to the draw",
       "notes": null
     },
     {
@@ -24,7 +35,8 @@
       "name": "Subtropical gyre",
       "temperature_c": { "min": 18, "max": 26 },
       "salinity_psu": { "min": 35, "max": 37 },
-      "baseline_total_alkalinity_umol_kg": { "min": 2350, "max": 2450 },
+      "expected_baseline_total_alkalinity_umol_kg": { "min": 2350, "max": 2450, "role": "plausibility check on generated TA, not a sampling target" },
+      "ta_generation_method": "Lee et al. (2006) (Sub)tropics zone equation",
       "notes": "High alkalinity, high aragonite saturation state"
     },
     {
@@ -32,7 +44,8 @@
       "name": "Tropical",
       "temperature_c": { "min": 26, "max": 30 },
       "salinity_psu": { "min": 34, "max": 36.5 },
-      "baseline_total_alkalinity_umol_kg": { "min": 2280, "max": 2400 },
+      "expected_baseline_total_alkalinity_umol_kg": { "min": 2280, "max": 2400, "role": "plausibility check on generated TA, not a sampling target" },
+      "ta_generation_method": "Lee et al. (2006) (Sub)tropics zone equation",
       "notes": "Highest aragonite saturation state of the six archetypes"
     },
     {
@@ -40,15 +53,17 @@
       "name": "Coastal, lower salinity",
       "temperature_c": { "min": 5, "max": 25 },
       "salinity_psu": { "min": 25, "max": 33 },
-      "baseline_total_alkalinity_umol_kg": { "min": 1900, "max": 2300 },
-      "notes": "Alkalinity from total alkalinity-salinity relation with larger noise term to reflect greater natural variability"
+      "expected_baseline_total_alkalinity_umol_kg": { "min": 1900, "max": 2300, "role": "plausibility check on generated TA, not a sampling target" },
+      "ta_generation_method": "Two-end-member mixing line: regional open-ocean TA (from the mapped Lee et al. equation at the archetype's salinity ceiling) mixed toward a freshwater TA end-member, with a larger noise term. Lee et al. (2006) is an open-ocean product and is not applied directly here. Freshwater end-member range: SOURCE VERIFICATION REQUIRED",
+      "notes": "Greater natural variability represented by larger noise term; mixing-line assumption documented explicitly"
     },
     {
       "archetype_id": "high_salinity_marginal_sea",
       "name": "High-salinity marginal sea",
       "temperature_c": { "min": 18, "max": 28 },
       "salinity_psu": { "min": 36.5, "max": 39.5 },
-      "baseline_total_alkalinity_umol_kg": { "min": 2450, "max": 2600 },
+      "expected_baseline_total_alkalinity_umol_kg": { "min": 2450, "max": 2600, "role": "plausibility check on generated TA, not a sampling target" },
+      "ta_generation_method": "Published Mediterranean-type TA-salinity relationship (candidate: Schneider et al. 2007; coefficients to be transcribed and verified at implementation). Lee et al. (2006) explicitly excludes marginal seas",
       "notes": "Mediterranean-like conditions; not claimed to represent the Mediterranean Sea specifically"
     }
   ],
@@ -63,7 +78,10 @@
     },
     "equilibration_fraction_f": {
       "range": [0.55, 0.95],
-      "note": "Fraction of potential CO2 uptake realized before a treated water parcel may be subducted or mixed away; uncertain parameter varied in Monte Carlo analysis"
+      "type": "kinetic/transport input parameter (uncertain), sampled per environment draw",
+      "definition": "Fraction of the way toward full air-sea equilibrium reached by the evaluation horizon (~1 year), limited by gas exchange, mixed-layer depth, and subduction. Scales realized uptake: realized = f x potential",
+      "do_not_confuse_with": "thermo_efficiency_eta_mol_mol (potential uptake / dose, ~0.75-0.85 mol CO2 per mol TA per literature) - that is a thermodynamic OUTPUT computed per row, never sampled. f and eta are different quantities and are never interchanged",
+      "verification_note": "The 0.55-0.95 range at a ~1-year horizon is provisional and flagged for verification against the regional equilibration results in He & Tyka (2023)"
     }
   }
 }

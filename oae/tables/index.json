@@ -1,6 +1,7 @@
 {
   "project": "Optimizing Ocean Alkalinity Enhancement: Balancing Atmospheric Carbon Removal and Marine Carbonate Chemistry",
-  "status": "Phase 1 - scientific design, no dataset generated yet",
+  "status": "Phase 1 - scientific design, no dataset generated yet (generation begins only after the Revision 1 corrections are approved)",
+  "revision": "R1 (2026-08-24): corrections adopted from external design review - dose-label reconciliation, refined baseline-chemistry generation (zone-specific Lee et al. 2006 equations), stricter stress-test labeling of upper doses, separation of kinetic equilibration fraction f from thermodynamic efficiency eta, tiered particle-dependent precipitation-risk framework replacing the universal Omega~5 threshold, flag-not-remove outlier policy, and a per-row carbonate-constants policy for cold water. Full changelog: section 16 of oae/phase1_scientific_design.md",
   "description": "Structured reference tables extracted from oae/phase1_scientific_design.md",
   "files": {
     "dose_levels.json": "The 12-level alkalinity-addition treatment ladder and justification for each range",

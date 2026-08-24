@@ -1,6 +1,7 @@
 {
   "table_name": "Dataset Validation and Sanity-Check Rules",
-  "description": "Rules applied to every generated scenario to catch impossible, inconsistent, or out-of-range synthetic data before it enters the final dataset. Scenarios failing a rule are logged and rejected, not silently dropped.",
+  "revision": "R1 (2026-08-24): V13 rewritten so statistical extremeness alone never removes a row (valid physics is retained and flagged); V15 added (TA-equation validity-domain check at the sampling stage)",
+  "description": "Rules applied to every generated scenario to catch impossible, inconsistent, or out-of-range synthetic data before it enters the final dataset. Rejection happens at the input-sampling stage for invalid draws; chemically valid outputs are never removed for being statistically extreme. Everything rejected or flagged is logged, nothing is silently dropped.",
   "rules": [
     {
       "id": "V1",
@@ -65,12 +66,17 @@
     {
       "id": "V13",
       "type": "outliers",
-      "rule": "Statistical outlier scan (|z| > 4) on all calculated columns; each flagged row is either manually explained or its environment draw is rejected and logged"
+      "rule": "Statistical outlier scan (|z| > 4) on all calculated columns flags rows for REVIEW, not removal. A row is rejected only if it violates a physical/consistency rule (V1-V9) or came from an invalid input draw. Rows that are extreme but chemically valid (e.g., high-dose polar scenarios) are RETAINED with extreme_flag = true and a logged explanation. Statistical extremeness alone is never grounds for removal; rejection happens at the input-sampling stage, never at the output stage"
     },
     {
       "id": "V14",
       "type": "provenance",
       "rule": "A rejected-scenario log is retained and reported in the methodology so nothing is silently dropped from the dataset"
+    },
+    {
+      "id": "V15",
+      "type": "range",
+      "rule": "Domain check: every sampled (temperature, salinity) pair must fall inside the published validity domain of the total-alkalinity equation mapped to its archetype (Lee et al. 2006 zone equations or documented alternative); violations are rejected at the sampling stage and logged"
     }
   ]
 }

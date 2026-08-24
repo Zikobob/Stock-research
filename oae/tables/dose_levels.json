@@ -1,28 +1,38 @@
 {
   "table_name": "Alkalinity Addition Treatment Ladder",
+  "revision": "R1 (2026-08-24): labels reconciled with the design doc; all doses above 100 umol/kg are strictly stress tests until mesocosm sourcing is verified",
   "variable": "alkalinity_added_umol_kg",
   "unit": "micromol per kilogram seawater (umol/kg)",
   "n_levels": 12,
+  "tiers": {
+    "control": "0 umol/kg",
+    "deployment_relevant": "10-100 umol/kg; perturbations comparable to near-field, post-dilution deployment conditions (Renforth & Henderson 2017; NASEM 2021 - to verify before locking)",
+    "exploratory_stress_test": "150-500 umol/kg; believed comparable to mesocosm/laboratory additions but NOT asserted as such until the mesocosm delta-TA sourcing is verified (currently SOURCE VERIFICATION REQUIRED); until then described only as model stress tests"
+  },
   "levels": [
-    { "level": 1,  "value_umol_kg": 0,   "stress_test": false, "regime": "control (no treatment)" },
-    { "level": 2,  "value_umol_kg": 10,  "stress_test": false, "regime": "near-field, post-dilution deployment" },
-    { "level": 3,  "value_umol_kg": 25,  "stress_test": false, "regime": "near-field, post-dilution deployment" },
-    { "level": 4,  "value_umol_kg": 50,  "stress_test": false, "regime": "near-field, post-dilution deployment" },
-    { "level": 5,  "value_umol_kg": 75,  "stress_test": false, "regime": "near-field, post-dilution deployment" },
-    { "level": 6,  "value_umol_kg": 100, "stress_test": false, "regime": "near-field, post-dilution deployment" },
-    { "level": 7,  "value_umol_kg": 150, "stress_test": true,  "regime": "mesocosm / experimental addition" },
-    { "level": 8,  "value_umol_kg": 200, "stress_test": true,  "regime": "mesocosm / experimental addition" },
-    { "level": 9,  "value_umol_kg": 250, "stress_test": true,  "regime": "mesocosm / experimental addition" },
-    { "level": 10, "value_umol_kg": 300, "stress_test": true,  "regime": "mesocosm / experimental addition" },
-    { "level": 11, "value_umol_kg": 400, "stress_test": true,  "regime": "extended stress test" },
-    { "level": 12, "value_umol_kg": 500, "stress_test": true,  "regime": "extended stress test" }
+    { "level": 1,  "value_umol_kg": 0,   "stress_test": false, "tier": "control" },
+    { "level": 2,  "value_umol_kg": 10,  "stress_test": false, "tier": "deployment_relevant" },
+    { "level": 3,  "value_umol_kg": 25,  "stress_test": false, "tier": "deployment_relevant" },
+    { "level": 4,  "value_umol_kg": 50,  "stress_test": false, "tier": "deployment_relevant" },
+    { "level": 5,  "value_umol_kg": 75,  "stress_test": false, "tier": "deployment_relevant" },
+    { "level": 6,  "value_umol_kg": 100, "stress_test": false, "tier": "deployment_relevant" },
+    { "level": 7,  "value_umol_kg": 150, "stress_test": true,  "tier": "exploratory_stress_test" },
+    { "level": 8,  "value_umol_kg": 200, "stress_test": true,  "tier": "exploratory_stress_test" },
+    { "level": 9,  "value_umol_kg": 250, "stress_test": true,  "tier": "exploratory_stress_test" },
+    { "level": 10, "value_umol_kg": 300, "stress_test": true,  "tier": "exploratory_stress_test" },
+    { "level": 11, "value_umol_kg": 400, "stress_test": true,  "tier": "exploratory_stress_test" },
+    { "level": 12, "value_umol_kg": 500, "stress_test": true,  "tier": "exploratory_stress_test" }
+  ],
+  "reporting_policy": [
+    "Headline deployment-relevant conclusions (including any recommended dose window) are computed on the 0-100 umol/kg tier only.",
+    "Results from the 150-500 umol/kg tier are reported separately as model-behavior characterization (e.g., where precipitation-risk ranges are entered), never as deployment predictions."
   ],
   "design_notes": [
-    "Extends beyond the brief's original 0-300 umol/kg range to 500 umol/kg so that precipitation-risk thresholds, if real, appear inside the modeled range rather than at its edge (cold, low-saturation-state waters may not cross risk thresholds below 300 umol/kg).",
-    "Rows with stress_test = true can be excluded to report headline statistics under a more conservative, field-realistic dose range.",
-    "Every environment draw (env_id) is paired with the full 12-level ladder, enabling within-environment marginal-efficiency calculations without confounding by environment."
+    "Extends beyond the brief's original 0-300 umol/kg range to 500 umol/kg so that precipitation-risk ranges, if entered at all, appear inside the modeled range rather than at its edge (cold, low-saturation-state waters may not enter risk ranges below 300 umol/kg).",
+    "Every environment draw (env_id) is paired with the full 12-level ladder, enabling within-environment marginal-efficiency calculations without confounding by environment.",
+    "Marginal efficiency is defined on POTENTIAL (thermodynamic) uptake so the sampled kinetic equilibration fraction cannot contaminate the diminishing-returns analysis."
   ],
   "verification_needed": [
-    "Exact mesocosm/experimental ΔTA ranges used to justify the 150-500 umol/kg stress-test doses are marked SOURCE VERIFICATION REQUIRED until located."
+    "Exact mesocosm/experimental delta-TA ranges for the 150-500 umol/kg tier: SOURCE VERIFICATION REQUIRED. Until located, that tier is labeled strictly as model stress tests."
   ]
 }
