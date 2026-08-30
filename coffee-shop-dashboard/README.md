@@ -55,6 +55,7 @@ Google AI Studio key) — [details below](#-ai-chart-explainer-optional--free-ge
 | `dashboard.py` | The dashboard app (what you run). |
 | `generate_sample_data.py` | Script that creates the sample `sales_data.csv`. |
 | `sales_data.csv` | Sample data so the app works immediately. |
+| `sample_messy.csv` | A deliberately *messy* real-world-style export (odd column names, `$`/commas, mixed date formats, blank cells, junk rows) to demo how the app cleans bad data. |
 | `requirements.txt` | The exact package versions to install. |
 | `README.md` | This file. |
 

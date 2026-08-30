@@ -1,0 +1,411 @@
+Sale Date,Item,Category,Qty,Price Each,Amount,Order #,Customer Email,Payment Type,Cashier
+2025-09-01 12:04,Iced Latte,Cold Coffee,2,$4.75,$9.50,ORD-1038,,Cash,Priya
+2025-09-01 08:14,Latte,,1,$4.50,$4.50,ORD-1039,,Apple Pay,Sam
+2025-09-01 11:35,Iced Latte,Cold Coffee,1,$4.75,,ORD-1040,,Apple Pay,Jordan
+2025-09-02 13:29,Drip Coffee,Hot Coffee,1,$2.75,$2.75,ORD-1041,guest8424@yahoo.com,Amex,Alex
+2025-09-02 11:04,Cappuccino,Hot Coffee,2,$4.25,,ORD-1042,regular7@gmail.com,Mastercard,Alex
+2025-09-02 12:38,Latte,Hot Coffee,1,$4.50,$4.50,ORD-1043,guest8474@yahoo.com,Amex,Alex
+2025-09-02 12:56,Cold Brew,Cold Coffee,1,$4.50,$4.50,ORD-1044,,Amex,Jordan
+2025-09-03 11:56,Drip Coffee,Hot Coffee,1,$2.75,$2.75,ORD-1045,regular7@gmail.com,Visa,Sam
+2025-09-03 11:56,Cold Brew,Cold Coffee,1,$4.50,,ORD-1045,regular7@gmail.com,Apple Pay,Alex
+2025-09-03 15:44,Croissant,Bakery,1,$3.25,$3.25,ORD-1046,,Amex,Jordan
+2025-09-03 15:44,blueberry muffin  ,,1,$3.50,$3.50,ORD-1046,,Cash,Priya
+Sep 03 2025 15:44,Cold Brew,Cold Coffee,1,$4.50,,ORD-1046,,Visa,Alex
+9/3/2025 3:38 PM,Cold Brew,Cold Coffee,2,$4.50,$9.00,ORD-1047,guest3012@yahoo.com,Amex,Maria
+Sep 03 2025 10:13,Latte,,1,$4.50,$4.50,ORD-1048,,Mastercard,Priya
+Sep 03 2025 09:10,Bagel w/ Cream Cheese,Bakery,1,$3.75,$3.75,ORD-1049,guest4650@yahoo.com,Amex,Maria
+2025-09-04 08:31,Bagel w/ Cream Cheese,Bakery,1,$3.75,$3.75,ORD-1050,guest1474@yahoo.com,Cash,Maria
+Sep 04 2025 08:31,Cold Brew,Cold Coffee,1,$4.50,$4.50,ORD-1050,guest1474@yahoo.com,Cash,Jordan
+2025-09-04 08:31,Drip Coffee,Hot Coffee,2,$2.75,$5.50,ORD-1050,guest1474@yahoo.com,Visa,Jordan
+9/4/2025 2:27 PM,Bagel w/ Cream Cheese,Bakery,2,$3.75,$7.50,ORD-1051,,Visa,Sam
+2025-09-04 08:57,Croissant,Bakery,1,$3.25,$3.25,ORD-1052,guest3394@yahoo.com,Cash,Priya
+2025-09-04 13:08,  Drip Coffee,Hot Coffee,1,$2.75,$2.75,ORD-1053,guest4191@yahoo.com,Mastercard,Jordan
+2025-09-05 10:52,Iced Latte,,1,$4.75,$4.75,ORD-1054,,Visa,Maria
+2025-09-05 10:46,Iced Latte,Cold Coffee,1,$4.75,$4.75,ORD-1055,regular1@gmail.com,Cash,Priya
+2025-09-06 10:01,Cold Brew,Cold Coffee,1,$4.50,$4.50,ORD-1056,,Apple Pay,Alex
+2025-09-06 10:01,Croissant,Bakery,2,$3.25,$6.50,ORD-1056,,Mastercard,Sam
+2025-09-06 10:01,Iced Latte,Cold Coffee,1,$4.75,$4.75,ORD-1056,,Mastercard,Maria
+2025-09-06 08:08,Chai Latte,Tea,1,$4.25,$4.25,ORD-1057,,Apple Pay,Jordan
+2025-09-06 09:12,latte  ,,1,$4.50,$4.50,ORD-1058,guest2510@yahoo.com,Visa,Sam
+9/6/2025 9:12 AM,Iced Latte,Cold Coffee,1,$4.75,$4.75,ORD-1058,guest2510@yahoo.com,Mastercard,Jordan
+9/7/2025 11:44 AM,blueberry muffin  ,,1,$3.50,$3.50,ORD-1059,regular5@gmail.com,Visa,Sam
+2025-09-07 08:07,Cold Brew,Cold Coffee,1,$4.50,$4.50,ORD-1060,guest6556@yahoo.com,Mastercard,Alex
+2025-09-07 08:07,Hot Tea,Tea,1,$2.95,$2.95,ORD-1060,guest6556@yahoo.com,Mastercard,Sam
+2025-09-07 08:07,Croissant,Bakery,1,$3.25,$3.25,ORD-1060,guest6556@yahoo.com,Cash,Jordan
+9/7/2025 12:34 PM,Iced Latte,Cold Coffee,1,$4.75,$4.75,ORD-1061,,Amex,Alex
+Sep 07 2025 16:53,Breakfast Sandwich,Food,1,$6.50,$6.50,ORD-1062,regular2@gmail.com,Mastercard,Sam
+Sep 07 2025 16:53,Cold Brew,Cold Coffee,1,$4.50,$4.50,ORD-1062,regular2@gmail.com,Apple Pay,Alex
+9/7/2025 8:56 AM,cappuccino  ,Hot Coffee,1,$4.25,$4.25,ORD-1063,regular6@gmail.com,Cash,Maria
+9/7/2025 9:02 AM,Drip Coffee,Hot Coffee,1,$2.75,$2.75,ORD-1064,guest5909@yahoo.com,Amex,Alex
+2025-09-07 12:31,Avocado Toast,Food,1,$7.50,$7.50,ORD-1065,regular3@gmail.com,Apple Pay,Priya
+2025-09-07 13:51,LATTE,Hot Coffee,1,$4.50,$4.50,ORD-1066,regular4@gmail.com,Apple Pay,Maria
+2025-09-08 10:00,Iced Latte,,1,$4.75,$4.75,ORD-1067,guest2148@yahoo.com,Visa,Maria
+2025-09-08 12:29,Hot Tea,,1,$2.95,$2.95,ORD-1068,guest7267@yahoo.com,Mastercard,Priya
+2025-09-08 11:00,Croissant,Bakery,1,$3.25,$3.25,ORD-1069,guest8959@yahoo.com,Cash,Priya
+2025-09-08 08:05,Cold Brew,Cold Coffee,1,$4.50,$4.50,ORD-1070,,Visa,Sam
+2025-09-08 11:09,Cappuccino,Hot Coffee,1,$4.25,$4.25,ORD-1071,,Amex,Jordan
+2025-09-08 07:00,Cold Brew,Cold Coffee,1,$4.50,$4.50,ORD-1072,,Amex,Sam
+2025-09-08 07:00,blueberry muffin  ,Bakery,,$3.50,$7.00,ORD-1072,,Amex,Priya
+2025-09-09 13:54,Croissant,Bakery,1,$3.25,$3.25,ORD-1073,regular2@gmail.com,Amex,Sam
+Sep 09 2025 13:40,Latte,Hot Coffee,2,$4.50,$9.00,ORD-1074,guest9998@yahoo.com,Apple Pay,Maria
+9/9/2025 8:26 AM,  Blueberry Muffin,Bakery,1,$3.50,$3.50,ORD-1075,regular5@gmail.com,Visa,Sam
+2025-09-09 08:57,Cold Brew,Cold Coffee,1,$4.50,$4.50,ORD-1076,,Apple Pay,Sam
+2025-09-09 09:23,Blueberry Muffin,Bakery,1,$3.50,$3.50,ORD-1077,regular4@gmail.com,Mastercard,Maria
+2025-09-09 09:23,Cold Brew,Cold Coffee,1,$4.50,$4.50,ORD-1077,regular4@gmail.com,Amex,Jordan
+2025-09-09 12:27,BREAKFAST SANDWICH,Food,1,$6.50,$6.50,ORD-1078,,Amex,Priya
+2025-09-09 12:27,Latte,Hot Coffee,1,$4.50,$4.50,ORD-1078,,Cash,Jordan
+9/9/2025 7:49 AM,Hot Tea,Tea,1,$2.95,$2.95,ORD-1079,regular3@gmail.com,Cash,Sam
+2025-09-10 07:33,Drip Coffee,,1,$2.75,$2.75,ORD-1080,,Visa,Jordan
+9/10/2025 10:35 AM,Cappuccino,Hot Coffee,1,$4.25,$4.25,ORD-1081,regular7@gmail.com,Visa,Jordan
+2025-09-10 10:35,Latte,Hot Coffee,1,$4.50,$4.50,ORD-1081,regular7@gmail.com,Apple Pay,Sam
+2025-09-10 08:12,Drip Coffee,Hot Coffee,1,$2.75,$2.75,ORD-1082,regular4@gmail.com,Amex,Sam
+2025-09-10 15:09,Latte,Hot Coffee,1,$4.50,$4.50,ORD-1083,,Mastercard,Sam
+2025-09-10 16:59,Hot Tea,,1,$2.95,$2.95,ORD-1084,regular4@gmail.com,Visa,Sam
+2025-09-11 09:56,Bagel w/ Cream Cheese,Bakery,1,$3.75,$3.75,ORD-1085,regular4@gmail.com,Amex,Maria
+2025-09-11 09:47,Cold Brew,Cold Coffee,,$4.50,,ORD-1086,,Mastercard,Maria
+Sep 11 2025 13:57,Cappuccino,,2,$4.25,$8.50,ORD-1087,,Apple Pay,Sam
+9/11/2025 7:14 AM,Cold Brew,Cold Coffee,1,$4.50,$4.50,ORD-1088,regular8@gmail.com,Visa,Priya
+2025-09-11 07:14,Drip Coffee,Hot Coffee,1,$2.75,$2.75,ORD-1088,regular8@gmail.com,Amex,Maria
+9/11/2025 8:04 AM,Iced Latte,Cold Coffee,1,$4.75,,ORD-1089,,Amex,Jordan
+2025-09-12 16:28,Croissant,Bakery,1,$3.25,$3.25,ORD-1090,regular3@gmail.com,Mastercard,Alex
+2025-09-12 11:23,Drip Coffee,Hot Coffee,1,$2.75,$2.75,ORD-1091,regular5@gmail.com,Visa,Priya
+2025-09-12 10:41,Chai Latte,Tea,1,$4.25,$4.25,ORD-1092,,Cash,Sam
+2025-09-12 10:41,Latte,Hot Coffee,1,$4.50,$4.50,ORD-1092,,Amex,Priya
+2025-09-12 08:49,Croissant,Bakery,,$3.25,$3.25,ORD-1093,,Cash,Priya
+2025-09-13 13:52,Cappuccino,Hot Coffee,1,$4.25,,ORD-1094,regular6@gmail.com,Apple Pay,Maria
+9/13/2025 12:05 PM,Drip Coffee,Hot Coffee,2,$2.75,,ORD-1095,,Amex,Jordan
+2025-09-13 07:49,Drip Coffee,Hot Coffee,,$2.75,$2.75,ORD-1096,,Amex,Priya
+Sep 13 2025 14:29,Latte,Hot Coffee,1,$4.50,$4.50,ORD-1097,,Visa,Maria
+Sep 13 2025 09:10,Cold Brew,Cold Coffee,1,$4.50,$4.50,ORD-1098,guest2099@yahoo.com,Amex,Alex
+9/14/2025 7:59 AM,Blueberry Muffin,Bakery,1,$3.50,$3.50,ORD-1099,,Visa,Jordan
+2025-09-14 08:13,Latte,Hot Coffee,1,$4.50,,ORD-1100,regular3@gmail.com,Cash,Alex
+2025-09-14 08:38,Cappuccino,Hot Coffee,1,$4.25,$4.25,ORD-1101,guest6017@yahoo.com,Amex,Maria
+9/14/2025 8:38 AM,Drip Coffee,Hot Coffee,1,$2.75,$2.75,ORD-1101,guest6017@yahoo.com,Cash,Maria
+9/15/2025 1:32 PM,Latte,Hot Coffee,2,$4.50,,ORD-1102,guest1667@yahoo.com,Visa,Sam
+9/15/2025 2:39 PM,Drip Coffee,Hot Coffee,1,$2.75,$2.75,ORD-1103,,Cash,Alex
+Sep 15 2025 14:39,Chai Latte,Tea,1,$4.25,$4.25,ORD-1103,,Mastercard,Priya
+2025-09-15 15:30,Drip Coffee,Hot Coffee,1,$2.75,$2.75,ORD-1104,regular5@gmail.com,Amex,Maria
+Sep 16 2025 13:16,Cappuccino,Hot Coffee,1,$4.25,$4.25,ORD-1105,regular1@gmail.com,Amex,Alex
+9/16/2025 1:16 PM,Breakfast Sandwich,Food,1,$6.50,$6.50,ORD-1105,regular1@gmail.com,Visa,Priya
+9/16/2025 12:03 PM,Chai Latte,Tea,1,$4.25,$4.25,ORD-1106,regular5@gmail.com,Mastercard,Priya
+2025-09-16 11:26,Drip Coffee,,,$2.75,$2.75,ORD-1107,guest1782@yahoo.com,Visa,Jordan
+9/16/2025 11:37 AM,Cold Brew,Cold Coffee,2,$4.50,,ORD-1108,regular6@gmail.com,Mastercard,Jordan
+Sep 16 2025 11:37,Latte,Hot Coffee,1,$4.50,$4.50,ORD-1108,regular6@gmail.com,Apple Pay,Jordan
+2025-09-16 11:33,Breakfast Sandwich,Food,1,$6.50,$6.50,ORD-1109,,Cash,Priya
+9/17/2025 8:12 AM,Cold Brew,,1,$4.50,$4.50,ORD-1110,guest9305@yahoo.com,Apple Pay,Sam
+9/17/2025 8:12 AM,Croissant,Bakery,1,$3.25,,ORD-1110,guest9305@yahoo.com,Cash,Alex
+9/18/2025 8:02 AM,Drip Coffee,Hot Coffee,1,$2.75,$2.75,ORD-1111,regular5@gmail.com,Visa,Sam
+9/18/2025 8:02 AM,Iced Latte,,1,$4.75,$4.75,ORD-1111,regular5@gmail.com,Mastercard,Maria
+2025-09-18 14:21,Breakfast Sandwich,Food,2,$6.50,$13.00,ORD-1112,,Cash,Sam
+9/18/2025 9:46 AM,Cold Brew,Cold Coffee,,$4.50,$4.50,ORD-1113,regular5@gmail.com,Visa,Sam
+2025-09-18 09:46,ICED LATTE,Cold Coffee,1,$4.75,,ORD-1113,regular5@gmail.com,Apple Pay,Alex
+9/19/2025 10:42 AM,Drip Coffee,,1,$2.75,$2.75,ORD-1114,regular7@gmail.com,Mastercard,Jordan
+9/19/2025 7:06 AM,Drip Coffee,Hot Coffee,1,$2.75,,ORD-1115,,Apple Pay,Priya
+2025-09-19 07:06,Cappuccino,Hot Coffee,1,$4.25,$4.25,ORD-1115,,Cash,Alex
+9/19/2025 10:03 AM,avocado toast  ,Food,1,$7.50,$7.50,ORD-1116,guest4548@yahoo.com,Mastercard,Jordan
+2025-09-19 10:03,Iced Latte,Cold Coffee,1,$4.75,$4.75,ORD-1116,guest4548@yahoo.com,Apple Pay,Alex
+2025-09-19 11:10,Drip Coffee,Hot Coffee,1,$2.75,$2.75,ORD-1117,regular4@gmail.com,Cash,Jordan
+9/19/2025 11:10 AM,Hot Tea,Tea,2,$2.95,$5.90,ORD-1117,regular4@gmail.com,Mastercard,Alex
+2025-09-19 09:34,Croissant,Bakery,1,$3.25,,ORD-1118,guest7214@yahoo.com,Amex,Priya
+2025-09-19 09:34,  Hot Tea,Tea,1,$2.95,$2.95,ORD-1118,guest7214@yahoo.com,Amex,Maria
+9/19/2025 9:34 AM,Latte,Hot Coffee,1,$4.50,$4.50,ORD-1118,guest7214@yahoo.com,Visa,Alex
+2025-09-20 11:22,Drip Coffee,Hot Coffee,1,$2.75,$2.75,ORD-1119,regular6@gmail.com,Mastercard,Jordan
+Sep 20 2025 11:22,Chai Latte,Tea,1,$4.25,$4.25,ORD-1119,regular6@gmail.com,Cash,Jordan
+9/20/2025 2:27 PM,Croissant,Bakery,1,$3.25,$3.25,ORD-1120,,Amex,Priya
+2025-09-20 11:41,Croissant,Bakery,1,$3.25,$3.25,ORD-1121,guest4744@yahoo.com,Mastercard,Sam
+2025-09-20 11:41,Breakfast Sandwich,Food,1,$6.50,$6.50,ORD-1121,guest4744@yahoo.com,Amex,Jordan
+2025-09-20 07:54,Cappuccino,Hot Coffee,1,$4.25,$4.25,ORD-1122,guest3999@yahoo.com,Visa,Priya
+2025-09-20 07:54,LATTE,Hot Coffee,1,$4.50,$4.50,ORD-1122,guest3999@yahoo.com,Mastercard,Priya
+2025-09-20 09:47,croissant  ,Bakery,1,$3.25,$3.25,ORD-1123,,Mastercard,Jordan
+Sep 20 2025 09:00,Croissant,Bakery,1,$3.25,$3.25,ORD-1124,regular7@gmail.com,Amex,Jordan
+9/20/2025 9:00 AM,Iced Latte,Cold Coffee,1,$4.75,$4.75,ORD-1124,regular7@gmail.com,Apple Pay,Maria
+Sep 20 2025 13:09,Drip Coffee,Hot Coffee,1,$2.75,$2.75,ORD-1125,guest7771@yahoo.com,Amex,Alex
+2025-09-20 16:43,Bagel w/ Cream Cheese,Bakery,1,$3.75,$3.75,ORD-1126,regular1@gmail.com,Visa,Alex
+9/20/2025 4:43 PM,  Cappuccino,,1,$4.25,$4.25,ORD-1126,regular1@gmail.com,Mastercard,Priya
+2025-09-20 07:00,Drip Coffee,Hot Coffee,1,$2.75,$2.75,ORD-1127,regular2@gmail.com,Apple Pay,Maria
+Sep 20 2025 07:00,Latte,Hot Coffee,1,$4.50,,ORD-1127,regular2@gmail.com,Mastercard,Maria
+2025-09-20 10:13,Latte,Hot Coffee,1,$4.50,$4.50,ORD-1128,guest8185@yahoo.com,Amex,Maria
+Sep 21 2025 14:00,iced latte  ,Cold Coffee,1,$4.75,$4.75,ORD-1129,regular6@gmail.com,Mastercard,Sam
+9/21/2025 7:02 AM,Cappuccino,Hot Coffee,,$4.25,$4.25,ORD-1130,,Mastercard,Alex
+2025-09-21 07:02,Chai Latte,Tea,1,$4.25,$4.25,ORD-1130,,Apple Pay,Sam
+2025-09-21 07:02,Iced Latte,Cold Coffee,1,$4.75,$4.75,ORD-1130,,Apple Pay,Alex
+2025-09-21 16:41,Cappuccino,Hot Coffee,1,$4.25,$4.25,ORD-1131,guest2932@yahoo.com,Amex,Priya
+2025-09-21 11:25,Avocado Toast,Food,1,$7.50,$7.50,ORD-1132,regular1@gmail.com,Visa,Priya
+2025-09-22 14:05,Drip Coffee,Hot Coffee,1,$2.75,$2.75,ORD-1133,regular8@gmail.com,Visa,Alex
+2025-09-22 14:05,Croissant,Bakery,1,$3.25,$3.25,ORD-1133,regular8@gmail.com,Apple Pay,Sam
+Sep 22 2025 10:33,Cold Brew,,1,$4.50,$4.50,ORD-1134,regular2@gmail.com,Visa,Jordan
+Sep 22 2025 10:33,Blueberry Muffin,Bakery,1,$3.50,$3.50,ORD-1134,regular2@gmail.com,Amex,Sam
+9/22/2025 7:42 AM,Latte,Hot Coffee,1,$4.50,$4.50,ORD-1135,regular2@gmail.com,Mastercard,Maria
+2025-09-22 12:05,Hot Tea,Tea,1,$2.95,,ORD-1136,regular8@gmail.com,Apple Pay,Sam
+Sep 23 2025 11:55,  Cappuccino,Hot Coffee,2,$4.25,$8.50,ORD-1137,,Visa,Jordan
+2025-09-23 10:49,Bagel w/ Cream Cheese,Bakery,1,$3.75,$3.75,ORD-1138,,Cash,Maria
+2025-09-23 10:49,Iced Latte,Cold Coffee,1,$4.75,$4.75,ORD-1138,,Apple Pay,Maria
+2025-09-23 10:49,Drip Coffee,Hot Coffee,,$2.75,$2.75,ORD-1138,,Cash,Alex
+2025-09-23 13:51,Latte,Hot Coffee,1,$4.50,$4.50,ORD-1139,,Amex,Maria
+2025-09-23 13:51,Chai Latte,Tea,1,$4.25,$4.25,ORD-1139,,Visa,Alex
+2025-09-23 13:51,Bagel w/ Cream Cheese,,1,$3.75,$3.75,ORD-1139,,Cash,Maria
+9/24/2025 9:33 AM,Iced Latte,Cold Coffee,1,$4.75,$4.75,ORD-1140,,Apple Pay,Alex
+Sep 24 2025 09:33,Cold Brew,Cold Coffee,1,$4.50,,ORD-1140,,Cash,Alex
+Sep 24 2025 12:50,Cappuccino,,,$4.25,$4.25,ORD-1141,regular6@gmail.com,Apple Pay,Maria
+2025-09-24 08:49,bagel w/ cream cheese  ,,1,$3.75,$3.75,ORD-1142,regular2@gmail.com,Apple Pay,Alex
+2025-09-24 08:49,Avocado Toast,Food,1,$7.50,$7.50,ORD-1142,regular2@gmail.com,Amex,Sam
+2025-09-24 08:49,Chai Latte,,1,$4.25,$4.25,ORD-1142,regular2@gmail.com,Apple Pay,Jordan
+2025-09-24 08:54,Drip Coffee,Hot Coffee,1,$2.75,$2.75,ORD-1143,regular4@gmail.com,Amex,Sam
+9/24/2025 8:54 AM,Latte,Hot Coffee,,$4.50,$4.50,ORD-1143,regular4@gmail.com,Amex,Sam
+2025-09-24 10:23,Cappuccino,Hot Coffee,1,$4.25,$4.25,ORD-1144,regular2@gmail.com,Cash,Maria
+2025-09-25 15:55,Chai Latte,,1,$4.25,$4.25,ORD-1145,guest3289@yahoo.com,Cash,Alex
+2025-09-25 15:55,  Hot Tea,Tea,1,$2.95,$2.95,ORD-1145,guest3289@yahoo.com,Visa,Alex
+2025-09-25 09:15,Drip Coffee,Hot Coffee,1,$2.75,$2.75,ORD-1146,regular5@gmail.com,Apple Pay,Sam
+Sep 25 2025 12:50,Cold Brew,Cold Coffee,1,$4.50,$4.50,ORD-1147,,Visa,Sam
+2025-09-25 09:26,  Blueberry Muffin,Bakery,,$3.50,$3.50,ORD-1148,,Cash,Priya
+2025-09-25 08:23,iced latte  ,Cold Coffee,1,$4.75,$4.75,ORD-1149,guest7700@yahoo.com,Cash,Priya
+9/26/2025 12:48 PM,Croissant,Bakery,1,$3.25,,ORD-1150,regular4@gmail.com,Cash,Priya
+2025-09-26 13:21,Cold Brew,Cold Coffee,1,$4.50,$4.50,ORD-1151,regular8@gmail.com,Cash,Maria
+9/26/2025 12:36 PM,Hot Tea,,2,$2.95,$5.90,ORD-1152,guest1076@yahoo.com,Amex,Priya
+2025-09-26 13:03,  Iced Latte,,1,$4.75,$4.75,ORD-1153,regular2@gmail.com,Mastercard,Priya
+2025-09-27 07:44,avocado toast  ,Food,1,$7.50,$7.50,ORD-1154,,Visa,Sam
+9/27/2025 8:29 AM,Latte,Hot Coffee,1,$4.50,$4.50,ORD-1155,guest9204@yahoo.com,Amex,Maria
+9/27/2025 3:01 PM,Cold Brew,Cold Coffee,1,$4.50,$4.50,ORD-1156,,Visa,Alex
+Sep 27 2025 12:53,Hot Tea,,1,$2.95,$2.95,ORD-1157,,Amex,Sam
+2025-09-27 12:53,AVOCADO TOAST,Food,1,$7.50,$7.50,ORD-1157,,Visa,Jordan
+9/27/2025 4:49 PM,Latte,Hot Coffee,,$4.50,$9.00,ORD-1158,,Apple Pay,Alex
+9/27/2025 12:51 PM,  Drip Coffee,Hot Coffee,1,$2.75,$2.75,ORD-1159,,Apple Pay,Priya
+2025-09-27 12:51,Iced Latte,,2,$4.75,$9.50,ORD-1159,,Mastercard,Jordan
+2025-09-28 11:17,Drip Coffee,Hot Coffee,1,$2.75,$2.75,ORD-1160,regular2@gmail.com,Mastercard,Priya
+2025-09-28 11:17,Cold Brew,Cold Coffee,,$4.50,$4.50,ORD-1160,regular2@gmail.com,Apple Pay,Jordan
+2025-09-28 07:22,Cappuccino,Hot Coffee,1,$4.25,,ORD-1161,regular4@gmail.com,Apple Pay,Alex
+2025-09-28 09:03,Bagel w/ Cream Cheese,Bakery,1,$3.75,$3.75,ORD-1162,guest8207@yahoo.com,Visa,Maria
+2025-09-28 11:54,Blueberry Muffin,Bakery,1,$3.50,$3.50,ORD-1163,regular2@gmail.com,Cash,Jordan
+2025-09-28 11:54,Bagel w/ Cream Cheese,Bakery,1,$3.75,$3.75,ORD-1163,regular2@gmail.com,Mastercard,Priya
+2025-09-28 11:24,Drip Coffee,Hot Coffee,1,$2.75,$2.75,ORD-1164,,Amex,Jordan
+2025-09-28 11:24,Cappuccino,Hot Coffee,1,$4.25,$4.25,ORD-1164,,Cash,Alex
+2025-09-28 09:53,Cappuccino,Hot Coffee,2,$4.25,,ORD-1165,,Mastercard,Priya
+2025-09-29 16:33,Cold Brew,Cold Coffee,1,$4.50,,ORD-1166,,Amex,Alex
+2025-09-29 10:41,Chai Latte,Tea,1,$4.25,$4.25,ORD-1167,guest3526@yahoo.com,Visa,Alex
+2025-09-29 10:41,Cold Brew,Cold Coffee,1,$4.50,$4.50,ORD-1167,guest3526@yahoo.com,Mastercard,Priya
+2025-09-29 14:26,  Avocado Toast,Food,1,$7.50,,ORD-1168,,Apple Pay,Sam
+9/29/2025 12:00 PM,Blueberry Muffin,Bakery,1,$3.50,$3.50,ORD-1169,,Amex,Priya
+9/29/2025 11:55 AM,  Chai Latte,Tea,1,$4.25,$4.25,ORD-1170,,Cash,Sam
+9/30/2025 8:33 AM,Bagel w/ Cream Cheese,,1,$3.75,$3.75,ORD-1171,guest8659@yahoo.com,Visa,Sam
+2025-09-30 08:06,latte  ,Hot Coffee,1,$4.50,$4.50,ORD-1172,,Visa,Maria
+2025-09-30 08:06,Drip Coffee,Hot Coffee,1,$2.75,$2.75,ORD-1172,,Amex,Alex
+2025-09-30 08:06,Croissant,Bakery,1,$3.25,$3.25,ORD-1172,,Apple Pay,Maria
+Sep 30 2025 09:25,Bagel w/ Cream Cheese,Bakery,1,$3.75,$3.75,ORD-1173,,Apple Pay,Alex
+2025-10-01 09:25,COLD BREW,Cold Coffee,1,$4.50,$4.50,ORD-1174,,Visa,Maria
+2025-10-01 09:25,Hot Tea,,1,$2.95,$2.95,ORD-1174,,Visa,Maria
+2025-10-01 09:25,Iced Latte,Cold Coffee,1,$4.75,$4.75,ORD-1174,,Amex,Priya
+2025-10-01 08:54,Chai Latte,Tea,2,$4.25,$8.50,ORD-1175,guest3145@yahoo.com,Apple Pay,Sam
+10/1/2025 8:54 AM,Croissant,Bakery,1,$3.25,$3.25,ORD-1175,guest3145@yahoo.com,Mastercard,Sam
+2025-10-01 08:54,Cold Brew,,1,$4.50,$4.50,ORD-1175,guest3145@yahoo.com,Cash,Sam
+2025-10-01 11:23,Drip Coffee,Hot Coffee,1,$2.75,$2.75,ORD-1176,,Amex,Maria
+10/1/2025 11:23 AM,Blueberry Muffin,Bakery,2,$3.50,$7.00,ORD-1176,,Cash,Jordan
+2025-10-01 08:54,Latte,Hot Coffee,2,$4.50,,ORD-1177,guest2600@yahoo.com,Visa,Alex
+2025-10-06 09:30,Coffee Box (Catering),Food,160,$2.50,"$1,120.00",ORD-CATER1,office@bigco.com,Invoice,Maria
+10/1/2025 8:47 AM,Hot Tea,Tea,1,$2.95,$2.95,ORD-1178,regular5@gmail.com,Cash,Sam
+Oct 01 2025 08:47,Iced Latte,Cold Coffee,1,$4.75,,ORD-1178,regular5@gmail.com,Cash,Maria
+10/1/2025 12:02 PM,Hot Tea,,1,$2.95,$2.95,ORD-1179,,Mastercard,Priya
+2025-10-02 07:27,Blueberry Muffin,Bakery,1,$3.50,$3.50,ORD-1180,guest6575@yahoo.com,Visa,Jordan
+10/8/2025 2:14 PM,Latte,Hot Coffee,1,$4.50,-$4.50,ORD-REF88,regular2@gmail.com,Visa,Sam
+2025-10-02 07:27,Avocado Toast,,1,$7.50,$7.50,ORD-1180,guest6575@yahoo.com,Visa,Priya
+2025-10-02 08:03,Drip Coffee,Hot Coffee,1,$2.75,$2.75,ORD-1181,regular6@gmail.com,Apple Pay,Jordan
+2025-10-02 08:41,Blueberry Muffin,Bakery,1,$3.50,$3.50,ORD-1182,guest5904@yahoo.com,Visa,Priya
+Sep 20 2025 11:00,Drip Coffee,Hot Coffee,1,$0.00,FREE,ORD-COMP7,,Cash,Alex
+2025-10-02 16:53,Latte,Hot Coffee,1,$4.50,$4.50,ORD-1183,,Amex,Sam
+2025-10-02 16:53,DRIP COFFEE,Hot Coffee,1,$2.75,$2.75,ORD-1183,,Amex,Jordan
+Oct 02 2025 07:45,Cold Brew,Cold Coffee,1,$4.50,,ORD-1184,regular5@gmail.com,Apple Pay,Alex
+Oct 02 2025 12:05,Cold Brew,Cold Coffee,1,$4.50,$4.50,ORD-1185,regular1@gmail.com,Cash,Alex
+N/A,Cold Brew,Cold Coffee,1,$4.50,$4.50,ORD-BADDT,,Visa,Jordan
+2025-10-03 08:52,Iced Latte,Cold Coffee,1,$4.75,,ORD-1186,guest4772@yahoo.com,Amex,Sam
+Oct 03 2025 15:31,Croissant,Bakery,1,$3.25,$3.25,ORD-1187,guest3580@yahoo.com,Amex,Maria
+10/3/2025 3:31 PM,Latte,Hot Coffee,,$4.50,$4.50,ORD-1187,guest3580@yahoo.com,Visa,Alex
+2025-10-03 07:03,Latte,Hot Coffee,2,$4.50,$9.00,ORD-1188,guest7901@yahoo.com,Mastercard,Priya
+10/3/2025 8:05 AM,Chai Latte,Tea,2,$4.25,$8.50,ORD-1189,guest9466@yahoo.com,Cash,Alex
+2025-09-28 08:05,,Bakery,1,$3.25,$3.25,ORD-NOITM,guest5555@yahoo.com,Cash,Priya
+10/4/2025 11:19 AM,Cold Brew,Cold Coffee,,$4.50,$4.50,ORD-1190,guest7899@yahoo.com,Cash,Maria
+2025-10-04 11:19,Croissant,Bakery,1,$3.25,$3.25,ORD-1190,guest7899@yahoo.com,Amex,Alex
+2025-10-04 11:19,Drip Coffee,Hot Coffee,1,$2.75,$2.75,ORD-1190,guest7899@yahoo.com,Mastercard,Sam
+2025-10-04 08:42,Cold Brew,Cold Coffee,1,$4.50,$4.50,ORD-1191,regular8@gmail.com,Cash,Jordan
+2025-10-04 08:32,Chai Latte,Tea,1,$4.25,$4.25,ORD-1192,guest2877@yahoo.com,Cash,Maria
+,,,,,,,,,
+2025-10-04 08:32,Iced Latte,Cold Coffee,1,$4.75,,ORD-1192,guest2877@yahoo.com,Visa,Jordan
+2025-10-04 09:45,Breakfast Sandwich,Food,2,$6.50,$13.00,ORD-1193,regular2@gmail.com,Cash,Alex
+10/4/2025 9:45 AM,ICED LATTE,Cold Coffee,1,$4.75,$4.75,ORD-1193,regular2@gmail.com,Apple Pay,Alex
+Oct 04 2025 07:35,Hot Tea,Tea,1,$2.95,,ORD-1194,regular2@gmail.com,Cash,Jordan
+2025-10-05 08:35,Croissant,Bakery,1,$3.25,$3.25,ORD-1195,,Cash,Alex
+10/5/2025 8:35 AM,avocado toast  ,Food,2,$7.50,,ORD-1195,,Apple Pay,Priya
+2025-10-05 09:30,  Cold Brew,Cold Coffee,2,$4.50,$9.00,ORD-1196,,Apple Pay,Sam
+2025-10-05 09:30,Drip Coffee,Hot Coffee,1,$2.75,$2.75,ORD-1196,,Mastercard,Sam
+2025-10-05 09:30,breakfast sandwich  ,Food,1,$6.50,$6.50,ORD-1197,regular1@gmail.com,Mastercard,Alex
+2025-10-05 11:33,Latte,Hot Coffee,1,$4.50,$4.50,ORD-1198,guest3278@yahoo.com,Visa,Maria
+2025-10-05 11:33,Iced Latte,Cold Coffee,1,$4.75,$4.75,ORD-1198,guest3278@yahoo.com,Mastercard,Priya
+Oct 05 2025 11:33,Bagel w/ Cream Cheese,Bakery,1,$3.75,$3.75,ORD-1198,guest3278@yahoo.com,Apple Pay,Alex
+10/5/2025 2:51 PM,Drip Coffee,Hot Coffee,1,$2.75,$2.75,ORD-1199,regular6@gmail.com,Apple Pay,Sam
+2025-10-05 08:46,Drip Coffee,Hot Coffee,2,$2.75,$5.50,ORD-1200,regular6@gmail.com,Amex,Sam
+2025-10-05 13:20,Drip Coffee,Hot Coffee,1,$2.75,$2.75,ORD-1201,,Visa,Priya
+Oct 05 2025 08:32,Blueberry Muffin,Bakery,2,$3.50,$7.00,ORD-1202,,Visa,Sam
+2025-10-05 08:34,Cappuccino,Hot Coffee,1,$4.25,,ORD-1203,,Mastercard,Maria
+Oct 06 2025 07:26,CROISSANT,Bakery,1,$3.25,$3.25,ORD-1204,,Mastercard,Priya
+2025-10-06 12:20,Latte,Hot Coffee,1,$4.50,$4.50,ORD-1205,regular6@gmail.com,Apple Pay,Priya
+Oct 06 2025 08:38,Drip Coffee,Hot Coffee,1,$2.75,$2.75,ORD-1206,guest4768@yahoo.com,Mastercard,Alex
+2025-10-06 08:38,Blueberry Muffin,Bakery,1,$3.50,,ORD-1206,guest4768@yahoo.com,Mastercard,Maria
+10/6/2025 4:14 PM,Croissant,Bakery,1,$3.25,$3.25,ORD-1207,guest2473@yahoo.com,Visa,Priya
+2025-10-06 16:14,Latte,Hot Coffee,1,$4.50,$4.50,ORD-1207,guest2473@yahoo.com,Mastercard,Jordan
+10/6/2025 4:14 PM,iced latte  ,Cold Coffee,1,$4.75,$4.75,ORD-1207,guest2473@yahoo.com,Amex,Alex
+10/6/2025 7:36 AM,Croissant,Bakery,1,$3.25,$3.25,ORD-1208,guest7153@yahoo.com,Mastercard,Jordan
+Oct 06 2025 07:36,Drip Coffee,Hot Coffee,1,$2.75,$2.75,ORD-1208,guest7153@yahoo.com,Visa,Alex
+2025-10-06 08:21,Croissant,Bakery,1,$3.25,$3.25,ORD-1209,regular4@gmail.com,Mastercard,Sam
+2025-10-07 08:55,Bagel w/ Cream Cheese,Bakery,2,$3.75,$7.50,ORD-1210,regular5@gmail.com,Amex,Jordan
+Oct 07 2025 08:55,Latte,Hot Coffee,1,$4.50,$4.50,ORD-1210,regular5@gmail.com,Cash,Priya
+2025-10-07 08:50,Latte,Hot Coffee,1,$4.50,$4.50,ORD-1211,,Cash,Sam
+Oct 07 2025 08:31,Latte,Hot Coffee,1,$4.50,$4.50,ORD-1212,,Amex,Sam
+2025-10-07 09:13,Drip Coffee,Hot Coffee,1,$2.75,$2.75,ORD-1213,,Mastercard,Alex
+2025-10-07 09:13,Latte,Hot Coffee,1,$4.50,$4.50,ORD-1213,,Mastercard,Jordan
+10/7/2025 9:13 AM,Blueberry Muffin,Bakery,1,$3.50,$3.50,ORD-1213,,Visa,Sam
+10/7/2025 8:32 AM,Croissant,Bakery,1,$3.25,$3.25,ORD-1214,,Cash,Jordan
+2025-10-08 12:20,Croissant,Bakery,1,$3.25,$3.25,ORD-1215,,Apple Pay,Jordan
+2025-10-08 08:40,Cappuccino,Hot Coffee,2,$4.25,$8.50,ORD-1216,,Visa,Priya
+2025-10-08 08:40,Latte,Hot Coffee,1,$4.50,$4.50,ORD-1216,,Apple Pay,Maria
+Oct 09 2025 13:23,Cappuccino,Hot Coffee,1,$4.25,$4.25,ORD-1217,guest9642@yahoo.com,Cash,Alex
+2025-10-09 09:53,Cold Brew,Cold Coffee,1,$4.50,$4.50,ORD-1218,,Cash,Alex
+2025-10-09 09:28,Cold Brew,Cold Coffee,1,$4.50,$4.50,ORD-1219,,Visa,Priya
+2025-10-09 09:21,Iced Latte,Cold Coffee,1,$4.75,$4.75,ORD-1220,,Mastercard,Maria
+2025-10-09 08:28,Drip Coffee,Hot Coffee,1,$2.75,,ORD-1221,regular8@gmail.com,Mastercard,Jordan
+10/9/2025 8:28 AM,  Cold Brew,Cold Coffee,1,$4.50,$4.50,ORD-1221,regular8@gmail.com,Apple Pay,Maria
+2025-10-10 16:54,Croissant,,1,$3.25,$3.25,ORD-1222,,Cash,Sam
+10/10/2025 11:29 AM,COLD BREW,,1,$4.50,$4.50,ORD-1223,,Visa,Maria
+10/10/2025 11:29 AM,Chai Latte,,1,$4.25,$4.25,ORD-1223,,Cash,Sam
+10/10/2025 8:04 AM,Latte,Hot Coffee,1,$4.50,$4.50,ORD-1224,guest1253@yahoo.com,Cash,Priya
+Oct 10 2025 12:26,Cold Brew,Cold Coffee,1,$4.50,$4.50,ORD-1225,,Apple Pay,Alex
+2025-10-10 10:05,Drip Coffee,Hot Coffee,1,$2.75,$2.75,ORD-1226,regular5@gmail.com,Apple Pay,Alex
+Oct 10 2025 10:05,Cold Brew,Cold Coffee,1,$4.50,$4.50,ORD-1226,regular5@gmail.com,Apple Pay,Maria
+2025-10-11 08:58,Blueberry Muffin,Bakery,1,$3.50,,ORD-1227,,Visa,Maria
+2025-10-11 08:58,Latte,Hot Coffee,1,$4.50,$4.50,ORD-1227,,Cash,Maria
+2025-10-11 09:40,Latte,Hot Coffee,1,$4.50,$4.50,ORD-1228,regular3@gmail.com,Mastercard,Maria
+2025-10-11 09:40,Croissant,Bakery,1,$3.25,$3.25,ORD-1228,regular3@gmail.com,Visa,Sam
+2025-10-11 15:26,Cold Brew,Cold Coffee,1,$4.50,$4.50,ORD-1229,regular5@gmail.com,Apple Pay,Alex
+2025-10-11 12:46,Avocado Toast,Food,1,$7.50,$7.50,ORD-1230,regular5@gmail.com,Mastercard,Maria
+10/11/2025 12:44 PM,Drip Coffee,Hot Coffee,,$2.75,$2.75,ORD-1231,regular8@gmail.com,Apple Pay,Priya
+2025-10-12 07:31,Hot Tea,Tea,1,$2.95,$2.95,ORD-1232,regular8@gmail.com,Visa,Priya
+2025-10-12 07:31,Drip Coffee,,2,$2.75,$5.50,ORD-1232,regular8@gmail.com,Mastercard,Sam
+2025-10-12 08:22,Cappuccino,Hot Coffee,1,$4.25,$4.25,ORD-1233,guest5053@yahoo.com,Cash,Maria
+2025-10-12 11:29,Latte,Hot Coffee,1,$4.50,$4.50,ORD-1234,regular1@gmail.com,Visa,Alex
+2025-10-12 08:05,Drip Coffee,Hot Coffee,1,$2.75,$2.75,ORD-1235,regular8@gmail.com,Visa,Maria
+2025-10-12 11:02,  Drip Coffee,Hot Coffee,2,$2.75,$5.50,ORD-1236,guest7011@yahoo.com,Cash,Jordan
+2025-10-12 11:02,Iced Latte,Cold Coffee,1,$4.75,$4.75,ORD-1236,guest7011@yahoo.com,Mastercard,Sam
+2025-10-12 11:02,Chai Latte,Tea,1,$4.25,$4.25,ORD-1236,guest7011@yahoo.com,Visa,Maria
+10/12/2025 8:49 AM,Latte,Hot Coffee,,$4.50,$4.50,ORD-1237,,Mastercard,Sam
+Oct 12 2025 08:49,Drip Coffee,Hot Coffee,1,$2.75,,ORD-1237,,Amex,Sam
+Oct 12 2025 07:15,Cappuccino,Hot Coffee,1,$4.25,$4.25,ORD-1238,regular3@gmail.com,Amex,Sam
+10/12/2025 10:49 AM,Croissant,Bakery,1,$3.25,,ORD-1239,regular2@gmail.com,Visa,Jordan
+Oct 12 2025 10:49,Drip Coffee,Hot Coffee,1,$2.75,$2.75,ORD-1239,regular2@gmail.com,Amex,Priya
+Oct 12 2025 08:24,Breakfast Sandwich,Food,2,$6.50,$13.00,ORD-1240,,Mastercard,Maria
+2025-10-12 08:24,Drip Coffee,Hot Coffee,1,$2.75,$2.75,ORD-1240,,Cash,Jordan
+10/13/2025 11:49 AM,Cold Brew,Cold Coffee,1,$4.50,$4.50,ORD-1241,,Cash,Alex
+2025-10-13 11:49,Latte,,1,$4.50,$4.50,ORD-1241,,Amex,Maria
+10/13/2025 9:13 AM,Croissant,Bakery,1,$3.25,$3.25,ORD-1242,regular7@gmail.com,Cash,Maria
+2025-10-13 09:13,Drip Coffee,,1,$2.75,$2.75,ORD-1242,regular7@gmail.com,Mastercard,Maria
+Oct 13 2025 08:56,Chai Latte,Tea,1,$4.25,$4.25,ORD-1243,,Amex,Priya
+2025-10-13 08:56,Cappuccino,Hot Coffee,1,$4.25,$4.25,ORD-1243,,Mastercard,Sam
+10/13/2025 4:47 PM,Cappuccino,Hot Coffee,2,$4.25,,ORD-1244,,Mastercard,Alex
+Oct 14 2025 09:45,iced latte  ,Cold Coffee,1,$4.75,$4.75,ORD-1245,,Cash,Priya
+Oct 14 2025 09:19,  Blueberry Muffin,Bakery,1,$3.50,$3.50,ORD-1246,,Apple Pay,Priya
+Oct 14 2025 10:25,Drip Coffee,Hot Coffee,1,$2.75,,ORD-1247,regular5@gmail.com,Amex,Alex
+10/14/2025 10:25 AM,Bagel w/ Cream Cheese,Bakery,1,$3.75,$3.75,ORD-1247,regular5@gmail.com,Mastercard,Maria
+2025-10-14 08:51,Blueberry Muffin,Bakery,1,$3.50,$3.50,ORD-1248,,Visa,Alex
+2025-10-15 08:20,Croissant,Bakery,1,$3.25,$3.25,ORD-1249,,Apple Pay,Jordan
+10/15/2025 10:26 AM,Cappuccino,Hot Coffee,1,$4.25,$4.25,ORD-1250,,Mastercard,Jordan
+10/15/2025 10:26 AM,LATTE,Hot Coffee,1,$4.50,$4.50,ORD-1250,,Apple Pay,Alex
+Oct 15 2025 09:23,Breakfast Sandwich,Food,1,$6.50,$6.50,ORD-1251,regular4@gmail.com,Visa,Sam
+2025-10-15 09:23,Latte,Hot Coffee,1,$4.50,$4.50,ORD-1251,regular4@gmail.com,Mastercard,Alex
+2025-10-15 14:45,Iced Latte,Cold Coffee,1,$4.75,$4.75,ORD-1252,,Apple Pay,Sam
+2025-10-16 14:42,Iced Latte,Cold Coffee,1,$4.75,$4.75,ORD-1253,regular7@gmail.com,Visa,Priya
+10/16/2025 8:18 AM,Avocado Toast,Food,1,$7.50,$7.50,ORD-1254,,Cash,Priya
+2025-10-16 08:18,Croissant,Bakery,1,$3.25,$3.25,ORD-1254,,Apple Pay,Sam
+2025-10-16 09:44,Cappuccino,Hot Coffee,1,$4.25,,ORD-1255,guest2996@yahoo.com,Cash,Sam
+Oct 16 2025 09:44,Latte,Hot Coffee,1,$4.50,$4.50,ORD-1255,guest2996@yahoo.com,Apple Pay,Priya
+2025-10-16 08:35,Avocado Toast,Food,,$7.50,$7.50,ORD-1256,,Amex,Alex
+Oct 16 2025 07:40,Cold Brew,Cold Coffee,1,$4.50,$4.50,ORD-1257,regular2@gmail.com,Apple Pay,Alex
+10/16/2025 12:16 PM,  Cold Brew,Cold Coffee,2,$4.50,$9.00,ORD-1258,regular8@gmail.com,Visa,Alex
+2025-10-16 13:04,Cold Brew,Cold Coffee,1,$4.50,$4.50,ORD-1259,,Mastercard,Sam
+2025-10-16 15:46,Cappuccino,Hot Coffee,1,$4.25,$4.25,ORD-1260,,Visa,Priya
+2025-10-17 09:02,Cold Brew,Cold Coffee,1,$4.50,$4.50,ORD-1261,,Amex,Sam
+2025-10-17 09:02,  Latte,Hot Coffee,2,$4.50,$9.00,ORD-1261,,Apple Pay,Alex
+Oct 17 2025 10:13,Drip Coffee,Hot Coffee,1,$2.75,$2.75,ORD-1262,guest1347@yahoo.com,Visa,Sam
+10/17/2025 10:13 AM,Avocado Toast,Food,1,$7.50,,ORD-1262,guest1347@yahoo.com,Cash,Jordan
+10/18/2025 1:13 PM,Latte,Hot Coffee,1,$4.50,$4.50,ORD-1263,,Visa,Maria
+10/18/2025 2:24 PM,Breakfast Sandwich,Food,2,$6.50,$13.00,ORD-1264,,Cash,Priya
+Oct 18 2025 12:03,Croissant,Bakery,1,$3.25,$3.25,ORD-1265,,Cash,Jordan
+Oct 19 2025 08:56,Blueberry Muffin,Bakery,1,$3.50,$3.50,ORD-1266,regular7@gmail.com,Cash,Sam
+2025-10-19 10:25,Latte,Hot Coffee,,$4.50,$4.50,ORD-1267,regular4@gmail.com,Cash,Maria
+2025-10-19 10:25,Iced Latte,Cold Coffee,1,$4.75,$4.75,ORD-1267,regular4@gmail.com,Amex,Sam
+2025-10-19 07:01,Croissant,Bakery,1,$3.25,,ORD-1268,guest2402@yahoo.com,Amex,Sam
+2025-10-19 11:13,Blueberry Muffin,Bakery,1,$3.50,$3.50,ORD-1269,regular8@gmail.com,Cash,Sam
+2025-10-19 12:54,latte  ,Hot Coffee,1,$4.50,$4.50,ORD-1270,,Cash,Sam
+Oct 19 2025 12:54,Drip Coffee,Hot Coffee,1,$2.75,$2.75,ORD-1270,,Apple Pay,Maria
+10/19/2025 12:54 PM,Cappuccino,Hot Coffee,2,$4.25,$8.50,ORD-1270,,Cash,Maria
+10/19/2025 2:27 PM,CROISSANT,Bakery,1,$3.25,$3.25,ORD-1271,,Amex,Sam
+2025-10-19 08:10,Hot Tea,Tea,1,$2.95,$2.95,ORD-1272,,Cash,Alex
+10/19/2025 8:10 AM,Bagel w/ Cream Cheese,Bakery,1,$3.75,$3.75,ORD-1272,,Mastercard,Sam
+2025-10-20 10:06,Cappuccino,Hot Coffee,1,$4.25,$4.25,ORD-1273,regular6@gmail.com,Visa,Jordan
+Oct 20 2025 15:33,Latte,,2,$4.50,$9.00,ORD-1274,,Amex,Priya
+2025-10-20 15:33,Drip Coffee,Hot Coffee,1,$2.75,$2.75,ORD-1274,,Cash,Sam
+2025-10-20 12:13,croissant  ,Bakery,1,$3.25,,ORD-1275,,Cash,Priya
+2025-10-20 07:23,Croissant,Bakery,1,$3.25,$3.25,ORD-1276,regular2@gmail.com,Visa,Jordan
+2025-10-20 07:23,Iced Latte,Cold Coffee,2,$4.75,$9.50,ORD-1276,regular2@gmail.com,Amex,Maria
+2025-10-20 08:13,Drip Coffee,Hot Coffee,1,$2.75,$2.75,ORD-1277,,Visa,Sam
+10/20/2025 8:13 AM,Latte,,1,$4.50,$4.50,ORD-1277,,Visa,Sam
+2025-10-21 14:08,Iced Latte,Cold Coffee,1,$4.75,$4.75,ORD-1278,,Visa,Maria
+Oct 21 2025 08:24,Croissant,Bakery,1,$3.25,$3.25,ORD-1279,,Cash,Sam
+2025-10-21 07:24,  Latte,Hot Coffee,1,$4.50,$4.50,ORD-1280,,Amex,Maria
+2025-10-21 14:27,Drip Coffee,Hot Coffee,1,$2.75,,ORD-1281,guest2938@yahoo.com,Visa,Priya
+2025-10-21 11:59,hot tea  ,Tea,1,$2.95,$2.95,ORD-1282,,Mastercard,Jordan
+2025-10-22 15:29,Bagel w/ Cream Cheese,,1,$3.75,$3.75,ORD-1283,,Amex,Jordan
+2025-10-22 08:32,Blueberry Muffin,Bakery,1,$3.50,$3.50,ORD-1284,regular1@gmail.com,Mastercard,Sam
+2025-10-22 08:32,Latte,Hot Coffee,1,$4.50,$4.50,ORD-1284,regular1@gmail.com,Cash,Jordan
+2025-10-22 08:02,Cappuccino,,,$4.25,$4.25,ORD-1285,regular3@gmail.com,Cash,Jordan
+Oct 22 2025 09:54,Chai Latte,Tea,1,$4.25,$4.25,ORD-1286,,Visa,Alex
+10/22/2025 7:11 AM,Bagel w/ Cream Cheese,Bakery,1,$3.75,$3.75,ORD-1287,regular1@gmail.com,Apple Pay,Jordan
+10/23/2025 8:26 AM,Latte,Hot Coffee,1,$4.50,$4.50,ORD-1288,regular3@gmail.com,Apple Pay,Maria
+2025-10-23 08:26,cappuccino  ,Hot Coffee,1,$4.25,$4.25,ORD-1288,regular3@gmail.com,Cash,Sam
+2025-10-23 08:26,blueberry muffin  ,,2,$3.50,$7.00,ORD-1288,regular3@gmail.com,Amex,Alex
+2025-10-23 13:41,Cold Brew,Cold Coffee,1,$4.50,$4.50,ORD-1289,,Amex,Sam
+10/23/2025 11:16 AM,chai latte  ,Tea,1,$4.25,$4.25,ORD-1290,guest3974@yahoo.com,Amex,Maria
+10/23/2025 11:16 AM,Croissant,Bakery,,$3.25,$3.25,ORD-1290,guest3974@yahoo.com,Visa,Jordan
+10/23/2025 3:50 PM,Latte,Hot Coffee,1,$4.50,$4.50,ORD-1291,,Amex,Alex
+2025-10-23 15:50,  Chai Latte,Tea,1,$4.25,$4.25,ORD-1291,,Amex,Priya
+2025-10-23 15:50,Iced Latte,,1,$4.75,$4.75,ORD-1291,,Amex,Alex
+2025-10-23 08:30,Bagel w/ Cream Cheese,Bakery,1,$3.75,$3.75,ORD-1292,,Apple Pay,Maria
+2025-10-23 08:30,Cold Brew,Cold Coffee,1,$4.50,$4.50,ORD-1292,,Apple Pay,Sam
+2025-10-23 08:00,Drip Coffee,Hot Coffee,1,$2.75,,ORD-1293,guest7754@yahoo.com,Visa,Sam
+2025-10-23 08:00,latte  ,,1,$4.50,$4.50,ORD-1293,guest7754@yahoo.com,Mastercard,Alex
+Oct 24 2025 09:47,  Hot Tea,Tea,1,$2.95,,ORD-1294,guest5235@yahoo.com,Mastercard,Alex
+2025-10-24 10:09,avocado toast  ,,1,$7.50,,ORD-1295,regular1@gmail.com,Visa,Maria
+10/24/2025 10:09 AM,Cold Brew,Cold Coffee,1,$4.50,$4.50,ORD-1295,regular1@gmail.com,Amex,Priya
+10/24/2025 9:00 AM,CROISSANT,Bakery,1,$3.25,$3.25,ORD-1296,regular4@gmail.com,Cash,Maria
+2025-10-24 10:13,Croissant,Bakery,1,$3.25,$3.25,ORD-1297,,Mastercard,Alex
+2025-10-24 10:13,Breakfast Sandwich,Food,1,$6.50,$6.50,ORD-1297,,Mastercard,Priya
+10/24/2025 8:11 AM,Cold Brew,Cold Coffee,1,$4.50,$4.50,ORD-1298,,Cash,Sam
+10/24/2025 8:11 AM,Drip Coffee,Hot Coffee,1,$2.75,,ORD-1298,,Amex,Alex
+2025-10-24 14:45,Bagel w/ Cream Cheese,Bakery,1,$3.75,$3.75,ORD-1299,guest7089@yahoo.com,Visa,Sam
+2025-10-25 11:04,latte  ,Hot Coffee,1,$4.50,,ORD-1300,guest1575@yahoo.com,Cash,Sam
+2025-10-25 08:49,Blueberry Muffin,Bakery,1,$3.50,$3.50,ORD-1301,,Amex,Alex
+2025-10-25 09:57,Hot Tea,Tea,2,$2.95,$5.90,ORD-1302,regular2@gmail.com,Amex,Jordan
+2025-10-25 12:46,Hot Tea,Tea,1,$2.95,,ORD-1303,,Visa,Priya
+2025-10-25 12:46,Cold Brew,Cold Coffee,1,$4.50,$4.50,ORD-1303,,Cash,Maria
+Oct 25 2025 11:00,Latte,Hot Coffee,1,$4.50,$4.50,ORD-1304,,Mastercard,Alex
+10/25/2025 11:25 AM,latte  ,Hot Coffee,1,$4.50,$4.50,ORD-1305,guest2806@yahoo.com,Visa,Maria
+10/25/2025 11:25 AM,  Croissant,Bakery,1,$3.25,$3.25,ORD-1305,guest2806@yahoo.com,Apple Pay,Alex
+2025-10-25 11:25,Bagel w/ Cream Cheese,,1,$3.75,$3.75,ORD-1305,guest2806@yahoo.com,Apple Pay,Sam
+2025-10-25 13:53,Cold Brew,Cold Coffee,1,$4.50,,ORD-1306,guest8466@yahoo.com,Cash,Maria
+Oct 25 2025 13:53,Blueberry Muffin,Bakery,1,$3.50,,ORD-1306,guest8466@yahoo.com,Mastercard,Jordan
+Oct 25 2025 15:19,Iced Latte,Cold Coffee,1,$4.75,$4.75,ORD-1307,,Apple Pay,Sam
+2025-10-25 15:19,Cappuccino,Hot Coffee,1,$4.25,$4.25,ORD-1307,,Mastercard,Sam
+10/25/2025 12:36 PM,  Latte,Hot Coffee,2,$4.50,$9.00,ORD-1308,regular7@gmail.com,Apple Pay,Sam
+2025-10-26 08:56,Latte,Hot Coffee,1,$4.50,$4.50,ORD-1309,,Amex,Priya
+2025-10-26 08:56,Croissant,,1,$3.25,$3.25,ORD-1309,,Visa,Maria
+Oct 26 2025 07:41,Cappuccino,,1,$4.25,$4.25,ORD-1310,guest2848@yahoo.com,Apple Pay,Jordan
+10/26/2025 7:41 AM,Hot Tea,Tea,2,$2.95,$5.90,ORD-1310,guest2848@yahoo.com,Apple Pay,Alex
+2025-10-26 11:14,Latte,Hot Coffee,1,$4.50,$4.50,ORD-1311,guest9408@yahoo.com,Visa,Maria
+10/26/2025 11:14 AM,Bagel w/ Cream Cheese,Bakery,1,$3.75,$3.75,ORD-1311,guest9408@yahoo.com,Apple Pay,Maria
+10/26/2025 8:53 AM,  Hot Tea,,1,$2.95,$2.95,ORD-1312,guest9370@yahoo.com,Amex,Maria
+TOTAL,,,,,"$4,318.75",,,,
