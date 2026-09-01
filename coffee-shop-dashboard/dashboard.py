@@ -58,29 +58,40 @@ COLUMN_ALIASES = {
         "date", "transactiondate", "datetime", "timestamp", "time", "saledate",
         "orderdate", "day", "soldat", "createdat", "purchasedate", "saletime",
         "datetimeofsale", "orderdatetime", "transactiontime", "saledatetime",
+        # names real POS exports use: Clover "Created time"/"Payment Date",
+        # Shopify "Paid at"/"Processed at", Toast "Sent Date", etc.
+        "createdtime", "paymentdate", "paidat", "processedat", "closedtime",
+        "openedtime", "sentdate", "businessdate", "orderdatetime", "transdate",
     },
     "product_name": {
         "product", "item", "itemname", "productname", "name", "description",
         "menuitem", "skuname", "itemdescription", "productdescription",
         "lineitem", "article", "goods", "itemsold",
+        "lineitemname", "productitem",  # Shopify "Lineitem name"
     },
     "product_category": {
         "category", "productcategory", "type", "group", "department",
         "menucategory", "itemcategory", "categoryname", "producttype",
-        "productgroup", "itemtype", "dept",
+        "productgroup", "itemtype", "dept", "salescategory", "menugroup",
     },
     "quantity": {
         "qty", "quantity", "count", "units", "qtysold", "quantitysold",
         "unitssold", "qnty", "numberofitems", "noofitems", "itemcount", "amountsold",
+        "lineitemquantity", "lineitemqty", "qtyordered",  # Shopify "Lineitem quantity"
     },
     "unit_price": {
         "price", "unitprice", "itemprice", "priceeach", "rate", "priceperunit",
         "unitcost", "saleprice", "listprice", "pricepereach",
+        "lineitemprice", "priceperitem",  # Shopify "Lineitem price"
     },
     "total_amount": {
         "total", "totalamount", "amount", "linetotal", "totalprice", "subtotal",
         "saleamount", "extendedprice", "totalsale", "netamount", "grossamount",
         "lineamount", "totalrevenue", "revenue", "linerevenue", "amountpaid",
+        # names real POS exports use for the money column: Square "Gross Sales"/
+        # "Net Sales", Toast "Gross Price"/"Net Price", plus common variants.
+        "grosssales", "netsales", "grossprice", "netprice", "lineitemtotal",
+        "itemtotal", "extendedamount", "nettotal", "grosstotal", "totalpaid",
     },
     "customer_id": {
         "customer", "customerid", "custid", "client", "clientid", "memberid",
@@ -131,11 +142,24 @@ def detect_columns(columns: list) -> dict:
 
     rename = {}
     taken = {c for c in columns if c in COLUMN_ALIASES}  # already-correct names
+
+    # Collect every recognizable column with how *specific* its match is (a longer
+    # matched alias = more specific). We then assign the most specific first, so a
+    # precise column beats a generic one competing for the same field. Real example:
+    # a Shopify export has both "Name" (the order number) and "Lineitem name" (the
+    # product) — "lineitemname" is longer/more specific, so it correctly claims
+    # product_name and the generic "Name" is left alone.
+    candidates = []
     for col in columns:
         if col in COLUMN_ALIASES:
             continue  # already named correctly
         canon = lookup.get(normalize_name(col))
-        if canon and canon not in taken:
+        if canon:
+            candidates.append((len(normalize_name(col)), col, canon))
+    candidates.sort(key=lambda t: -t[0])  # most specific first; stable otherwise
+
+    for _, col, canon in candidates:
+        if canon not in taken:
             rename[col] = canon
             taken.add(canon)
     return rename
@@ -259,11 +283,20 @@ def prepare(raw: pd.DataFrame):
         df["unit_price"] = clean_money(df["unit_price"])
     if has_total:
         df["total_amount"] = clean_money(df["total_amount"])
-        report["revenue_source"] = "your total/amount column"
-        # Backfill any blank totals from price x quantity when we can.
-        if has_price:
-            gap = df["total_amount"].isna() & df["unit_price"].notna()
-            df.loc[gap, "total_amount"] = df.loc[gap, "unit_price"] * df.loc[gap, "quantity"]
+        # Some exports put an ORDER-level total on one row per order and leave it
+        # blank on that order's other line rows (rather than a per-line total). If
+        # the total column is mostly blank yet we have a price and a quantity, the
+        # per-line price × quantity is the trustworthy figure — using the sparse
+        # "total" would count a whole order on one line and undercount the rest.
+        if has_price and has_qty and df["total_amount"].isna().mean() > 0.30:
+            df["total_amount"] = df["unit_price"] * df["quantity"]
+            report["revenue_source"] = "price × quantity (your total column looked order-level)"
+        else:
+            report["revenue_source"] = "your total/amount column"
+            # Backfill any blank totals from price x quantity when we can.
+            if has_price:
+                gap = df["total_amount"].isna() & df["unit_price"].notna()
+                df.loc[gap, "total_amount"] = df.loc[gap, "unit_price"] * df.loc[gap, "quantity"]
     else:
         df["total_amount"] = df["unit_price"] * df["quantity"]
         report["revenue_source"] = "price × quantity (calculated for you)"
