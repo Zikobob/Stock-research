@@ -165,6 +165,52 @@ def detect_columns(columns: list) -> dict:
     return rename
 
 
+def unpivot_if_wide(df: pd.DataFrame):
+    """Reshape a WIDE / pivoted table into the long form the app expects.
+
+    Some people keep sales as a matrix — a date column plus one numeric column
+    per product/category (e.g. columns: Date, Latte, Croissant, Cold Brew, with a
+    dollar amount in each cell). This melts that into one row per (date, product,
+    amount). Returns the reshaped frame, or None if the table doesn't look wide.
+
+    It's used only as a fallback when normal column detection can't find a
+    product/amount, so it never interferes with ordinary one-row-per-sale files.
+    """
+    if df is None or df.shape[1] < 3:  # need a date column + at least 2 value cols
+        return None
+
+    # Pick the date column: the already-detected one, else a column whose values
+    # mostly parse as dates but are NOT just numbers (avoids treating a numeric
+    # column as dates).
+    if "transaction_date" in df.columns:
+        date_col = "transaction_date"
+    else:
+        date_col = None
+        for c in df.columns:
+            looks_date = parse_dates(df[c]).notna().mean() > 0.8
+            looks_numeric = clean_money(df[c]).notna().mean() > 0.8
+            if looks_date and not looks_numeric:
+                date_col = c
+                break
+        if date_col is None:
+            return None
+
+    value_cols = [c for c in df.columns if c != date_col]
+    if len(value_cols) < 2:
+        return None
+    # Every value column must be (mostly) numeric to be read as an amount.
+    fracs = [clean_money(df[c]).notna().mean() for c in value_cols]
+    if not fracs or sum(fracs) / len(fracs) < 0.8:
+        return None
+
+    long = df.melt(id_vars=[date_col], value_vars=value_cols,
+                   var_name="product_name", value_name="total_amount")
+    long = long.rename(columns={date_col: "transaction_date"})
+    long["total_amount"] = clean_money(long["total_amount"])
+    long["product_name"] = long["product_name"].astype(str)
+    return long
+
+
 def clean_money(series: pd.Series) -> pd.Series:
     """Turn a price/total column into numbers, even if it has $ signs & commas.
 
@@ -250,20 +296,38 @@ def prepare(raw: pd.DataFrame):
     report["renames"] = rename
 
     # --- check we have the essentials ---
-    missing = []
-    if "transaction_date" not in df.columns:
-        missing.append("transaction_date")
-    if "product_name" not in df.columns:
-        missing.append("product_name")
-    has_total = "total_amount" in df.columns
-    has_price = "unit_price" in df.columns
-    has_qty = "quantity" in df.columns
-    if not has_total and not (has_price and has_qty):
-        missing.append("revenue")
+    def _check(frame):
+        miss = []
+        if "transaction_date" not in frame.columns:
+            miss.append("transaction_date")
+        if "product_name" not in frame.columns:
+            miss.append("product_name")
+        ht = "total_amount" in frame.columns
+        hp = "unit_price" in frame.columns
+        hq = "quantity" in frame.columns
+        if not ht and not (hp and hq):
+            miss.append("revenue")
+        return miss, ht, hp, hq
+
+    missing, has_total, has_price, has_qty = _check(df)
     if missing:
-        report["error"] = _missing_message(missing, report["original_columns"])
-        report["missing"] = missing
-        return None, report
+        # Fallback: maybe it's a WIDE / pivoted layout (a date column plus one
+        # numeric column per product) rather than one row per sale. If so, melt
+        # it into the long shape the rest of the app expects.
+        wide = unpivot_if_wide(df)
+        if wide is not None:
+            df = wide
+            report["wide_unpivoted"] = True
+            report["notes"].append(
+                "Your file looked like a matrix (a date column plus one column per "
+                "item), so each of those columns was read as a product and its "
+                "numbers as the amount. If those columns aren't products/sales, "
+                "these results won't be meaningful.")
+            missing, has_total, has_price, has_qty = _check(df)
+        if missing:
+            report["error"] = _missing_message(missing, report["original_columns"])
+            report["missing"] = missing
+            return None, report
 
     # --- dates ---
     df["transaction_date"] = parse_dates(df["transaction_date"])
