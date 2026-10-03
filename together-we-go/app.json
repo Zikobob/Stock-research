@@ -1,0 +1,73 @@
+{
+  "expo": {
+    "name": "TogetherWeGo",
+    "slug": "together-we-go",
+    "description": "Plan, budget and enjoy group trips together.",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "scheme": "togetherwego",
+    "userInterfaceStyle": "light",
+    "backgroundColor": "#F4F4EE",
+    "ios": {
+      "bundleIdentifier": "com.togetherwego.app",
+      "supportsTablet": true
+    },
+    "android": {
+      "package": "com.togetherwego.app",
+      "adaptiveIcon": {
+        "backgroundColor": "#1F4D25",
+        "foregroundImage": "./assets/images/android-icon-foreground.png",
+        "backgroundImage": "./assets/images/android-icon-background.png",
+        "monochromeImage": "./assets/images/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "output": "single",
+      "favicon": "./assets/images/favicon.png",
+      "name": "TogetherWeGo",
+      "themeColor": "#1F4D25",
+      "backgroundColor": "#F4F4EE"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#F4F4EE",
+          "image": "./assets/images/splash-icon.png",
+          "imageWidth": 160
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "TogetherWeGo uses your location to show places nearby, the closest airport and to share your location in an emergency."
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "TogetherWeGo lets you add trip photos and flight tickets from your library.",
+          "cameraPermission": "TogetherWeGo lets you snap photos for the group photo dump."
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "color": "#1F4D25"
+        }
+      ],
+      "expo-sharing",
+      "expo-localization",
+      "expo-secure-store",
+      "expo-asset",
+      "expo-font"
+    ],
+    "experiments": {
+      "typedRoutes": true,
+      "reactCompiler": true
+    }
+  }
+}
