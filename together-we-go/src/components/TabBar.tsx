@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Tabs } from 'expo-router/js-tabs';
-import type { ComponentProps } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { useEffect, useState, type ComponentProps } from 'react';
+import { Animated, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useT } from '@/i18n';
@@ -9,6 +9,7 @@ import { useActiveTrip, useAppStore } from '@/store/useAppStore';
 import { MAX_WIDTH, colors } from '@/theme';
 
 import type { IconName } from './ui/bits';
+import { nativeDriver, useMotion } from './ui/motion';
 import { Press } from './ui/Press';
 import { T } from './ui/T';
 
@@ -29,10 +30,39 @@ export function TabBar({ state, navigation }: BottomTabBarProps) {
   const trip = useActiveTrip();
   const lastSeen = useAppStore((s) => s.notifications.filter((n) => !n.read && n.kind === 'chat').length);
   const unreadChat = trip ? lastSeen : 0;
+  const motion = useMotion();
+  const visible = state.routes.filter((r) => TABS[r.name]);
+  const activeSlot = Math.max(0, visible.findIndex((r) => r.key === state.routes[state.index]?.key));
+  const [innerW, setInnerW] = useState(0);
+  const [slide] = useState(() => new Animated.Value(activeSlot));
+  const [pop] = useState(() => new Animated.Value(1));
+
+  // The highlight pill glides to the selected tab and the new icon does a little bounce.
+  useEffect(() => {
+    if (!motion) {
+      slide.setValue(activeSlot);
+      return;
+    }
+    Animated.spring(slide, { toValue: activeSlot, useNativeDriver: nativeDriver, friction: 8, tension: 90 }).start();
+    pop.setValue(0.7);
+    Animated.spring(pop, { toValue: 1, useNativeDriver: nativeDriver, friction: 4, tension: 160 }).start();
+  }, [activeSlot, motion, slide, pop]);
+
+  const slotW = innerW > 0 ? (innerW - 16) / Math.max(1, visible.length) : 0;
+  const pillW = Math.min(76, slotW - 4);
 
   return (
     <View style={[styles.bar, { paddingBottom: Math.max(insets.bottom, 10) }]}>
-      <View style={styles.inner}>
+      <View style={styles.inner} onLayout={(e) => setInnerW(e.nativeEvent.layout.width)}>
+        {slotW > 0 ? (
+          <Animated.View
+            pointerEvents="none"
+            style={[
+              styles.indicator,
+              { width: pillW, left: 8 + (slotW - pillW) / 2, transform: [{ translateX: slide.interpolate({ inputRange: [0, Math.max(1, visible.length - 1)], outputRange: [0, slotW * Math.max(1, visible.length - 1)] }) }] },
+            ]}
+          />
+        ) : null}
         {state.routes.map((route, index) => {
           const cfg = TABS[route.name];
           if (!cfg) return null;
@@ -50,11 +80,11 @@ export function TabBar({ state, navigation }: BottomTabBarProps) {
               accessibilityLabel={t(cfg.label)}
               style={styles.item}
               scaleTo={0.92}>
-              <View style={[styles.pill, focused && styles.pillActive]}>
-                <View>
+              <View style={[styles.pill, focused && slotW === 0 && styles.pillActive]}>
+                <Animated.View style={focused ? { transform: [{ scale: pop }] } : undefined}>
                   <Ionicons name={focused ? cfg.active : cfg.icon} size={21} color={focused ? colors.primary : colors.textMuted} />
                   {route.name === 'chat' && unreadChat > 0 && !focused ? <View style={styles.dot} /> : null}
-                </View>
+                </Animated.View>
                 <T variant="micro" weight={focused ? 'semibold' : 'medium'} color={focused ? colors.primary : colors.textMuted} numberOfLines={1} style={{ fontSize: 10.5 }}>
                   {t(cfg.label)}
                 </T>
@@ -73,5 +103,6 @@ const styles = StyleSheet.create({
   item: { flex: 1, alignItems: 'center' },
   pill: { alignItems: 'center', justifyContent: 'center', gap: 2, paddingHorizontal: 10, minWidth: 58, height: 50, borderRadius: 25 },
   pillActive: { backgroundColor: colors.navActive },
-  dot: { position: 'absolute', top: -1, right: -3, width: 8, height: 8, borderRadius: 4, backgroundColor: colors.red, borderWidth: 1.5, borderColor: colors.white },
+  indicator: { position: 'absolute', top: 8, height: 50, borderRadius: 25, backgroundColor: colors.navActive },
+  dot: { position: 'absolute', top: -1, right: -3, width: 8, height: 8, borderRadius: 4, backgroundColor: colors.red, borderWidth: 1.5, borderColor: colors.card },
 });

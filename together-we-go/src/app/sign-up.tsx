@@ -42,6 +42,8 @@ export default function SignUp() {
     }
     tap('success');
     router.replace('/(tabs)/explore');
+    // Brand-new account: offer the personalization survey straight away.
+    setTimeout(() => router.push('/personalize'), 350);
   };
 
   const bars = [colors.red, colors.orange, colors.yellow, '#6BAA75', colors.primary];

@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
@@ -20,7 +21,7 @@ import { pickImage } from '@/services/files';
 import { shareText } from '@/services/share';
 import { useActiveTrip, useAppStore, useCurrentUser } from '@/store/useAppStore';
 import type { TextScale } from '@/store/types';
-import { colors, radius } from '@/theme';
+import { appearance, colors, cornerStyles, radius, themes } from '@/theme';
 import { maxLen, validateName } from '@/utils/validation';
 
 const AVATARS = ['avatar-maya', 'avatar-diego', 'avatar-priya', 'avatar-sam', 'avatar-ana', 'avatar-noah'];
@@ -37,6 +38,8 @@ export default function Settings() {
   const signOut = useAppStore((s) => s.signOut);
   const resetEverything = useAppStore((s) => s.resetEverything);
   const ensureSeed = useAppStore((s) => s.ensureSeed);
+  const personal = useAppStore((s) => s.personal);
+  const updatePersonal = useAppStore((s) => s.updatePersonal);
 
   const [name, setName] = useState(user?.name ?? '');
   const [city, setCity] = useState(user?.homeCity ?? '');
@@ -88,6 +91,26 @@ export default function Settings() {
 
   return (
     <Screen header={<Header title={t('settings.title')} subtitle="Make TogetherWeGo yours" />}>
+      {/* Make it yours */}
+      <Press onPress={() => router.push('/personalize')} style={styles.yours} accessibilityLabel="Make it yours — change theme, interests and home screen">
+        <LinearGradient colors={[colors.heroA, colors.heroB, colors.heroC]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFill} />
+        <View style={styles.yoursEmoji}>
+          <T style={{ fontSize: 28, lineHeight: 34 }}>{personal.emoji}</T>
+        </View>
+        <View style={{ flex: 1 }}>
+          <T variant="title" weight="bold" color={colors.white}>
+            Make it yours 🎨
+          </T>
+          <T variant="caption" color="rgba(255,255,255,0.9)">
+            {themes[appearance.theme].emoji} {themes[appearance.theme].name} theme · {cornerStyles[appearance.corners].name} corners · {personal.interests.length} interests
+          </T>
+        </View>
+        <Ionicons name="chevron-forward" size={20} color={colors.white} />
+      </Press>
+      <Card style={{ marginBottom: 14 }}>
+        <ToggleRow icon="sparkles-outline" label="Animations" sub="Flying plane, floating cards and smooth entrances" value={personal.motion} onChange={(v) => updatePersonal({ motion: v })} />
+      </Card>
+
       {/* Profile */}
       <Card style={{ gap: 12 }}>
         <T variant="title">Profile</T>
@@ -306,6 +329,8 @@ export default function Settings() {
 }
 
 const styles = StyleSheet.create({
+  yours: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14, borderRadius: radius.lg, overflow: 'hidden', marginBottom: 14 },
+  yoursEmoji: { width: 50, height: 50, borderRadius: 25, backgroundColor: 'rgba(255,255,255,0.25)', alignItems: 'center', justifyContent: 'center' },
   wrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   avatarOpt: { borderRadius: 22, borderWidth: 2, borderColor: 'transparent', padding: 1 },
   keyRow: { flexDirection: 'row', alignItems: 'center', gap: 8, padding: 12, borderRadius: radius.md, backgroundColor: colors.primarySofter },

@@ -10,6 +10,8 @@ TogetherWeGo helps a group of friends or family plan, budget and enjoy a shared 
 <img src="docs/screenshots/06-budget.jpg" width="190" alt="Budget screen"/>
 <img src="docs/screenshots/07-chat-assistant.jpg" width="190" alt="Trip chat with the Trip Assistant"/>
 <img src="docs/screenshots/08-trip-hub.jpg" width="190" alt="Trip hub: invite code, roles, polls"/>
+<img src="docs/screenshots/15-make-it-yours.jpg" width="190" alt="Make it yours: pick a colour theme"/>
+<img src="docs/screenshots/16-midnight-theme.jpg" width="190" alt="Explore in the Midnight dark theme"/>
 </p>
 
 ---
@@ -85,6 +87,9 @@ Other scripts: `npm run web` (browser preview), `npx tsc --noEmit` (type-check),
 | **Trip management** | Multiple trips, switch / create / edit / leave / delete, planning → active → completed | My trips |
 
 ### Extras to stand out
+- **Make it yours** — a 7-step animated personalization survey: 6 colour themes (Forest, Ocean, Sunset, Lavender, Sakura, **Midnight dark mode**), card shape (Rounded / Bubbly / Crisp), travel interests with photos, pace & budget style, which Explore sections to show, nickname + emoji avatar, language and home currency — with a live preview and a confetti finish. New accounts get it right after sign-up; it's always in *Settings*, the 🎨 button on Explore and the menu.
+- **“Picked for you”** — Explore ranks destinations against your interests and budget style and shows a match %.
+- **Motion everywhere** — animated home hero (a plane flies a dotted route past drifting clouds and a pulsing sun), staggered card entrances, a tab highlight that glides between tabs, Ken Burns zoom on onboarding photos, floating logo, pulsing live-reminder bell. One *Animations* switch turns it all off for people who prefer less motion.
 - **Trip recap** — stats (days, km between stops, votes, photos), highlights, final balances, rating, shareable summary.
 - **Emergency & safety** — local police/ambulance numbers (tap to call), share live location, hospital & embassy finder.
 - **Phrasebook** with **text-to-speech** pronunciation (Japanese, French, Spanish, Italian, Korean, Thai, Portuguese).
@@ -114,6 +119,8 @@ src/
 - **State & storage:** Zustand + Immer, persisted to AsyncStorage → the whole app works offline and survives restarts.
 - **Navigation:** Expo Router with `Stack.Protected` guards (signed-out users can only see onboarding/auth).
 - **Platform-specific code:** `TripMap.tsx` (react-native-maps) vs `TripMap.web.tsx` (OpenStreetMap embed).
+- **Theming:** `src/theme` holds 6 palettes and 3 corner styles. The saved choice is read synchronously before any screen's styles are created, so every `StyleSheet` picks up the user's palette; applying a new look restarts the UI once (`DevSettings.reload` on phones, a page reload on web).
+- **Animations:** `src/components/ui/motion.tsx` (FadeIn, Float, Pulse, looping values) on React Native's `Animated` API with the native driver on iOS/Android.
 - **React Compiler** enabled; the code passes the compiler’s lint rules (`npx expo lint` → 0 problems) and `tsc --noEmit` with `strict: true`.
 
 ### Data handling & security

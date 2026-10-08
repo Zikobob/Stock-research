@@ -203,6 +203,21 @@ export interface Settings {
   haptics: boolean;
 }
 
+/** Home-screen blocks the user can show or hide in "Make it yours". */
+export type HomeSection = 'reminder' | 'forYou' | 'popular' | 'featured' | 'glance' | 'nearby' | 'tools';
+
+/** Answers from the "Make it yours" personalization survey. */
+export interface Personal {
+  done: boolean;
+  nickname: string;
+  emoji: string;
+  interests: string[];
+  travelStyle: 'chill' | 'balanced' | 'packed';
+  budgetStyle: 'saver' | 'mid' | 'treat';
+  sections: Record<HomeSection, boolean>;
+  motion: boolean;
+}
+
 export interface WeatherSnapshot {
   destinationId: string;
   fetchedAt: number;

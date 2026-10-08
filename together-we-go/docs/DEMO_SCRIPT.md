@@ -19,6 +19,7 @@ Built around the rating sheet so every scored item gets shown. Times are cumulat
 | 4:50 | Chat → “How’s the budget?” / “Best food nearby?” | Trip Assistant answers from our real trip data — **offline**. Optional Claude mode with a key in the secure keychain. | Innovation & creativity |
 | 5:20 | Turn on airplane mode → Documents, Map → Offline radar, Emergency | Built for bad wifi: documents, map, phrasebook and emergency info all work offline. | Data handling · UX |
 | 5:50 | Settings → Language → 日本語; text size; then back to English | 6 languages, adjustable text size, screen-reader labels everywhere. | Accessibility |
+| 6:05 | 🎨 on Explore → Make it yours → pick Sunset/Midnight + interests → Apply | Every user makes the app theirs: themes incl. dark mode, interests drive “Picked for you”, choose home sections; animations can be switched off. | Innovation · UX |
 | 6:15 | Settings → Demo timeline “Just finished” → Recap | The full lifecycle: planning → travelling → recap with stats, highlights, balances, share. | Addresses all parts of prompt |
 | 6:40 | README / ATTRIBUTIONS / code structure | Layered MVVM architecture, reusable components, strict TypeScript, 0 lint errors; every library, API and photo documented. | Code quality · Architecture · Documentation |
 

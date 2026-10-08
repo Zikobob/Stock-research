@@ -27,6 +27,7 @@ import {
   type DemoTimeline,
 } from './seed';
 import type {
+  Personal,
   Account,
   Activity,
   AppNotification,
@@ -72,6 +73,9 @@ interface State {
   rates: RatesSnapshot | null;
   quizBest: number;
   surveyResult: string[] | null;
+  personal: Personal;
+  /** Set just before the app reloads to apply a new look: keeps the session for that one restart. */
+  restyled: boolean;
   firedReminders: Record<string, number>;
   demoTimeline: DemoTimeline;
   seeded: boolean;
@@ -155,6 +159,8 @@ interface Actions {
   setRates: (r: RatesSnapshot) => void;
   setQuizBest: (n: number) => void;
   setSurveyResult: (ids: string[] | null) => void;
+  updatePersonal: (patch: Partial<Personal>) => void;
+  setRestyled: (v: boolean) => void;
   markReminderFired: (key: string) => void;
   resetEverything: () => void;
 }
@@ -172,6 +178,17 @@ const defaultSettings: Settings = {
   haptics: true,
 };
 
+export const defaultPersonal: Personal = {
+  done: false,
+  nickname: '',
+  emoji: '✈️',
+  interests: [],
+  travelStyle: 'balanced',
+  budgetStyle: 'mid',
+  sections: { reminder: true, forYou: true, popular: true, featured: true, glance: true, nearby: true, tools: true },
+  motion: true,
+};
+
 const initialState: State = {
   hydrated: false,
   hasOnboarded: false,
@@ -187,6 +204,8 @@ const initialState: State = {
   rates: null,
   quizBest: 0,
   surveyResult: null,
+  personal: defaultPersonal,
+  restyled: false,
   firedReminders: {},
   demoTimeline: 'upcoming',
   seeded: false,
@@ -677,6 +696,11 @@ export const useAppStore = create<AppStore>()(
         setRates: (r) => set({ rates: r }),
         setQuizBest: (n) => set((s) => ({ quizBest: Math.max(s.quizBest, n) })),
         setSurveyResult: (ids) => set({ surveyResult: ids }),
+        setRestyled: (v) => set({ restyled: v }),
+        updatePersonal: (patch) =>
+          set((s) => {
+            Object.assign(s.personal, patch);
+          }),
 
         markReminderFired: (key) =>
           set((s) => {
@@ -695,7 +719,7 @@ export const useAppStore = create<AppStore>()(
         // Don't persist the session unless "Remember me" was ticked.
         const { hydrated, ...rest } = s;
         void hydrated;
-        return { ...rest, session: s.session?.remember ? s.session : null };
+        return { ...rest, session: s.session?.remember || s.restyled ? s.session : null };
       },
       onRehydrateStorage: () => (state) => {
         state?.setHydrated();

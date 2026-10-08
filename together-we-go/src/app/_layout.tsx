@@ -13,10 +13,10 @@ import { useEffect } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { ReminderService } from '@/components/ReminderService';
-import { DialogHost, ToastHost } from '@/components/ui/feedback';
+import { DialogHost, ToastHost, toast } from '@/components/ui/feedback';
 import { initNotifications } from '@/services/notifications';
 import { useAppStore } from '@/store/useAppStore';
-import { colors } from '@/theme';
+import { colors, isDark } from '@/theme';
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
@@ -37,14 +37,21 @@ export default function RootLayout() {
 
   const ready = (fontsLoaded || !!fontError) && hydrated && seeded;
   useEffect(() => {
-    if (ready) SplashScreen.hideAsync().catch(() => {});
+    if (!ready) return;
+    SplashScreen.hideAsync().catch(() => {});
+    // Back from the reload that applies a new theme: say so, then forget the one-off session.
+    const { restyled, setRestyled } = useAppStore.getState();
+    if (restyled) {
+      setRestyled(false);
+      setTimeout(() => toast('Your new look is live ✨', { icon: 'sparkles' }), 600);
+    }
   }, [ready]);
 
   if (!ready) return null;
 
   return (
     <SafeAreaProvider>
-      <StatusBar style="dark" />
+      <StatusBar style={isDark ? 'light' : 'dark'} />
       <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.bg }, animation: 'slide_from_right' }}>
         <Stack.Screen name="index" />
         <Stack.Protected guard={!signedIn}>
@@ -79,6 +86,7 @@ export default function RootLayout() {
           <Stack.Screen name="airport" />
           <Stack.Screen name="help" />
           <Stack.Screen name="about" />
+          <Stack.Screen name="personalize" options={{ presentation: 'modal', animation: 'slide_from_bottom' }} />
         </Stack.Protected>
       </Stack>
       {signedIn ? <ReminderService /> : null}

@@ -45,6 +45,7 @@ flowchart TB
   More --> M3[Photo dump · Documents · Packing · Bucket list]
   More --> M4[Quiz · Survey · Recap · Emergency · Phrasebook]
   More --> M5[My trips · New/Edit trip · Join · Notifications · Settings · Help · About]
+  More --> M6[Make it yours — personalization survey]
 ```
 
 ## 5. Architecture
@@ -98,12 +99,13 @@ Key decisions:
 ## 7. Feature priorities (MoSCoW)
 | Must | Should | Could | Won’t (this version) |
 |---|---|---|---|
-| Trips + invite codes, roles, itinerary, voting, budget & splits, chat, flights & time zones, reminders, offline storage, validation | AI assistant, currency converter, weather, documents vault, map, nearby radius & filters, printable planner, social sharing | Quiz, survey recommendations, phrasebook TTS, recap, packing suggestions, emergency screen, 6 languages | Cloud sync server, real Google OAuth, payments |
+| Trips + invite codes, roles, itinerary, voting, budget & splits, chat, flights & time zones, reminders, offline storage, validation | AI assistant, currency converter, weather, documents vault, map, nearby radius & filters, printable planner, social sharing | Quiz, survey recommendations, phrasebook TTS, recap, packing suggestions, emergency screen, 6 languages, personalization (themes, interests, home layout), animations | Cloud sync server, real Google OAuth, payments |
 
 ## 8. Accessibility & UX rationale
 - Reference-matched visual language: cream canvas, forest-green primary, soft-green highlights, pill navigation — calm and readable outdoors.
 - Every icon-only control has an `accessibilityLabel`; toggles expose checked/selected state; sliders are adjustable with screen readers.
 - Text size setting (Default / Large / Extra large) on top of the phone’s own font scaling.
+- Personalization: 6 colour themes including a dark mode, adjustable card shapes and an *Animations* switch for people sensitive to motion.
 - Errors appear inline under the field in red with a plain-language fix (“Codes look like ABC-1234”).
 - Destructive actions always confirm; toasts confirm every successful action.
 
@@ -115,4 +117,5 @@ Key decisions:
 | Budget | Amount validation, ¥ expense converted to USD, settle-up records payment, budget-cap validation |
 | Collaboration | Join with empty/unknown/valid code, add-member validation (name, email), polls (vote, close), checklist add + empty-task error |
 | Flights | Missing-field errors, unknown IATA rejected, flight saved, time-zone toggle |
+| Personalization | Survey requires ≥1 interest, nickname length check, theme/corner choice survives restart, sign-in kept across the theme reload, Explore sections hide/show, “Picked for you” ranking |
 | Platform | `tsc --noEmit` (strict) ✔, `expo lint` 0 problems ✔, `expo-doctor` 21/21 ✔, iOS + Android bundles compile ✔ |

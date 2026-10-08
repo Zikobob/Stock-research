@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/Button';
 import { Divider } from '@/components/ui/bits';
 import { showDialog, toast } from '@/components/ui/feedback';
 import { Input } from '@/components/ui/Input';
+import { Float } from '@/components/ui/motion';
 import { Press, tap } from '@/components/ui/Press';
 import { Screen } from '@/components/ui/Screen';
 import { Sheet } from '@/components/ui/Sheet';
@@ -57,7 +58,9 @@ export default function SignIn() {
 
   return (
     <Screen contentStyle={{ paddingTop: 28 }}>
-      <Logo />
+      <Float amount={6} duration={2400}>
+        <Logo />
+      </Float>
       <T variant="h1" style={{ marginTop: 28 }} accessibilityRole="header">
         {t('auth.welcome')}
       </T>

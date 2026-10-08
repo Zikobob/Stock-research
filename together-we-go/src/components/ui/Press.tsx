@@ -19,9 +19,13 @@ export interface PressProps extends Omit<PressableProps, 'style'> {
 
 /** Pressable with a subtle press-in scale + optional haptic tick. */
 export function Press({ style, scaleTo = 0.97, haptic = true, onPress, accessibilityRole = 'button', ...rest }: PressProps) {
+  const state = rest.accessibilityState;
   return (
     <Pressable
       accessibilityRole={accessibilityRole}
+      // Mirror the state as ARIA props so web screen readers announce selection too.
+      aria-selected={state?.selected}
+      aria-checked={state?.checked}
       {...rest}
       onPress={(e) => {
         if (haptic) tap();

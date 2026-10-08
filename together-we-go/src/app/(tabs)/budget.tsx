@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { ScrollView, StyleSheet, TextInput, View } from 'react-native';
@@ -147,6 +148,8 @@ function BudgetInner() {
 
       {/* Spent card */}
       <View style={styles.spent}>
+        <LinearGradient colors={[colors.primary, colors.heroB, colors.heroC]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFill} />
+        <View pointerEvents="none" style={styles.blob} />
         <T variant="kicker" color="rgba(255,255,255,0.7)">
           {t('budget.spent')}
         </T>
@@ -481,11 +484,12 @@ function BudgetInner() {
 }
 
 const styles = StyleSheet.create({
+  blob: { position: 'absolute', right: -40, top: -50, width: 170, height: 170, borderRadius: 85, backgroundColor: 'rgba(255,255,255,0.1)' },
   head: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: 12, marginBottom: 14 },
   seg: { flexDirection: 'row', backgroundColor: colors.card, borderRadius: 999, borderWidth: 1, borderColor: colors.border, padding: 3 },
   segBtn: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 999 },
   segOn: { backgroundColor: colors.primary },
-  spent: { backgroundColor: colors.primary, borderRadius: radius.xl, padding: 20 },
+  spent: { backgroundColor: colors.primary, borderRadius: radius.xl, padding: 20, overflow: 'hidden' },
   stack: { flexDirection: 'row', height: 10, borderRadius: 5, overflow: 'hidden', marginBottom: 10, gap: 2 },
   catRow: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 5 },
   dot: { width: 8, height: 8, borderRadius: 4 },

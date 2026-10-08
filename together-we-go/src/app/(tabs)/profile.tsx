@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { StyleSheet, TextInput, View } from 'react-native';
@@ -121,6 +122,8 @@ function Hub() {
 
       {/* Invite */}
       <View style={styles.invite}>
+        <LinearGradient colors={[colors.primary, colors.heroB, colors.heroC]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFill} />
+        <View pointerEvents="none" style={styles.blob} />
         <View style={{ flex: 1 }}>
           <T variant="kicker" color="rgba(255,255,255,0.7)">
             {t('hub.invite')}
@@ -500,11 +503,12 @@ function NewPollSheet({ visible, onClose, onCreate }: { visible: boolean; onClos
 }
 
 const styles = StyleSheet.create({
+  blob: { position: 'absolute', right: -40, top: -50, width: 170, height: 170, borderRadius: 85, backgroundColor: 'rgba(255,255,255,0.1)' },
   head: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 12, marginBottom: 14 },
   row: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   rowBetween: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
   tripRow: { flexDirection: 'row', alignItems: 'center', gap: 10, padding: 12, borderRadius: radius.md, backgroundColor: colors.primarySofter },
-  invite: { marginTop: 14, backgroundColor: colors.primary, borderRadius: radius.xl, padding: 18, flexDirection: 'row', alignItems: 'center', gap: 12 },
+  invite: { marginTop: 14, backgroundColor: colors.primary, borderRadius: radius.xl, padding: 18, flexDirection: 'row', alignItems: 'center', gap: 12, overflow: 'hidden' },
   shareBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: colors.white, paddingHorizontal: 14, paddingVertical: 9, borderRadius: 999 },
   ghostBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, justifyContent: 'center', paddingVertical: 6, borderRadius: 999, borderWidth: 1, borderColor: 'rgba(255,255,255,0.35)' },
   member: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: colors.card, padding: 12, borderRadius: radius.md, borderWidth: 1, borderColor: colors.border },

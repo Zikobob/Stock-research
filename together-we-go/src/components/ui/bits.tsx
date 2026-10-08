@@ -5,7 +5,7 @@ import type { ComponentProps, ReactNode } from 'react';
 import { StyleSheet, Switch, View, type StyleProp, type ViewStyle } from 'react-native';
 
 import { imageSource } from '@/data/images';
-import { colors, radius, shadow } from '@/theme';
+import { colors, isDark, radius, shadow } from '@/theme';
 import { initials } from '@/utils/format';
 
 import { Press } from './Press';
@@ -87,7 +87,7 @@ export function Avatar({ name, src, size = 34, ring }: { name: string; src?: str
       {src ? (
         <Image source={imageSource(src)} style={{ width: '100%', height: '100%' }} contentFit="cover" />
       ) : (
-        <T variant={size > 40 ? 'title' : 'micro'} weight="bold" color={colors.primary} style={size <= 28 ? { fontSize: 9.5 } : null}>
+        <T variant={size > 40 ? 'title' : 'micro'} weight="bold" color={isDark ? '#1F4D25' : colors.primary} style={size <= 28 ? { fontSize: 9.5 } : null}>
           {initials(name)}
         </T>
       )}
@@ -190,9 +190,12 @@ export function IconButton({
 export function SectionHeader({ title, action, onAction, style }: { title: string; action?: string; onAction?: () => void; style?: StyleProp<ViewStyle> }) {
   return (
     <View style={[styles.sectionHeader, style]}>
-      <T variant="h3" accessibilityRole="header">
-        {title}
-      </T>
+      <View style={styles.sectionTitle}>
+        <View style={styles.sectionBar} />
+        <T variant="h3" accessibilityRole="header">
+          {title}
+        </T>
+      </View>
       {action ? (
         <Press onPress={onAction} hitSlop={8} accessibilityLabel={action}>
           <T variant="small" weight="semibold" color={colors.textSecondary}>
@@ -206,12 +209,12 @@ export function SectionHeader({ title, action, onAction, style }: { title: strin
 
 export function Pill({ label, tone = 'green', icon }: { label: string; tone?: 'green' | 'orange' | 'blue' | 'red' | 'gray' | 'yellow' | 'purple'; icon?: IconName }) {
   const map = {
-    green: [colors.primarySoft, colors.primary],
-    orange: [colors.orangeSoft, '#B45A1C'],
-    blue: [colors.blueSoft, '#2B5FB0'],
+    green: [colors.primarySoft, isDark ? '#6FD39A' : colors.primary],
+    orange: [colors.orangeSoft, isDark ? colors.orange : '#B45A1C'],
+    blue: [colors.blueSoft, isDark ? '#7FB0F0' : '#2B5FB0'],
     red: [colors.redSoft, colors.red],
     gray: [colors.bgAlt, colors.textSecondary],
-    yellow: [colors.yellowSoft, '#94660A'],
+    yellow: [colors.yellowSoft, isDark ? colors.yellow : '#94660A'],
     purple: [colors.purpleSoft, colors.purple],
   } as const;
   const [bg, fg] = map[tone];
@@ -333,6 +336,8 @@ const styles = StyleSheet.create({
     borderColor: colors.white,
   },
   sectionHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 },
+  sectionTitle: { flexDirection: 'row', alignItems: 'center', gap: 8, flexShrink: 1 },
+  sectionBar: { width: 5, height: 18, borderRadius: 3, backgroundColor: colors.accent },
   pill: { flexDirection: 'row', alignItems: 'center', gap: 3, paddingHorizontal: 8, paddingVertical: 3, borderRadius: radius.pill, alignSelf: 'flex-start' },
   empty: { alignItems: 'center', gap: 8, paddingVertical: 36, paddingHorizontal: 24 },
   emptyIcon: {

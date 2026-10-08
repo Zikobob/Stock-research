@@ -13,11 +13,11 @@ export const toolGroups: { title: string; items: { icon: IconName; label: string
     title: 'Plan',
     items: [
       { icon: 'map-outline', label: 'Trip map', href: '/map', color: '#2A9D8F' },
-      { icon: 'navigate-outline', label: 'Nearby', href: '/nearby', color: '#1F4D25' },
+      { icon: 'navigate-outline', label: 'Nearby', href: '/nearby', color: colors.primary },
       { icon: 'airplane-outline', label: 'Flights', href: '/flights', color: '#3D7DD8' },
       { icon: 'partly-sunny', label: 'Weather', href: '/weather', color: '#E8A23A' },
       { icon: 'swap-horizontal', label: 'Currency', href: '/currency', color: '#7C5CD6' },
-      { icon: 'list-outline', label: 'My trips', href: '/trips', color: '#5F645A' },
+      { icon: 'list-outline', label: 'My trips', href: '/trips', color: colors.textSecondary },
     ],
   },
   {
@@ -28,18 +28,19 @@ export const toolGroups: { title: string; items: { icon: IconName; label: string
       { icon: 'images-outline', label: 'Photo dump', href: '/photos', color: '#E8833A' },
       { icon: 'medkit-outline', label: 'Emergency', href: '/emergency', color: '#D64545' },
       { icon: 'locate-outline', label: 'Nearest airport', href: '/airport', color: '#2A9D8F' },
-      { icon: 'language-outline', label: 'Phrasebook', href: '/phrasebook', color: '#1F4D25' },
+      { icon: 'language-outline', label: 'Phrasebook', href: '/phrasebook', color: colors.primary },
     ],
   },
   {
     title: 'Have fun',
     items: [
+      { icon: 'color-palette-outline', label: 'Make it yours', href: '/personalize', color: '#D94F86' },
       { icon: 'sparkles-outline', label: 'For you', href: '/survey', color: '#7C5CD6' },
       { icon: 'game-controller-outline', label: 'Travel quiz', href: '/quiz', color: '#E8833A' },
-      { icon: 'flag-outline', label: 'Bucket list', href: '/bucket-list', color: '#1F4D25' },
+      { icon: 'flag-outline', label: 'Bucket list', href: '/bucket-list', color: colors.primary },
       { icon: 'trophy-outline', label: 'Trip recap', href: '/recap', color: '#B7791F' },
-      { icon: 'help-circle-outline', label: 'How to use', href: '/help', color: '#5F645A' },
-      { icon: 'settings-outline', label: 'Settings', href: '/settings', color: '#5F645A' },
+      { icon: 'settings-outline', label: 'Settings', href: '/settings', color: colors.textSecondary },
+      { icon: 'help-circle-outline', label: 'How to use', href: '/help', color: colors.textSecondary },
     ],
   },
 ];
