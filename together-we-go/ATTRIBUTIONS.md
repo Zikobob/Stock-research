@@ -101,3 +101,6 @@ Original design for this project: forest-green tile, the Material Community Icon
 
 ## Design reference
 The visual style (cream background, forest-green accents, pill navigation, card layouts) follows the reference prototype video provided by the team.
+
+## Developer tooling
+- **Ponytail** skills (`.claude/skills/ponytail*`, from [DietrichGebert/ponytail](https://github.com/DietrichGebert/ponytail) @ 9cc65d0, MIT licence) — coding-style instructions for the Claude Code assistant used while building the app. Not part of the app itself.
