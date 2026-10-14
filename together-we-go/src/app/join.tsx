@@ -47,7 +47,7 @@ export default function Join() {
           Got an invite code?
         </T>
         <T variant="small" color={colors.textSecondary} center>
-          Codes look like <T variant="small" weight="bold">TKY-2481</T>. Ask the organizer to share it from Profile → Invite code.
+          Codes look like <T variant="small" weight="bold">AML-2026</T>. Ask the organizer to share it from More → Crew & roles.
         </T>
       </View>
       <TextInput

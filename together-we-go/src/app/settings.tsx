@@ -249,7 +249,7 @@ export default function Settings() {
       <Card style={{ marginTop: 14, gap: 10 }}>
         <T variant="title">Demo timeline</T>
         <T variant="caption" color={colors.textSecondary}>
-          Re-create the sample Tokyo trip as upcoming, in progress or finished to show every stage from planning through completion.
+          Re-create the sample Amalfi Squad trip as upcoming, in progress or finished to show every stage from planning through completion.
         </T>
         <View style={styles.wrap}>
           {(
@@ -265,7 +265,7 @@ export default function Settings() {
               label={l}
               active={timeline === k}
               onPress={() =>
-                confirmAction('Reset the demo trip?', `“Tokyo & Kyoto Explorer” will be rebuilt as “${l}”. Your other trips are untouched.`, () => {
+                confirmAction('Reset the demo trip?', `“Amalfi Squad” will be rebuilt as “${l}”. Your other trips are untouched.`, () => {
                   reseed(k);
                   toast('Demo trip updated');
                 })

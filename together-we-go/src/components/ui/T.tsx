@@ -3,11 +3,12 @@ import { StyleSheet, Text, type TextProps, type TextStyle } from 'react-native';
 import { useAppStore } from '@/store/useAppStore';
 import { colors, fonts } from '@/theme';
 
-type Variant = 'display' | 'h1' | 'h2' | 'h3' | 'title' | 'body' | 'bodySm' | 'small' | 'caption' | 'kicker' | 'micro';
+type Variant = 'display' | 'headline' | 'h1' | 'h2' | 'h3' | 'title' | 'body' | 'bodySm' | 'small' | 'caption' | 'kicker' | 'micro';
 type Weight = 'regular' | 'medium' | 'semibold' | 'bold' | 'extrabold';
 
 const variants: Record<Variant, TextStyle> = {
-  display: { fontSize: 32, lineHeight: 38, fontFamily: fonts.bold, letterSpacing: -0.6 },
+  display: { fontSize: 42, lineHeight: 46, fontFamily: fonts.display, letterSpacing: 0.3, textTransform: 'uppercase' },
+  headline: { fontSize: 24, lineHeight: 28, fontFamily: fonts.display, letterSpacing: 0.3, textTransform: 'uppercase' },
   h1: { fontSize: 26, lineHeight: 32, fontFamily: fonts.bold, letterSpacing: -0.4 },
   h2: { fontSize: 22, lineHeight: 28, fontFamily: fonts.bold, letterSpacing: -0.3 },
   h3: { fontSize: 18, lineHeight: 24, fontFamily: fonts.semibold, letterSpacing: -0.2 },

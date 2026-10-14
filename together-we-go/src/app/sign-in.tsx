@@ -61,7 +61,7 @@ export default function SignIn() {
       <Float amount={6} duration={2400}>
         <Logo />
       </Float>
-      <T variant="h1" style={{ marginTop: 28 }} accessibilityRole="header">
+      <T variant="display" style={{ marginTop: 28 }} accessibilityRole="header">
         {t('auth.welcome')}
       </T>
       <T variant="bodySm" color={colors.textSecondary} style={{ marginTop: 4, marginBottom: 22 }}>

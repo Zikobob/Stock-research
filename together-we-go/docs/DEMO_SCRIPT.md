@@ -7,21 +7,21 @@ Built around the rating sheet so every scored item gets shown. Times are cumulat
 | Time | Show | Say (key points) | Rating-sheet item |
 |---|---|---|---|
 | 0:00 | Title / app icon | The problem: group trips scattered across chats, spreadsheets and screenshots. TogetherWeGo puts plan, money, people and paperwork in one place that works offline. | Program addresses the prompt |
-| 0:30 | Planning doc (personas, journey, MoSCoW) | How we planned: personas → user journey → feature priorities → navigation map → data model. | Planning process |
-| 1:00 | Sign-in → tap Demo Account → Sign In; then show a validation error on sign-up | Built with Expo SDK 57 / React Native for iOS **and** Android. Passwords are salted + hashed. Every form validates format *and* meaning. | Platform · Input validation · Data handling |
-| 1:30 | Explore: active-trip card, live reminder countdown, search, categories, weather + nearest airport, radius slider | Home screen answers “what’s next?” at a glance. Radius slider + price filter find places nearby. | UX design · Functionality |
-| 2:15 | Profile → Invite code → Share → WhatsApp/Instagram | Invite codes for collaboration; one tap shares straight into social apps. | **Social media integration** |
-| 2:40 | Members & roles → change a role; vote in a poll; tick the checklist | Roles (Treasurer, Navigator, Food Lead…), polls and a shared checklist. | Collaboration |
-| 3:10 | Itinerary: date pills, filters (Food, Under 1 hour), expand a card → “I’m in” confirms it; tap 🔔 | Majority voting auto-confirms. Bell = real phone notification before it starts. | Scheduling |
-| 3:40 | Add Activity → submit empty (errors) → fill → overlap warning | Syntactic + semantic validation (it even warns about schedule clashes). | Input validation |
-| 4:00 | Flights & arrivals → tap time-zone toggle | Flights are stored as exact instants, so arrivals convert between Tokyo time and your time. | Scheduling / time zones |
-| 4:20 | Budget: breakdown, USD↔JPY view, add a ¥ expense, Settle up | Multi-currency expenses, fair splits, fewest payments to settle. | Budgeting |
-| 4:50 | Chat → “How’s the budget?” / “Best food nearby?” | Trip Assistant answers from our real trip data — **offline**. Optional Claude mode with a key in the secure keychain. | Innovation & creativity |
-| 5:20 | Turn on airplane mode → Documents, Map → Offline radar, Emergency | Built for bad wifi: documents, map, phrasebook and emergency info all work offline. | Data handling · UX |
-| 5:50 | Settings → Language → 日本語; text size; then back to English | 6 languages, adjustable text size, screen-reader labels everywhere. | Accessibility |
-| 6:05 | 🎨 on Explore → Make it yours → pick Sunset/Midnight + interests → Apply | Every user makes the app theirs: themes incl. dark mode, interests drive “Picked for you”, choose home sections; animations can be switched off. | Innovation · UX |
-| 6:15 | Settings → Demo timeline “Just finished” → Recap | The full lifecycle: planning → travelling → recap with stats, highlights, balances, share. | Addresses all parts of prompt |
-| 6:40 | README / ATTRIBUTIONS / code structure | Layered MVVM architecture, reusable components, strict TypeScript, 0 lint errors; every library, API and photo documented. | Code quality · Architecture · Documentation |
+| 0:25 | Planning doc (personas, journey, MoSCoW) | How we planned: personas → user journey → feature priorities → navigation map → data model. | Planning process |
+| 0:50 | Sign-in → tap Demo Account → Sign In; then show a validation error on sign-up | Built with Expo SDK 57 / React Native for iOS **and** Android. Passwords are salted + hashed. Every form validates format *and* meaning. | Platform · Input validation · Data handling |
+| 1:10 | Home: hero photo, tap the ☀️/🌙 chip, countdown, code pill, weather + local time, budget, Up next | The hero follows the local time in Positano (sun by day, stars by night). Everything you need before a trip is on one screen. | UX design · Functionality |
+| 1:50 | More → Crew & roles → Share code → WhatsApp; change a role; vote in a poll; tick the checklist | Invite codes, roles (Treasurer, Navigator, Food Lead…), polls and a shared checklist. One tap shares into social apps. | **Social media integration** · Collaboration |
+| 2:20 | Plan: filters (Food, Under 1 hour), expand a card → 🔔; Vote tab → **Lock in** | Time + category filters. Votes show who’s in; the organizer locks in the winner and the reminder turns on. | Scheduling · Collaboration |
+| 3:00 | ➕ Add Activity → submit empty (errors) → fill → overlap warning | Syntactic + semantic validation (it even warns about schedule clashes). | Input validation |
+| 3:20 | More → Flights & arrivals → tap the time-zone line | Flights are stored as exact instants, so arrivals convert between Rome time and your time. | Scheduling / time zones |
+| 3:45 | Budget: donut, Local · EUR, ➕ add a € expense + **receipt photo**, Who owes who → Settle up | Multi-currency expenses, fair splits, fewest payments to settle, receipts attached. | Budgeting |
+| 4:30 | Chat → Crew, then **Scout AI** → “How’s the budget?” / “Best food nearby?” | The group chat stays human; Scout answers from our real trip data — **offline**. Optional Claude mode with a key in the secure keychain. | Innovation & creativity |
+| 5:00 | Airplane mode → More → Offline Docs, Trip Map → Offline radar, Emergency | Built for bad wifi: documents, map, phrasebook and emergency info all work offline. | Data handling · UX |
+| 5:20 | More → Packing list → Split the rest fairly | Everyone sees who is bringing what. | Organization |
+| 5:40 | Settings → Language → 日本語; text size; then back to English | 6 languages, adjustable text size, screen-reader labels everywhere. | Accessibility |
+| 5:55 | Home → “Customize this page” → Make it yours → Sunset/Midnight + interests → Apply | Every user makes the app theirs: themes incl. dark mode, interests drive “Picked for you”, choose home sections; animations can be switched off. | Innovation · UX |
+| 6:15 | Settings → Demo timeline “In progress” → Home “Today” card; then “Just finished” → Recap story card | The full lifecycle: planning → travelling → recap with stats, balances and a shareable story card. | Addresses all parts of prompt |
+| 6:40 | More → How it works; README / ATTRIBUTIONS | Layered MVVM architecture, reusable components, strict TypeScript, 0 lint errors; every library, API and photo documented. | Code quality · Architecture · Documentation |
 
 ## Likely questions — short answers
 - **How do friends’ phones stay in sync?** In this version data is stored on each device (offline-first). The store/service split means adding a sync backend (Firebase/Supabase) only changes the service layer — the screens stay the same.

@@ -5,19 +5,26 @@ import { FlatList, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, TextI
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { NoTrip } from '@/components/trip/NoTrip';
-import { Chip, IconButton } from '@/components/ui/bits';
+import { Card, Chip, IconButton } from '@/components/ui/bits';
 import { toast } from '@/components/ui/feedback';
 import { Press, tap } from '@/components/ui/Press';
+import { Segmented } from '@/components/ui/Segmented';
 import { T } from '@/components/ui/T';
 import { useT } from '@/i18n';
 import { answerLocally, askClaude, type AssistantContext } from '@/services/assistant';
 import { getApiKey } from '@/services/secrets';
 import { useActiveTrip, useAppStore } from '@/store/useAppStore';
 import type { ChatMessage, Trip } from '@/store/types';
-import { MAX_WIDTH, colors, fonts } from '@/theme';
-import { initials } from '@/utils/format';
+import { MAX_WIDTH, colors, fonts, shadow } from '@/theme';
 
 const QUICK = ['chat.q.budget', 'chat.q.food', 'chat.q.weather', 'chat.q.next'];
+const AVATAR_COLORS = ['#E8533F', '#1E73E8', '#2FB863', '#E0A100', '#7C5CD6'];
+const TABS = [
+  { key: 'crew' as const, label: 'Crew' },
+  { key: 'ai' as const, label: 'Scout AI' },
+];
+
+const inAiThread = (m: ChatMessage) => m.channel === 'ai' || m.ai === true;
 
 /** Friendly canned replies so the demo group feels alive (offline). */
 function friendReply(text: string): string {
@@ -52,7 +59,7 @@ function ChatInner() {
   const aiMode = useAppStore((s) => s.settings.aiMode);
   const markKindRead = useAppStore((s) => s.markKindRead);
   const [text, setText] = useState('');
-  const [aiOn, setAiOn] = useState(false);
+  const [tab, setTab] = useState<'crew' | 'ai'>('crew');
   const [typing, setTyping] = useState<string | null>(null);
   const list = useRef<FlatList<ChatMessage>>(null);
   const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
@@ -66,7 +73,7 @@ function ChatInner() {
 
   const later = (fn: () => void, ms: number) => timers.current.push(setTimeout(fn, ms));
 
-  const askAssistant = async (question: string) => {
+  const askAssistant = async (question: string, history: ChatMessage[]) => {
     setTyping('assistant');
     const s = useAppStore.getState();
     const live = s.trips.find((x) => x.id === trip.id) as Trip;
@@ -77,7 +84,7 @@ function ChatInner() {
       const key = await getApiKey();
       if (key) {
         try {
-          reply = await askClaude(key, question, live.messages, ctx);
+          reply = await askClaude(key, question, history, ctx);
           source = 'claude';
         } catch {
           toast('Claude is unavailable — answered offline instead', { tone: 'warn', icon: 'cloud-offline-outline' });
@@ -89,21 +96,21 @@ function ChatInner() {
       reply = answerLocally(question, ctx);
     }
     setTyping(null);
-    send(trip.id, { authorId: 'assistant', ai: true, aiSource: source, text: reply });
+    send(trip.id, { authorId: 'assistant', ai: true, aiSource: source, channel: 'ai', text: reply });
     tap();
   };
 
-  const submit = (raw?: string, forceAi?: boolean) => {
+  const submit = (raw?: string) => {
     const msg = (raw ?? text).trim();
     if (!msg) return;
     if (msg.length > 1000) return toast('Messages can be up to 1000 characters', { tone: 'warn' });
     setText('');
-    send(trip.id, { authorId: userId, text: msg });
-    const toAi = forceAi || aiOn || /^@?(ai|assistant)\b/i.test(msg);
-    if (toAi) {
-      askAssistant(msg.replace(/^@?(ai|assistant)\b[:,]?\s*/i, ''));
+    if (tab === 'ai') {
+      send(trip.id, { authorId: userId, text: msg, channel: 'ai' });
+      askAssistant(msg, trip.messages.filter(inAiThread));
       return;
     }
+    send(trip.id, { authorId: userId, text: msg });
     const plan = planFriendReply(trip.members.filter((m) => m.id !== userId && !m.invited));
     if (plan) {
       later(() => setTyping(plan.friend.id), 900);
@@ -114,8 +121,10 @@ function ChatInner() {
     }
   };
 
+  const isAi = tab === 'ai';
+  const data = trip.messages.filter((m) => inAiThread(m) === isAi);
   const author = (id: string) => trip.members.find((m) => m.id === id);
-  const typingName = typing === 'assistant' ? t('chat.assistant') : typing ? author(typing)?.name.split(' ')[0] : null;
+  const typingFor = typing === 'assistant' ? (isAi ? 'Scout AI' : null) : isAi ? null : typing ? author(typing)?.name.split(' ')[0] : null;
 
   const renderItem = ({ item, index }: { item: ChatMessage; index: number }) => {
     if (item.kind === 'system') {
@@ -128,31 +137,35 @@ function ChatInner() {
       );
     }
     const mine = item.authorId === userId;
-    const prev = trip.messages[index - 1];
-    const grouped = prev && prev.authorId === item.authorId && item.ts - prev.ts < 5 * 60000;
+    const prev = data[index - 1];
+    const grouped = !!prev && prev.kind !== 'system' && prev.authorId === item.authorId && item.ts - prev.ts < 5 * 60000;
     const m = author(item.authorId);
-    const name = item.ai ? t('chat.assistant') : m?.name.split(' ')[0] ?? 'Former member';
+    const memberIndex = trip.members.findIndex((x) => x.id === item.authorId);
+    const avatarBg = memberIndex >= 0 ? AVATAR_COLORS[memberIndex % AVATAR_COLORS.length] : colors.textMuted;
+    const name = item.ai ? 'Scout AI' : m?.name.split(' ')[0] ?? 'Former member';
     return (
       <View style={[styles.msgRow, mine && { flexDirection: 'row-reverse' }, grouped && { marginTop: 2 }]}>
-        <View style={{ width: 30 }}>
-          {!grouped ? (
-            item.ai ? (
-              <View style={styles.aiAvatar}>
-                <Ionicons name="sparkles" size={14} color={colors.white} />
-              </View>
-            ) : (
-              <View style={styles.initials}>
-                <T variant="micro" weight="bold" color={colors.primary} style={{ fontSize: 9.5 }}>
-                  {initials(m?.name ?? '?')}
-                </T>
-              </View>
-            )
-          ) : null}
-        </View>
+        {!mine ? (
+          <View style={{ width: 30 }}>
+            {!grouped ? (
+              item.ai ? (
+                <View style={[styles.avatar, { backgroundColor: colors.black }]}>
+                  <Ionicons name="sparkles" size={14} color={colors.white} />
+                </View>
+              ) : (
+                <View style={[styles.avatar, { backgroundColor: avatarBg }]}>
+                  <T variant="micro" weight="bold" color={colors.white} style={{ fontSize: 12 }}>
+                    {(m?.name.trim()[0] ?? '?').toUpperCase()}
+                  </T>
+                </View>
+              )
+            ) : null}
+          </View>
+        ) : null}
         <View style={{ maxWidth: '78%', alignItems: mine ? 'flex-end' : 'flex-start' }}>
-          {!grouped ? (
+          {!grouped && !mine ? (
             <View style={styles.nameRow}>
-              <T variant="micro" color={colors.textMuted}>
+              <T variant="micro" weight="semibold" color={colors.textSecondary}>
                 {name}
               </T>
               {item.ai && item.aiSource === 'claude' ? (
@@ -163,7 +176,7 @@ function ChatInner() {
             </View>
           ) : null}
           <View style={[styles.bubble, mine ? styles.mine : item.ai ? styles.ai : styles.theirs]}>
-            <T variant="bodySm" color={mine ? colors.white : colors.text} selectable>
+            <T variant="bodySm" color={mine ? colors.white : item.ai ? colors.onAccent : colors.text} selectable>
               {item.text}
             </T>
           </View>
@@ -173,76 +186,83 @@ function ChatInner() {
   };
 
   return (
-    <View style={[styles.root, { paddingTop: insets.top }]}>
+    <View style={styles.root}>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.column}>
-        <View style={styles.header}>
-          <View style={{ flex: 1 }}>
-            <T variant="kicker" color={colors.textSecondary}>
-              {t('chat.kicker', { n: trip.members.length })}
+        <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
+          <View style={styles.titleRow}>
+            <T variant="display" numberOfLines={1} style={{ flex: 1 }}>
+              {trip.name}
             </T>
-            <T variant="h1">{t('chat.title')}</T>
+            <IconButton icon="images-outline" label="Photo dump" onPress={() => router.push('/photos')} />
           </View>
-          <Press onPress={() => router.push('/settings')} style={styles.modePill} accessibilityLabel="Assistant settings">
-            <Ionicons name={aiMode === 'claude' ? 'sparkles' : 'cloud-offline-outline'} size={12} color={colors.primary} />
-            <T variant="micro" weight="semibold" color={colors.primary}>
-              {aiMode === 'claude' ? 'Claude AI' : 'Offline AI'}
-            </T>
-          </Press>
-          <IconButton icon="images-outline" label="Photo dump" onPress={() => router.push('/photos')} />
+          <Segmented options={TABS} value={tab} onChange={setTab} />
+          {isAi ? (
+            <Press onPress={() => router.push('/settings')} style={styles.modePill} accessibilityLabel="Assistant settings">
+              <Ionicons name={aiMode === 'claude' ? 'sparkles' : 'cloud-offline-outline'} size={12} color={colors.text} />
+              <T variant="micro" weight="semibold" color={colors.text}>
+                {aiMode === 'claude' ? 'Answers by Claude · change in Settings' : 'Answers offline from your trip data · change in Settings'}
+              </T>
+            </Press>
+          ) : null}
         </View>
 
         <FlatList
+          key={tab}
           ref={list}
-          data={trip.messages}
+          data={data}
           keyExtractor={(m) => m.id}
           renderItem={renderItem}
-          contentContainerStyle={{ paddingHorizontal: 16, paddingVertical: 12 }}
+          contentContainerStyle={{ paddingHorizontal: 16, paddingVertical: 12, flexGrow: 1 }}
           onContentSizeChange={() => list.current?.scrollToEnd({ animated: true })}
           onLayout={() => list.current?.scrollToEnd({ animated: false })}
           keyboardShouldPersistTaps="handled"
           ListEmptyComponent={
-            <View style={{ alignItems: 'center', padding: 30, gap: 6 }}>
-              <Ionicons name="chatbubbles-outline" size={34} color={colors.primary} />
-              <T variant="title">Say hi to your group 👋</T>
-              <T variant="small" color={colors.textSecondary} center>
-                Messages here are shared with everyone on the trip. Start with “@ai” to ask the assistant.
-              </T>
-            </View>
+            isAi ? (
+              <Card style={styles.intro}>
+                <View style={[styles.avatar, styles.introIcon]}>
+                  <Ionicons name="sparkles" size={20} color={colors.white} />
+                </View>
+                <T variant="headline">Scout AI</T>
+                <T variant="small" color={colors.textSecondary} center>
+                  Scout AI knows your trip — budget, weather, food nearby, who owes who, flights… Ask away or tap a question below.
+                </T>
+              </Card>
+            ) : (
+              <View style={{ alignItems: 'center', padding: 30, gap: 6 }}>
+                <Ionicons name="chatbubbles-outline" size={34} color={colors.textMuted} />
+                <T variant="title">Say hi to your crew 👋</T>
+                <T variant="small" color={colors.textSecondary} center>
+                  Messages here are shared with everyone on the trip. Switch to Scout AI to ask the assistant.
+                </T>
+              </View>
+            )
           }
           ListFooterComponent={
-            typingName ? (
+            typingFor ? (
               <View style={styles.typing}>
                 <T variant="caption" color={colors.textMuted}>
-                  {t('chat.typing', { name: typingName })}
+                  {t('chat.typing', { name: typingFor })}
                 </T>
               </View>
             ) : null
           }
         />
 
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} keyboardShouldPersistTaps="handled" contentContainerStyle={{ gap: 6, paddingHorizontal: 16, paddingBottom: 8 }} style={{ flexGrow: 0 }}>
-          {QUICK.map((k) => (
-            <Chip key={k} small label={t(k)} onPress={() => submit(t(k), true)} />
-          ))}
-          <Chip small label="Who owes who?" onPress={() => submit('Who owes who?', true)} />
-          <Chip small label="Convert 50 USD" onPress={() => submit('Convert 50 USD', true)} />
-        </ScrollView>
+        {isAi ? (
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} keyboardShouldPersistTaps="handled" contentContainerStyle={{ gap: 6, paddingHorizontal: 16, paddingBottom: 8 }} style={{ flexGrow: 0 }}>
+            {QUICK.map((k) => (
+              <Chip key={k} small label={t(k)} onPress={() => submit(t(k))} />
+            ))}
+            <Chip small label="Who owes who?" onPress={() => submit('Who owes who?')} />
+            <Chip small label="Convert 50 USD" onPress={() => submit('Convert 50 USD')} />
+          </ScrollView>
+        ) : null}
 
         <View style={styles.inputBar}>
-          <Press
-            onPress={() => {
-              setAiOn((v) => !v);
-              tap();
-            }}
-            style={[styles.aiToggle, aiOn && styles.aiToggleOn]}
-            accessibilityLabel={aiOn ? 'Talking to the Trip Assistant. Tap to message the group' : 'Ask the Trip Assistant'}
-            accessibilityState={{ selected: aiOn }}>
-            <Ionicons name="sparkles" size={16} color={aiOn ? colors.white : colors.primary} />
-          </Press>
           <TextInput
             value={text}
             onChangeText={setText}
-            placeholder={aiOn ? t('chat.askAi') : t('chat.placeholder')}
+            placeholder={isAi ? 'Ask Scout anything…' : 'Message the crew…'}
             placeholderTextColor={colors.textMuted}
             style={styles.input}
             multiline
@@ -253,8 +273,8 @@ function ChatInner() {
             returnKeyType="send"
             testID="chat-input"
           />
-          <Press onPress={() => submit()} style={[styles.send, !text.trim() && { opacity: 0.5 }]} disabled={!text.trim()} accessibilityLabel="Send message" testID="chat-send">
-            <Ionicons name="paper-plane" size={17} color={colors.white} />
+          <Press onPress={() => submit()} style={[styles.send, !text.trim() && { opacity: 0.4 }]} disabled={!text.trim()} accessibilityLabel="Send message" testID="chat-send">
+            <Ionicons name="arrow-up" size={20} color={colors.white} />
           </Press>
         </View>
       </KeyboardAvoidingView>
@@ -265,21 +285,21 @@ function ChatInner() {
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.bg, alignItems: 'center' },
   column: { flex: 1, width: '100%', maxWidth: MAX_WIDTH },
-  header: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 20, paddingTop: 12, paddingBottom: 10, borderBottomWidth: 1, borderBottomColor: colors.border },
-  modePill: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 999, backgroundColor: colors.primarySoft },
+  header: { gap: 12, paddingHorizontal: 20, paddingBottom: 12, backgroundColor: colors.card, borderBottomWidth: 1, borderBottomColor: colors.border },
+  titleRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  modePill: { alignSelf: 'flex-start', flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 999, backgroundColor: colors.bgAlt },
   system: { alignSelf: 'center', backgroundColor: colors.bgAlt, paddingHorizontal: 12, paddingVertical: 5, borderRadius: 999, marginVertical: 8 },
   msgRow: { flexDirection: 'row', alignItems: 'flex-end', gap: 8, marginTop: 12 },
-  nameRow: { flexDirection: 'row', gap: 2, marginBottom: 3, marginHorizontal: 4 },
-  initials: { width: 30, height: 30, borderRadius: 15, backgroundColor: colors.primarySoft, alignItems: 'center', justifyContent: 'center' },
-  aiAvatar: { width: 30, height: 30, borderRadius: 15, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' },
-  bubble: { paddingHorizontal: 14, paddingVertical: 10, borderRadius: 18 },
-  mine: { backgroundColor: colors.primary, borderBottomRightRadius: 6 },
-  theirs: { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, borderBottomLeftRadius: 6 },
-  ai: { backgroundColor: colors.primarySoft, borderBottomLeftRadius: 6 },
-  typing: { paddingHorizontal: 54, paddingTop: 10 },
+  nameRow: { flexDirection: 'row', gap: 3, marginBottom: 3, marginHorizontal: 6 },
+  avatar: { width: 30, height: 30, borderRadius: 15, alignItems: 'center', justifyContent: 'center' },
+  bubble: { paddingHorizontal: 16, paddingVertical: 11, borderRadius: 20 },
+  mine: { backgroundColor: colors.blue },
+  theirs: { backgroundColor: colors.card, ...shadow },
+  ai: { backgroundColor: colors.accentSoft, ...shadow },
+  intro: { alignItems: 'center', gap: 8, paddingVertical: 24, marginTop: 8 },
+  introIcon: { width: 48, height: 48, borderRadius: 24, backgroundColor: colors.black },
+  typing: { paddingHorizontal: 44, paddingTop: 10 },
   inputBar: { flexDirection: 'row', alignItems: 'flex-end', gap: 8, paddingHorizontal: 16, paddingTop: 6, paddingBottom: 10 },
-  aiToggle: { width: 44, height: 44, borderRadius: 22, borderWidth: 1, borderColor: colors.primaryLine, backgroundColor: colors.primarySofter, alignItems: 'center', justifyContent: 'center' },
-  aiToggleOn: { backgroundColor: colors.primary, borderColor: colors.primary },
   input: {
     flex: 1,
     minHeight: 44,
@@ -288,7 +308,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.card,
     borderWidth: 1,
     borderColor: colors.border,
-    paddingHorizontal: 16,
+    paddingHorizontal: 18,
     paddingTop: 12,
     paddingBottom: 12,
     fontFamily: fonts.regular,
@@ -296,6 +316,5 @@ const styles = StyleSheet.create({
     color: colors.text,
     ...({ outlineStyle: 'none' } as object),
   },
-  send: { width: 44, height: 44, borderRadius: 22, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' },
+  send: { width: 44, height: 44, borderRadius: 22, backgroundColor: colors.black, alignItems: 'center', justifyContent: 'center' },
 });
-

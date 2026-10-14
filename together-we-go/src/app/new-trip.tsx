@@ -63,7 +63,7 @@ export default function NewTrip() {
       tap('success');
       toast('Trip created 🎉 — share the invite code with your group');
       router.dismissAll?.();
-      router.replace('/(tabs)/profile');
+      router.replace('/crew');
     }
   };
 

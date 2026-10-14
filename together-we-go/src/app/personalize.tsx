@@ -21,54 +21,14 @@ import { MAX_WIDTH, appearance, applyAppearance, baseColors, cornerStyles, fonts
 
 const EMOJIS = ['✈️', '🌴', '🏔️', '🍜', '📸', '🎒', '🌸', '🏄', '🚂', '🗺️', '🌙', '🦋'];
 
-const SECTIONS: {
-  key: HomeSection;
-  label: string;
-  sub: string;
-  icon: IconName;
-}[] = [
-  {
-    key: 'reminder',
-    label: 'Live reminder',
-    sub: 'Countdown to your next activity',
-    icon: 'alarm-outline',
-  },
-  {
-    key: 'forYou',
-    label: 'Picked for you',
-    sub: 'Destinations matching your interests',
-    icon: 'sparkles-outline',
-  },
-  {
-    key: 'popular',
-    label: 'Popular destinations',
-    sub: 'Search + category grid',
-    icon: 'flame-outline',
-  },
-  {
-    key: 'featured',
-    label: 'Featured trips',
-    sub: 'Big swipeable photo cards',
-    icon: 'images-outline',
-  },
-  {
-    key: 'glance',
-    label: 'Weather & airport',
-    sub: 'Colourful at-a-glance tiles',
-    icon: 'partly-sunny-outline',
-  },
-  {
-    key: 'nearby',
-    label: 'Nearby radius',
-    sub: 'Places around your trip',
-    icon: 'navigate-outline',
-  },
-  {
-    key: 'tools',
-    label: 'Quick tools',
-    sub: 'Shortcuts to every feature',
-    icon: 'grid-outline',
-  },
+const SECTIONS: { key: HomeSection; label: string; sub: string; icon: IconName }[] = [
+  { key: 'glance', label: 'Weather & local time', sub: 'Two quick tiles under the hero', icon: 'partly-sunny-outline' },
+  { key: 'budget', label: 'Group budget', sub: 'Spent so far with a progress bar', icon: 'wallet-outline' },
+  { key: 'upnext', label: 'Up next & today', sub: 'Countdown and today’s checklist', icon: 'alarm-outline' },
+  { key: 'quick', label: 'Quick tiles', sub: 'Vote, flights, docs and photos', icon: 'grid-outline' },
+  { key: 'forYou', label: 'Picked for you', sub: 'Destinations matching your interests', icon: 'sparkles-outline' },
+  { key: 'nearby', label: 'Nearby radius', sub: 'Places around your trip', icon: 'navigate-outline' },
+  { key: 'discover', label: 'Discover destinations', sub: 'Photo cards to dream about', icon: 'images-outline' },
 ];
 
 const PACE: {

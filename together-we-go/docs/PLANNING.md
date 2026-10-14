@@ -19,7 +19,7 @@ flowchart LR
   A[Onboarding] --> B[Sign in / Sign up]
   B --> C{Has a trip?}
   C -- no --> D[Create trip<br/>or Join with code]
-  C -- yes --> E[Explore]
+  C -- yes --> E[Home]
   D --> F[Invite group<br/>share code to socials]
   F --> G[Assign roles]
   G --> H[Build itinerary<br/>vote & confirm]
@@ -34,11 +34,11 @@ flowchart LR
 flowchart TB
   Root[Root Stack<br/>Stack.Protected] --> Auth[Onboarding · Sign in · Sign up · Reset password]
   Root --> Tabs[Bottom tabs]
-  Tabs --> T1[Explore]
-  Tabs --> T2[Itinerary]
+  Tabs --> T1[Home]
+  Tabs --> T2[Plan + Vote]
   Tabs --> T3[Budget]
   Tabs --> T4[Chat]
-  Tabs --> T5[Profile / Trip hub]
+  Tabs --> T5[More menu]
   Root --> More[Stack screens]
   More --> M1[Destination · All destinations · Nearby · Map]
   More --> M2[Flights · Weather · Currency · Nearest airport]
@@ -46,6 +46,7 @@ flowchart TB
   More --> M4[Quiz · Survey · Recap · Emergency · Phrasebook]
   More --> M5[My trips · New/Edit trip · Join · Notifications · Settings · Help · About]
   More --> M6[Make it yours — personalization survey]
+  More --> M7[Crew & roles · How it works]
 ```
 
 ## 5. Architecture
@@ -113,7 +114,9 @@ Key decisions:
 | Area | Checks |
 |---|---|
 | Auth | Empty-field errors, wrong password, sign-up validation & strength meter, reset-code flow, old password rejected after reset |
-| Itinerary | Add-activity validation, overlap warning, vote → auto-confirm, reminder toggle, edit, delete, category filter |
+| Plan | Add-activity validation, overlap warning, vote → auto-confirm, **Lock in** (organizer only), reminder toggle, edit, delete, category + time filters |
+| Budget | Receipt attach, expense validation, who-owes-who, settle up, home/local currency view |
+| Extras | Day/night hero toggle, Scout AI tab separate from the crew chat, packing assignment + fair split, first-run tour, story card |
 | Budget | Amount validation, ¥ expense converted to USD, settle-up records payment, budget-cap validation |
 | Collaboration | Join with empty/unknown/valid code, add-member validation (name, email), polls (vote, close), checklist add + empty-task error |
 | Flights | Missing-field errors, unknown IATA rejected, flight saved, time-zone toggle |

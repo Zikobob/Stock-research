@@ -8,7 +8,7 @@
     "icon": "./assets/images/icon.png",
     "scheme": "togetherwego",
     "userInterfaceStyle": "light",
-    "backgroundColor": "#F4F4EE",
+    "backgroundColor": "#F1F2F4",
     "ios": {
       "bundleIdentifier": "com.togetherwego.app",
       "supportsTablet": true
@@ -27,15 +27,15 @@
       "output": "single",
       "favicon": "./assets/images/favicon.png",
       "name": "TogetherWeGo",
-      "themeColor": "#1F4D25",
-      "backgroundColor": "#F4F4EE"
+      "themeColor": "#0B0B0D",
+      "backgroundColor": "#F1F2F4"
     },
     "plugins": [
       "expo-router",
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#F4F4EE",
+          "backgroundColor": "#F1F2F4",
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 160
         }
@@ -56,7 +56,7 @@
       [
         "expo-notifications",
         {
-          "color": "#1F4D25"
+          "color": "#0B0B0D"
         }
       ],
       "expo-sharing",

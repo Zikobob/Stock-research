@@ -1,11 +1,5 @@
-import {
-  Outfit_400Regular,
-  Outfit_500Medium,
-  Outfit_600SemiBold,
-  Outfit_700Bold,
-  Outfit_800ExtraBold,
-  useFonts,
-} from '@expo-google-fonts/outfit';
+import { Anton_400Regular } from '@expo-google-fonts/anton';
+import { Manrope_400Regular, Manrope_500Medium, Manrope_600SemiBold, Manrope_700Bold, Manrope_800ExtraBold, useFonts } from '@expo-google-fonts/manrope';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
@@ -21,7 +15,7 @@ import { colors, isDark } from '@/theme';
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
 export default function RootLayout() {
-  const [fontsLoaded, fontError] = useFonts({ Outfit_400Regular, Outfit_500Medium, Outfit_600SemiBold, Outfit_700Bold, Outfit_800ExtraBold });
+  const [fontsLoaded, fontError] = useFonts({ Anton_400Regular, Manrope_400Regular, Manrope_500Medium, Manrope_600SemiBold, Manrope_700Bold, Manrope_800ExtraBold });
   const hydrated = useAppStore((s) => s.hydrated);
   const seeded = useAppStore((s) => s.seeded);
   const signedIn = useAppStore((s) => !!s.session);
@@ -69,6 +63,8 @@ export default function RootLayout() {
           <Stack.Screen name="new-trip" options={{ presentation: 'modal', animation: 'slide_from_bottom' }} />
           <Stack.Screen name="join" options={{ presentation: 'modal', animation: 'slide_from_bottom' }} />
           <Stack.Screen name="flights" />
+          <Stack.Screen name="crew" />
+          <Stack.Screen name="how-it-works" />
           <Stack.Screen name="map" />
           <Stack.Screen name="weather" />
           <Stack.Screen name="photos" />

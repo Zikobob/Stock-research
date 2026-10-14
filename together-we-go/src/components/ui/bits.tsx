@@ -190,12 +190,9 @@ export function IconButton({
 export function SectionHeader({ title, action, onAction, style }: { title: string; action?: string; onAction?: () => void; style?: StyleProp<ViewStyle> }) {
   return (
     <View style={[styles.sectionHeader, style]}>
-      <View style={styles.sectionTitle}>
-        <View style={styles.sectionBar} />
-        <T variant="h3" accessibilityRole="header">
-          {title}
-        </T>
-      </View>
+      <T variant="headline" accessibilityRole="header" style={{ flexShrink: 1 }}>
+        {title}
+      </T>
       {action ? (
         <Press onPress={onAction} hitSlop={8} accessibilityLabel={action}>
           <T variant="small" weight="semibold" color={colors.textSecondary}>
@@ -336,8 +333,6 @@ const styles = StyleSheet.create({
     borderColor: colors.white,
   },
   sectionHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 },
-  sectionTitle: { flexDirection: 'row', alignItems: 'center', gap: 8, flexShrink: 1 },
-  sectionBar: { width: 5, height: 18, borderRadius: 3, backgroundColor: colors.accent },
   pill: { flexDirection: 'row', alignItems: 'center', gap: 3, paddingHorizontal: 8, paddingVertical: 3, borderRadius: radius.pill, alignSelf: 'flex-start' },
   empty: { alignItems: 'center', gap: 8, paddingVertical: 36, paddingHorizontal: 24 },
   emptyIcon: {

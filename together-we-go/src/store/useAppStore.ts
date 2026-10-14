@@ -141,6 +141,7 @@ interface Actions {
   deletePhoto: (tripId: string, id: string) => void;
 
   togglePacked: (tripId: string, id: string) => void;
+  assignPacking: (tripId: string, id: string, memberId?: string) => void;
   addPackingItems: (tripId: string, items: Omit<PackingItem, 'id' | 'packed'>[]) => void;
   deletePackingItem: (tripId: string, id: string) => void;
 
@@ -161,6 +162,7 @@ interface Actions {
   setSurveyResult: (ids: string[] | null) => void;
   updatePersonal: (patch: Partial<Personal>) => void;
   setRestyled: (v: boolean) => void;
+  setToured: (v: boolean) => void;
   markReminderFired: (key: string) => void;
   resetEverything: () => void;
 }
@@ -185,7 +187,7 @@ export const defaultPersonal: Personal = {
   interests: [],
   travelStyle: 'balanced',
   budgetStyle: 'mid',
-  sections: { reminder: true, forYou: true, popular: true, featured: true, glance: true, nearby: true, tools: true },
+  sections: { glance: true, budget: true, upnext: true, quick: true, forYou: true, nearby: true, discover: true },
   motion: true,
 };
 
@@ -225,9 +227,9 @@ function seedBucket(): BucketItem[] {
 function seedNotifications(): AppNotification[] {
   const now = Date.now();
   return [
-    { id: uid('n-'), kind: 'vote', title: 'New poll from Noah', body: 'Day 4 evening — what are we doing? Cast your vote.', ts: now - 600 * 60000, read: false, tripId: 'trip-tokyo', route: '/(tabs)/profile' },
-    { id: uid('n-'), kind: 'expense', title: 'Ana added an expense', body: 'teamLab tickets · $132 split 6 ways', ts: now - 420 * 60000, read: false, tripId: 'trip-tokyo', route: '/(tabs)/budget' },
-    { id: uid('n-'), kind: 'chat', title: 'Diego in Trip chat', body: 'Found a ramen spot 4 min from the apartment 🍜', ts: now - 42 * 60000, read: false, tripId: 'trip-tokyo', route: '/(tabs)/chat' },
+    { id: uid('n-'), kind: 'vote', title: 'New poll from Sam', body: 'Beach day — which beach? Cast your vote.', ts: now - 600 * 60000, read: false, tripId: 'trip-amalfi', route: '/crew' },
+    { id: uid('n-'), kind: 'expense', title: 'Diego added an expense', body: 'Dinner deposits & groceries · $86 split 4 ways', ts: now - 420 * 60000, read: false, tripId: 'trip-amalfi', route: '/(tabs)/budget' },
+    { id: uid('n-'), kind: 'chat', title: 'Diego in Amalfi Squad', body: 'Dinner tonight at 7, I reserved for 4 🍝', ts: now - 42 * 60000, read: false, tripId: 'trip-amalfi', route: '/(tabs)/chat' },
   ];
 }
 
@@ -255,8 +257,8 @@ export const useAppStore = create<AppStore>()(
           set((s) => {
             if (s.seeded) return;
             s.accounts = [demo, ...s.accounts.filter((a) => a.email !== DEMO_EMAIL)];
-            s.trips = [buildDemoTrip('upcoming'), ...buildSecondaryTrips()];
-            s.activeTripId = 'trip-tokyo';
+            s.trips = [buildDemoTrip('upcoming'), ...buildSecondaryTrips(), ...s.trips];
+            s.activeTripId = 'trip-amalfi';
             s.bucket = seedBucket();
             s.notifications = seedNotifications();
             s.seeded = true;
@@ -627,6 +629,12 @@ export const useAppStore = create<AppStore>()(
             if (p) p.packed = !p.packed;
           }),
 
+        assignPacking: (tripId, id, memberId) =>
+          withTrip(tripId, (t) => {
+            const p = t.packing.find((x) => x.id === id);
+            if (p) p.broughtBy = memberId;
+          }),
+
         addPackingItems: (tripId, items) =>
           withTrip(tripId, (t) => {
             const have = new Set(t.packing.map((p) => p.text.toLowerCase()));
@@ -697,6 +705,10 @@ export const useAppStore = create<AppStore>()(
         setQuizBest: (n) => set((s) => ({ quizBest: Math.max(s.quizBest, n) })),
         setSurveyResult: (ids) => set({ surveyResult: ids }),
         setRestyled: (v) => set({ restyled: v }),
+        setToured: (v) =>
+          set((s) => {
+            s.personal.toured = v;
+          }),
         updatePersonal: (patch) =>
           set((s) => {
             Object.assign(s.personal, patch);
@@ -713,7 +725,19 @@ export const useAppStore = create<AppStore>()(
     }),
     {
       name: 'togetherwego-v1',
-      version: 1,
+      version: 2,
+      // v2: "Amalfi Squad" replaced the Tokyo trip as the main demo — re-seed the demo trips once, keep the user's own.
+      migrate: (persisted, version) => {
+        const old = persisted as Partial<State>;
+        if (version >= 2) return old as AppStore;
+        const demoIds = ['trip-tokyo', 'trip-bali', 'trip-bcn', 'trip-amalfi'];
+        return { ...old, seeded: false, activeTripId: null, trips: (old.trips ?? []).filter((t) => !demoIds.includes(t.id)) } as AppStore;
+      },
+      // New settings added in later versions fall back to their defaults instead of vanishing.
+      merge: (persisted, current) => {
+        const p = (persisted ?? {}) as Partial<State>;
+        return { ...current, ...p, personal: { ...current.personal, ...p.personal, sections: { ...current.personal.sections, ...p.personal?.sections } } } as AppStore;
+      },
       storage: createJSONStorage(() => AsyncStorage),
       partialize: (s) => {
         // Don't persist the session unless "Remember me" was ticked.

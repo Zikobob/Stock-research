@@ -7,7 +7,7 @@ import { ScrollView, StyleSheet, View } from 'react-native';
 import { DatePickerSheet, TimePickerSheet } from '@/components/pickers';
 import { NoTrip } from '@/components/trip/NoTrip';
 import { Button } from '@/components/ui/Button';
-import { Avatar, Card, Chip, Pill, ToggleRow } from '@/components/ui/bits';
+import { Avatar, Card, Chip, ToggleRow } from '@/components/ui/bits';
 import { confirmAction, toast } from '@/components/ui/feedback';
 import { Input } from '@/components/ui/Input';
 import { Press, tap } from '@/components/ui/Press';
@@ -18,12 +18,16 @@ import { airportByIata } from '@/data/airports';
 import { destinationById } from '@/data/destinations';
 import { FileTooLargeError, pickDocument, pickImage } from '@/services/files';
 import { useActiveTrip, useAppStore } from '@/store/useAppStore';
-import type { Flight } from '@/store/types';
+import type { Flight, Member } from '@/store/types';
 import { colors, radius } from '@/theme';
 import { durationLabel } from '@/utils/format';
 import { distanceKm, kmLabel } from '@/utils/geo';
 import { addDays, dayLabel, deviceTimeZone, formatInTz, partsInTz, time12, tzAbbrev, utcOffsetLabel, zonedToUtc } from '@/utils/time';
 import { maxLen, validateFlightNumber, validateIata } from '@/utils/validation';
+
+const AVATAR_COLORS = ['#F2553D', '#1E88E5', '#2FBF5B', '#E5A100', '#8E5CD6', '#D94F86'];
+
+type Person = { id: string; name: string; member?: Member; flights: Flight[] };
 
 export default function Flights() {
   const trip = useActiveTrip();
@@ -37,137 +41,158 @@ export default function Flights() {
   const tz = showTripTime ? dest.tz : deviceTimeZone();
   const sorted = trip.flights.slice().sort((a, b) => (a.direction === 'arrival' ? a.arriveUtc : a.departUtc) - (b.direction === 'arrival' ? b.arriveUtc : b.departUtc));
   const arrivals = sorted.filter((f) => f.direction === 'arrival');
-  const departures = sorted.filter((f) => f.direction === 'departure');
-  const missing = trip.members.filter((m) => !trip.flights.some((f) => f.memberId === m.id));
   const firstLand = arrivals[0];
   const lastLand = arrivals[arrivals.length - 1];
 
-  const card = (f: Flight) => {
-    const m = trip.members.find((x) => x.id === f.memberId);
+  const everyone: Person[] = trip.members.map((m) => ({ id: m.id, name: m.id === userId ? 'You' : m.name, member: m, flights: sorted.filter((f) => f.memberId === m.id) }));
+  const former = sorted.filter((f) => !trip.members.some((m) => m.id === f.memberId));
+  if (former.length) everyone.push({ id: 'former', name: 'Former member', flights: former });
+  const people = [...everyone.filter((p) => p.flights.length), ...everyone.filter((p) => !p.flights.length)];
+
+  const when = (utc: number) => {
+    const p = partsInTz(utc, tz);
+    return `${time12(p.hhmm)} local · ${dayLabel(p.ymd)}`;
+  };
+
+  const detail = (f: Flight) => {
     const from = airportByIata(f.from);
     const to = airportByIata(f.to);
     const canDelete = f.memberId === userId || trip.ownerId === userId;
+    const extra = [f.seat ? `Seat ${f.seat}` : null, f.confirmation ? `Conf. ${f.confirmation}` : null, from && to ? `Airport time ${time12(partsInTz(f.departUtc, from.tz).hhmm)} → ${time12(partsInTz(f.arriveUtc, to.tz).hhmm)}` : null]
+      .filter(Boolean)
+      .join(' · ');
     return (
-      <Card key={f.id} style={{ gap: 10 }}>
-        <View style={styles.row}>
-          <Avatar name={m?.name ?? '?'} src={m?.avatar} size={34} />
-          <View style={{ flex: 1 }}>
-            <T variant="small" weight="semibold">
-              {m?.name ?? 'Former member'}
-            </T>
+      <View key={f.id} style={styles.detail}>
+        <Ionicons name={f.direction === 'arrival' ? 'airplane' : 'airplane-outline'} size={14} color={colors.textMuted} />
+        <View style={{ flex: 1 }}>
+          <T variant="caption" weight="semibold">
+            {f.direction === 'arrival' ? 'Arrival' : 'Departure'} · {f.flightNo} · {f.from} → {f.to}
             <T variant="caption" color={colors.textSecondary}>
-              {f.airline} · {f.flightNo}
+              {` · ${durationLabel(Math.round((f.arriveUtc - f.departUtc) / 60000))}`}
             </T>
-          </View>
-          <Pill label={f.direction === 'arrival' ? 'Arrival' : 'Departure'} tone={f.direction === 'arrival' ? 'green' : 'blue'} icon={f.direction === 'arrival' ? 'airplane' : 'airplane-outline'} />
-        </View>
-        <View style={styles.route}>
-          <View style={{ flex: 1 }}>
-            <T variant="h2">{f.from}</T>
-            <T variant="caption" color={colors.textSecondary} numberOfLines={1}>
-              {from?.city}
+          </T>
+          {extra ? (
+            <T variant="caption" color={colors.textMuted}>
+              {extra}
             </T>
-            <T variant="small" weight="semibold">
-              {formatInTz(f.departUtc, tz)}
-            </T>
-          </View>
-          <View style={{ alignItems: 'center' }}>
-            <Ionicons name="airplane" size={18} color={colors.primary} />
-            <T variant="micro" color={colors.textMuted}>
-              {durationLabel(Math.round((f.arriveUtc - f.departUtc) / 60000))}
-            </T>
-          </View>
-          <View style={{ flex: 1, alignItems: 'flex-end' }}>
-            <T variant="h2">{f.to}</T>
-            <T variant="caption" color={colors.textSecondary} numberOfLines={1}>
-              {to?.city}
-            </T>
-            <T variant="small" weight="semibold">
-              {formatInTz(f.arriveUtc, tz)}
-            </T>
-          </View>
-        </View>
-        <View style={[styles.row, { flexWrap: 'wrap', gap: 6 }]}>
-          {f.seat ? <Pill label={`Seat ${f.seat}`} tone="gray" /> : null}
-          {f.confirmation ? <Pill label={`Conf. ${f.confirmation}`} tone="gray" /> : null}
-          {from && to ? <Pill label={`Local: ${time12(partsInTz(f.departUtc, from.tz).hhmm)} → ${time12(partsInTz(f.arriveUtc, to.tz).hhmm)}`} tone="yellow" icon="time-outline" /> : null}
-        </View>
-        <View style={[styles.row, { gap: 8 }]}>
-          {f.ticketUri ? (
-            <Press onPress={() => Linking.openURL(f.ticketUri!).catch(() => toast('Ticket saved offline in Documents'))} style={styles.ticket}>
-              {/\.(png|jpe?g|webp|heic)$/i.test(f.ticketName ?? '') || f.ticketUri.startsWith('data:image') ? (
-                <Image source={{ uri: f.ticketUri }} style={{ width: 28, height: 28, borderRadius: 6 }} />
-              ) : (
-                <Ionicons name="document-attach-outline" size={16} color={colors.primary} />
-              )}
-              <T variant="caption" weight="semibold" color={colors.primary} numberOfLines={1}>
-                {f.ticketName ?? 'Ticket'}
-              </T>
-            </Press>
-          ) : (
-            <T variant="caption" color={colors.textMuted} style={{ flex: 1 }}>
-              No ticket attached
-            </T>
-          )}
-          {canDelete ? (
-            <Press
-              onPress={() => confirmAction('Remove flight?', `${f.flightNo} will be removed from the trip.`, () => deleteFlight(trip.id, f.id), { destructive: true, confirmLabel: 'Remove' })}
-              hitSlop={8}
-              accessibilityLabel="Remove flight">
-              <Ionicons name="trash-outline" size={18} color={colors.textMuted} />
-            </Press>
           ) : null}
         </View>
+        {f.ticketUri ? (
+          <Press onPress={() => Linking.openURL(f.ticketUri!).catch(() => toast('Ticket saved offline in Documents'))} style={styles.ticket} accessibilityLabel={`Open ticket ${f.ticketName ?? ''}`}>
+            {/\.(png|jpe?g|webp|heic)$/i.test(f.ticketName ?? '') || f.ticketUri.startsWith('data:image') ? (
+              <Image source={{ uri: f.ticketUri }} style={{ width: 22, height: 22, borderRadius: 6 }} />
+            ) : (
+              <Ionicons name="document-attach-outline" size={15} color={colors.text} />
+            )}
+            <T variant="caption" weight="semibold" numberOfLines={1} style={{ maxWidth: 80 }}>
+              {f.ticketName ?? 'Ticket'}
+            </T>
+          </Press>
+        ) : null}
+        {canDelete ? (
+          <Press
+            onPress={() => confirmAction('Remove flight?', `${f.flightNo} will be removed from the trip.`, () => deleteFlight(trip.id, f.id), { destructive: true, confirmLabel: 'Remove' })}
+            hitSlop={8}
+            accessibilityLabel={`Remove flight ${f.flightNo}`}>
+            <Ionicons name="trash-outline" size={17} color={colors.textMuted} />
+          </Press>
+        ) : null}
+      </View>
+    );
+  };
+
+  const personCard = (p: Person) => {
+    const arr = p.flights.filter((f) => f.direction === 'arrival');
+    const dep = p.flights.filter((f) => f.direction === 'departure');
+    const labels = [...new Set([arr[0], dep[0]].filter((f): f is Flight => !!f).map((f) => `${f.airline} ${f.flightNo}`))];
+    const bg = AVATAR_COLORS[(p.name.charCodeAt(0) + p.name.length) % AVATAR_COLORS.length];
+    return (
+      <Card key={p.id} style={styles.person}>
+        <View style={styles.row}>
+          {p.member?.avatar ? (
+            <Avatar name={p.name} src={p.member.avatar} size={34} />
+          ) : (
+            <View style={[styles.dot, { backgroundColor: bg }]} accessibilityLabel={p.name}>
+              <T variant="small" weight="bold" color={colors.white}>
+                {p.name.trim().charAt(0).toUpperCase()}
+              </T>
+            </View>
+          )}
+          <T variant="title" weight="bold" numberOfLines={1} style={{ flex: 1 }}>
+            {p.name}
+          </T>
+          <View style={{ alignItems: 'flex-end', gap: 4 }}>
+            {labels.map((l) => (
+              <View key={l} style={styles.flightPill}>
+                <T variant="micro" weight="bold" numberOfLines={1}>
+                  {l}
+                </T>
+              </View>
+            ))}
+          </View>
+        </View>
+        {p.flights.length ? (
+          <>
+            {Array.from({ length: Math.max(arr.length, dep.length) }, (_, i) => (
+              <View key={i} style={styles.leg}>
+                <View style={{ flex: 1 }}>
+                  <T variant="kicker" color={colors.textMuted} style={styles.legLabel}>
+                    Arrives
+                  </T>
+                  <T variant="small" weight="bold" color={arr[i] ? colors.text : colors.textMuted}>
+                    {arr[i] ? when(arr[i].arriveUtc) : '—'}
+                  </T>
+                </View>
+                <Ionicons name="airplane" size={16} color={colors.textMuted} />
+                <View style={{ flex: 1, alignItems: 'flex-end' }}>
+                  <T variant="kicker" color={colors.textMuted} style={styles.legLabel}>
+                    Departs
+                  </T>
+                  <T variant="small" weight="bold" color={dep[i] ? colors.text : colors.textMuted}>
+                    {dep[i] ? when(dep[i].departUtc) : '—'}
+                  </T>
+                </View>
+              </View>
+            ))}
+            <View style={{ gap: 2 }}>{[...arr, ...dep].map(detail)}</View>
+          </>
+        ) : (
+          <T variant="small" color={colors.textMuted}>
+            No flight added yet
+          </T>
+        )}
       </Card>
     );
   };
 
   return (
-    <Screen header={<Header title="Flights & arrivals" subtitle={`${trip.flights.length} flights · ${trip.name}`} />}>
-      <Press onPress={() => updateSettings({ showTripTime: !showTripTime })} style={styles.tz} accessibilityLabel="Switch time zone">
-        <Ionicons name="globe-outline" size={18} color={colors.primary} />
-        <View style={{ flex: 1 }}>
-          <T variant="small" weight="semibold">
-            Showing {showTripTime ? `${dest.city} time` : 'your time'} · {tzAbbrev(tz)} ({utcOffsetLabel(tz)})
-          </T>
-          <T variant="caption" color={colors.textSecondary}>
-            Tap to switch to {showTripTime ? 'your phone’s time zone' : `${dest.city} local time`}
-          </T>
-        </View>
-        <Ionicons name="swap-horizontal" size={18} color={colors.primary} />
+    <Screen
+      header={
+        <Header
+          title="Flights"
+          subtitle={`Times shown in ${tz}`}
+          right={<Button label="Mine" icon="cloud-upload-outline" size="sm" full={false} onPress={() => setAdding(true)} accessibilityHint="Add your flight or upload a ticket" testID="add-flight" />}
+        />
+      }>
+      <Press onPress={() => updateSettings({ showTripTime: !showTripTime })} style={styles.tz} accessibilityLabel={`Showing ${showTripTime ? `${dest.city} time` : 'your time'}. Tap to switch time zone`}>
+        <Ionicons name="globe-outline" size={15} color={colors.blue} />
+        <T variant="caption" weight="semibold" color={colors.blue}>
+          {showTripTime ? `${dest.city} time` : 'Your time'} · {tzAbbrev(tz)} ({utcOffsetLabel(tz)}) · tap to switch
+        </T>
+        <Ionicons name="swap-horizontal" size={15} color={colors.blue} />
       </Press>
 
+      <View style={{ gap: 12 }}>{people.map(personCard)}</View>
+
       {firstLand && lastLand ? (
-        <Card style={{ marginTop: 12, flexDirection: 'row', gap: 10, alignItems: 'center' }}>
-          <Ionicons name="people-outline" size={20} color={colors.primary} />
+        <Card style={styles.summary}>
+          <Ionicons name="people-outline" size={20} color={colors.text} />
           <T variant="caption" style={{ flex: 1 }}>
             First arrival {formatInTz(firstLand.arriveUtc, tz)}, last {formatInTz(lastLand.arriveUtc, tz)} — the group is complete{' '}
             {durationLabel(Math.round((lastLand.arriveUtc - firstLand.arriveUtc) / 60000))} after the first landing.
           </T>
         </Card>
       ) : null}
-
-      <Button label="Add my flight / upload ticket" icon="add" onPress={() => setAdding(true)} style={{ marginTop: 14 }} testID="add-flight" />
-
-      {missing.length ? (
-        <Card style={{ marginTop: 12, backgroundColor: colors.orangeSoft, borderColor: colors.orangeSoft }}>
-          <T variant="small" weight="semibold">
-            Still missing flights
-          </T>
-          <T variant="caption" color={colors.textSecondary}>
-            {missing.map((m) => m.name.split(' ')[0]).join(', ')} {missing.length === 1 ? 'hasn’t' : 'haven’t'} added flight details yet.
-          </T>
-        </Card>
-      ) : null}
-
-      <T variant="h3" style={{ marginTop: 20, marginBottom: 10 }}>
-        Arrivals
-      </T>
-      <View style={{ gap: 10 }}>{arrivals.length ? arrivals.map(card) : <T variant="small" color={colors.textMuted}>No arrivals yet.</T>}</View>
-      <T variant="h3" style={{ marginTop: 20, marginBottom: 10 }}>
-        Departures
-      </T>
-      <View style={{ gap: 10 }}>{departures.length ? departures.map(card) : <T variant="small" color={colors.textMuted}>No departures yet.</T>}</View>
 
       <AddFlightSheet visible={adding} onClose={() => setAdding(false)} />
     </Screen>
@@ -354,8 +379,14 @@ function AddFlightSheet({ visible, onClose }: { visible: boolean; onClose: () =>
 
 const styles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  tz: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: colors.primarySofter, padding: 14, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.primaryLine },
-  route: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: colors.cardMuted, padding: 12, borderRadius: radius.md },
-  ticket: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 8, padding: 8, borderRadius: radius.sm, backgroundColor: colors.primarySofter },
+  tz: { flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start', gap: 6, marginBottom: 14, paddingVertical: 4 },
+  person: { gap: 12, borderRadius: radius.xl, paddingHorizontal: 16, paddingVertical: 14 },
+  dot: { width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center' },
+  flightPill: { backgroundColor: colors.bgAlt, borderRadius: radius.pill, paddingHorizontal: 10, paddingVertical: 4, maxWidth: 170 },
+  leg: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  legLabel: { fontSize: 9.5, lineHeight: 12, letterSpacing: 1 },
+  detail: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingTop: 10, marginTop: 2, borderTopWidth: 1, borderTopColor: colors.border },
+  ticket: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 8, paddingVertical: 5, borderRadius: radius.pill, backgroundColor: colors.bgAlt },
+  summary: { marginTop: 14, flexDirection: 'row', gap: 10, alignItems: 'center', borderRadius: radius.xl },
   attached: { flexDirection: 'row', alignItems: 'center', gap: 8, padding: 12, borderRadius: radius.md, backgroundColor: colors.primarySofter },
 });

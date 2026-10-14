@@ -153,11 +153,16 @@ export function utcOffsetLabel(tz: string, at = Date.now()): string {
 const ABBREV: Record<string, string> = {
   'Asia/Tokyo': 'JST', 'Asia/Seoul': 'KST', 'Europe/London': 'GMT', 'Europe/Paris': 'CET',
   'America/New_York': 'ET', 'America/Chicago': 'CT', 'America/Denver': 'MT', 'America/Los_Angeles': 'PT',
+  'Europe/Rome': 'CET', 'Europe/Madrid': 'CET', 'Europe/Berlin': 'CET', 'Europe/Amsterdam': 'CET', 'Europe/Prague': 'CET', 'Europe/Zurich': 'CET', 'Europe/Lisbon': 'WET',
   'Asia/Singapore': 'SGT', 'Asia/Bangkok': 'ICT', 'Australia/Sydney': 'AET', 'Asia/Kolkata': 'IST',
 };
 
 export function tzAbbrev(tz: string): string {
-  return ABBREV[tz] ?? tz.split('/').pop()?.replace(/_/g, ' ') ?? tz;
+  const a = ABBREV[tz];
+  if (!a) return tz.split('/').pop()?.replace(/_/g, ' ') ?? tz;
+  // Summer time: Central European CET → CEST, UK GMT → BST, Western European WET → WEST.
+  const summer = tzOffsetMinutes(tz, Date.now()) - tzOffsetMinutes('UTC', Date.now()) > ({ CET: 60, GMT: 0, WET: 0 }[a] ?? Infinity);
+  return summer ? ({ CET: 'CEST', GMT: 'BST', WET: 'WEST' }[a] ?? a) : a;
 }
 
 /** Signed hour difference: positive when `tzA` is ahead of `tzB`. */

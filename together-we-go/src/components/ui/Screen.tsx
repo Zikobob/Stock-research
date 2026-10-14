@@ -1,12 +1,13 @@
+import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import type { ReactNode } from 'react';
 import { RefreshControl, ScrollView, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { MAX_WIDTH, colors } from '@/theme';
+import { MAX_WIDTH, appearance, colors } from '@/theme';
 
-import { IconButton } from './bits';
+import { Press } from './Press';
 import { FadeIn } from './motion';
 import { T } from './T';
 
@@ -36,9 +37,13 @@ export function Screen({
   const inner = [padded && { paddingHorizontal: 20 }, { paddingBottom: bottomInset + (footer ? 0 : insets.bottom) }, contentStyle];
   return (
     <View style={[styles.root, { paddingTop: insets.top }]}>
-      {/* Soft wash of the theme colour behind the top of every page. */}
-      <LinearGradient pointerEvents="none" colors={[colors.primarySoft, colors.primarySofter, colors.bg]} locations={[0, 0.45, 1]} style={styles.wash} />
-      <View pointerEvents="none" style={styles.glow} />
+      {/* Soft wash of the theme colour behind the top of every page (the flat Amalfi look skips it). */}
+      {appearance.theme !== 'amalfi' ? (
+        <>
+          <LinearGradient pointerEvents="none" colors={[colors.primarySoft, colors.primarySofter, colors.bg]} locations={[0, 0.45, 1]} style={styles.wash} />
+          <View pointerEvents="none" style={styles.glow} />
+        </>
+      ) : null}
       <View style={styles.column}>
         {header}
         {scroll ? (
@@ -61,37 +66,44 @@ export function Screen({
   );
 }
 
-/** Stack-screen header: round back button, title + subtitle, optional right actions. */
-export function Header({ title, subtitle, kicker, right, onBack, back = true }: { title: string; subtitle?: string; kicker?: string; right?: ReactNode; onBack?: () => void; back?: boolean }) {
+/** Stack-screen header: blue back link, big condensed title + subtitle, optional right actions. */
+export function Header({ title, subtitle, kicker, right, onBack, back = true, backLabel = 'Back' }: { title: string; subtitle?: string; kicker?: string; right?: ReactNode; onBack?: () => void; back?: boolean; backLabel?: string }) {
   return (
     <View style={styles.header}>
       {back ? (
-        <IconButton
-          icon="chevron-back"
-          label="Go back"
+        <Press
+          hitSlop={10}
+          accessibilityLabel={`Go back to ${backLabel}`}
+          style={styles.back}
           onPress={() => {
             if (onBack) onBack();
             else if (router.canGoBack()) router.back();
             else router.replace('/(tabs)/explore');
-          }}
-        />
+          }}>
+          <Ionicons name="chevron-back" size={18} color={colors.blue} />
+          <T variant="small" weight="semibold" color={colors.blue}>
+            {backLabel}
+          </T>
+        </Press>
       ) : null}
-      <View style={{ flex: 1 }}>
-        {kicker ? (
-          <T variant="kicker" color={colors.textSecondary}>
-            {kicker}
+      <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 12 }}>
+        <View style={{ flex: 1 }}>
+          {kicker ? (
+            <T variant="kicker" color={colors.textSecondary}>
+              {kicker}
+            </T>
+          ) : null}
+          <T variant="display" style={{ fontSize: 36, lineHeight: 40 }} numberOfLines={2} accessibilityRole="header">
+            {title}
           </T>
-        ) : null}
-        <T variant="h3" numberOfLines={1} accessibilityRole="header">
-          {title}
-        </T>
-        {subtitle ? (
-          <T variant="caption" color={colors.textSecondary} numberOfLines={1}>
-            {subtitle}
-          </T>
-        ) : null}
+          {subtitle ? (
+            <T variant="small" color={colors.textSecondary} numberOfLines={2} style={{ marginTop: 2 }}>
+              {subtitle}
+            </T>
+          ) : null}
+        </View>
+        {right}
       </View>
-      {right}
     </View>
   );
 }
@@ -101,5 +113,6 @@ const styles = StyleSheet.create({
   wash: { position: 'absolute', top: 0, left: 0, right: 0, height: 300 },
   glow: { position: 'absolute', top: -90, right: -70, width: 240, height: 240, borderRadius: 120, backgroundColor: colors.accent, opacity: 0.12 },
   column: { flex: 1, width: '100%', maxWidth: MAX_WIDTH },
-  header: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 20, paddingTop: 8, paddingBottom: 12 },
+  header: { paddingHorizontal: 20, paddingTop: 8, paddingBottom: 14, gap: 4 },
+  back: { flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start', marginLeft: -4 },
 });

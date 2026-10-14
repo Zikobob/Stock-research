@@ -16,11 +16,11 @@ import { T } from './ui/T';
 type BottomTabBarProps = Parameters<NonNullable<ComponentProps<typeof Tabs>['tabBar']>>[0];
 
 const TABS: Record<string, { label: string; icon: IconName; active: IconName }> = {
-  explore: { label: 'nav.explore', icon: 'compass-outline', active: 'compass' },
-  itinerary: { label: 'nav.itinerary', icon: 'map-outline', active: 'map' },
+  explore: { label: 'nav.explore', icon: 'home-outline', active: 'home' },
+  itinerary: { label: 'nav.itinerary', icon: 'calendar-outline', active: 'calendar' },
   budget: { label: 'nav.budget', icon: 'wallet-outline', active: 'wallet' },
   chat: { label: 'nav.chat', icon: 'chatbubble-outline', active: 'chatbubble' },
-  profile: { label: 'nav.profile', icon: 'person-outline', active: 'person' },
+  profile: { label: 'nav.profile', icon: 'grid-outline', active: 'grid' },
 };
 
 /** Bottom navigation matching the reference: soft-green pill behind the active tab. */

@@ -51,6 +51,8 @@ export interface Expense {
   /** Original amount when entered in a foreign currency. */
   original?: { amount: number; currency: string };
   settlement?: boolean;
+  /** Photo uri of the receipt. */
+  receipt?: string;
 }
 
 export interface Flight {
@@ -112,6 +114,8 @@ export interface ChatMessage {
   /** True when the message came from the AI trip assistant. */
   ai?: boolean;
   aiSource?: 'local' | 'claude';
+  /** Which thread the message belongs to: the human crew chat (default) or the Scout AI thread. */
+  channel?: 'crew' | 'ai';
 }
 
 export interface Photo {
@@ -129,6 +133,8 @@ export interface PackingItem {
   text: string;
   category: string;
   packed: boolean;
+  /** Member id of whoever is bringing it. */
+  broughtBy?: string;
 }
 
 export type TripStatus = 'planning' | 'active' | 'completed';
@@ -204,7 +210,7 @@ export interface Settings {
 }
 
 /** Home-screen blocks the user can show or hide in "Make it yours". */
-export type HomeSection = 'reminder' | 'forYou' | 'popular' | 'featured' | 'glance' | 'nearby' | 'tools';
+export type HomeSection = 'glance' | 'budget' | 'upnext' | 'quick' | 'forYou' | 'nearby' | 'discover';
 
 /** Answers from the "Make it yours" personalization survey. */
 export interface Personal {
@@ -216,6 +222,8 @@ export interface Personal {
   budgetStyle: 'saver' | 'mid' | 'treat';
   sections: Record<HomeSection, boolean>;
   motion: boolean;
+  /** True once the first-run guided tour has been seen. */
+  toured?: boolean;
 }
 
 export interface WeatherSnapshot {

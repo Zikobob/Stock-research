@@ -29,7 +29,7 @@ export function initNotifications() {
       name: 'Activity reminders',
       importance: Notifications.AndroidImportance.HIGH,
       vibrationPattern: [0, 200, 120, 200],
-      lightColor: '#1F4D25',
+      lightColor: '#FBC91B',
     }).catch(() => {});
   }
   Notifications.addNotificationResponseReceivedListener((resp) => {

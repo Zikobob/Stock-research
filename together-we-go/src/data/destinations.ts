@@ -37,6 +37,13 @@ export interface Destination {
 
 export const destinations: Destination[] = [
   {
+    id: 'positano', city: 'Positano', country: 'Italy', countryCode: 'IT', image: 'amalfi', rating: 4.9, reviews: 9400,
+    lat: 40.628, lng: 14.485, tz: 'Europe/Rome', currency: 'EUR', airport: 'NAP', language: 'Italian',
+    tags: ['best', 'beach', 'romantic', 'food', 'adventure'], dailyCost: 230, priceLevel: 4, bestMonths: 'May–Jun, Sep–Oct',
+    blurb: 'Pastel cliffside villages, lemon groves and boat trips on the Amalfi Coast.',
+    highlights: ['Path of the Gods hike', 'Boat day to Capri', 'Fornillo Beach', 'Limoncello tasting', 'Sunset in Ravello'],
+  },
+  {
     id: 'tokyo', city: 'Tokyo', country: 'Japan', countryCode: 'JP', image: 'tokyo', rating: 4.9, reviews: 18420,
     lat: 35.6717, lng: 139.765, tz: 'Asia/Tokyo', currency: 'JPY', airport: 'HND', language: 'Japanese',
     tags: ['best', 'food', 'culture', 'city', 'nightlife', 'family'], dailyCost: 150, priceLevel: 3, bestMonths: 'Mar–May, Oct–Nov',
@@ -263,31 +270,6 @@ export const destinations: Destination[] = [
 ];
 
 export const destinationById = (id: string) => destinations.find((d) => d.id === id);
-
-export interface FeaturedDestination {
-  id: string;
-  destinationId: string;
-  headline: string;
-  image: PhotoKey;
-  days: number;
-  fromPrice: number;
-  tags: string[];
-}
-
-export const featured: FeaturedDestination[] = [
-  {
-    id: 'f1', destinationId: 'ha-long-bay', headline: 'Emerald Waters,\nTimeless Beauty', image: 'ha-long-bay',
-    days: 5, fromPrice: 890, tags: ['5 days', 'Kayaking', 'Scenic', 'Group-friendly'],
-  },
-  {
-    id: 'f2', destinationId: 'mount-fuji', headline: 'Pagodas &\nSnow-capped Peaks', image: 'fuji-blossom',
-    days: 3, fromPrice: 420, tags: ['3 days', 'Culture', 'Photo spots', 'Day trip'],
-  },
-  {
-    id: 'f3', destinationId: 'maldives', headline: 'Lagoons Made\nfor Slowing Down', image: 'lagoon',
-    days: 6, fromPrice: 1890, tags: ['6 days', 'Snorkel', 'Beach', 'Relax'],
-  },
-];
 
 export const exploreCategories: { key: 'all' | DestinationTag; labelKey: string; image: PhotoKey }[] = [
   { key: 'all', labelKey: 'cat.all', image: 'tokyo-skyline' },

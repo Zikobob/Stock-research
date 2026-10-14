@@ -63,3 +63,15 @@ export const activityFilters: { key: 'all' | ActivityType; labelKey: string }[] 
   { key: 'nightlife', labelKey: 'cat.nightlife' },
   { key: 'shopping', labelKey: 'cat.shopping' },
 ];
+
+/** Emoji shown in the round icon of an activity card and in the filter chips. */
+export const typeEmoji: Record<ActivityType, string> = {
+  transport: '🚐',
+  stay: '🏡',
+  food: '🍝',
+  sightseeing: '📷',
+  culture: '🏛️',
+  adventure: '🥾',
+  nightlife: '🍸',
+  shopping: '🛍️',
+};

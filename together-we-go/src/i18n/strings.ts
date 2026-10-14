@@ -13,11 +13,11 @@ export const LANGUAGES = [
 export type LangCode = (typeof LANGUAGES)[number]['code'];
 
 const en = {
-  'nav.explore': 'Explore',
-  'nav.itinerary': 'Itinerary',
+  'nav.explore': 'Home',
+  'nav.itinerary': 'Plan',
   'nav.budget': 'Budget',
   'nav.chat': 'Chat',
-  'nav.profile': 'Profile',
+  'nav.profile': 'More',
 
   'greet.morning': 'Good morning',
   'greet.afternoon': 'Good afternoon',
@@ -173,7 +173,7 @@ export type StringKey = keyof typeof en;
 type Dict = Partial<Record<StringKey, string>>;
 
 const es: Dict = {
-  'nav.explore': 'Explorar', 'nav.itinerary': 'Itinerario', 'nav.budget': 'Presupuesto', 'nav.chat': 'Chat', 'nav.profile': 'Perfil',
+  'nav.explore': 'Inicio', 'nav.itinerary': 'Plan', 'nav.budget': 'Presupuesto', 'nav.chat': 'Chat', 'nav.profile': 'Más',
   'greet.morning': 'Buenos días', 'greet.afternoon': 'Buenas tardes', 'greet.evening': 'Buenas noches', 'greet.night': 'Hola, noctámbulo',
   'explore.title': 'Encuentra tu\ndestino perfecto', 'explore.subtitle': 'Planea, explora y viaja en grupo.',
   'explore.search': 'Busca una ciudad o destino…', 'explore.popular': 'Lugares populares', 'explore.featured': 'Destino destacado',
@@ -214,7 +214,7 @@ const es: Dict = {
 };
 
 const fr: Dict = {
-  'nav.explore': 'Explorer', 'nav.itinerary': 'Itinéraire', 'nav.budget': 'Budget', 'nav.chat': 'Discussion', 'nav.profile': 'Profil',
+  'nav.explore': 'Accueil', 'nav.itinerary': 'Plan', 'nav.budget': 'Budget', 'nav.chat': 'Discussion', 'nav.profile': 'Plus',
   'greet.morning': 'Bonjour', 'greet.afternoon': 'Bon après-midi', 'greet.evening': 'Bonsoir', 'greet.night': 'Bonsoir, oiseau de nuit',
   'explore.title': 'Trouvez votre\ndestination idéale', 'explore.subtitle': 'Planifiez, explorez et voyagez ensemble.',
   'explore.search': 'Rechercher une ville ou destination…', 'explore.popular': 'Lieux populaires', 'explore.featured': 'Destination à la une',
@@ -253,7 +253,7 @@ const fr: Dict = {
 };
 
 const ja: Dict = {
-  'nav.explore': '探す', 'nav.itinerary': '旅程', 'nav.budget': '予算', 'nav.chat': 'チャット', 'nav.profile': 'プロフィール',
+  'nav.explore': 'ホーム', 'nav.itinerary': '計画', 'nav.budget': '予算', 'nav.chat': 'チャット', 'nav.profile': 'その他',
   'greet.morning': 'おはようございます', 'greet.afternoon': 'こんにちは', 'greet.evening': 'こんばんは', 'greet.night': 'こんばんは',
   'explore.title': 'ぴったりの\n旅先を見つけよう', 'explore.subtitle': 'みんなで計画して、探して、旅しよう。', 'explore.search': '都市や旅先を検索…',
   'explore.popular': '人気の場所', 'explore.featured': '注目の旅先', 'explore.seeAll': 'すべて見る', 'explore.matches': '{n}件',
@@ -289,7 +289,7 @@ const ja: Dict = {
 };
 
 const hi: Dict = {
-  'nav.explore': 'खोजें', 'nav.itinerary': 'यात्रा योजना', 'nav.budget': 'बजट', 'nav.chat': 'चैट', 'nav.profile': 'प्रोफ़ाइल',
+  'nav.explore': 'होम', 'nav.itinerary': 'योजना', 'nav.budget': 'बजट', 'nav.chat': 'चैट', 'nav.profile': 'और',
   'greet.morning': 'सुप्रभात', 'greet.afternoon': 'नमस्ते', 'greet.evening': 'शुभ संध्या', 'greet.night': 'नमस्ते',
   'explore.title': 'अपनी परफ़ेक्ट\nमंज़िल खोजें', 'explore.subtitle': 'साथ मिलकर योजना बनाएँ, घूमें और यात्रा करें।', 'explore.search': 'शहर या जगह खोजें…',
   'explore.popular': 'लोकप्रिय जगहें', 'explore.featured': 'विशेष मंज़िल', 'explore.seeAll': 'सभी देखें', 'explore.matches': '{n} परिणाम',
@@ -326,7 +326,7 @@ const hi: Dict = {
 };
 
 const zh: Dict = {
-  'nav.explore': '探索', 'nav.itinerary': '行程', 'nav.budget': '预算', 'nav.chat': '聊天', 'nav.profile': '我的',
+  'nav.explore': '首页', 'nav.itinerary': '计划', 'nav.budget': '预算', 'nav.chat': '聊天', 'nav.profile': '更多',
   'greet.morning': '早上好', 'greet.afternoon': '下午好', 'greet.evening': '晚上好', 'greet.night': '夜深了',
   'explore.title': '发现你的\n理想目的地', 'explore.subtitle': '一起计划、探索、出发。', 'explore.search': '搜索城市或目的地…',
   'explore.popular': '热门地点', 'explore.featured': '精选目的地', 'explore.seeAll': '查看全部', 'explore.matches': '{n} 个结果',

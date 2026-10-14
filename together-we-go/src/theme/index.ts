@@ -39,6 +39,10 @@ export const colors = {
   textSecondary: '#5F645A',
   textMuted: '#959A8E',
   onPrimary: '#FFFFFF',
+  /** Text on the yellow accent. */
+  onAccent: '#111111',
+  /** Money coming back / good news. */
+  positive: '#1E9E57',
 
   orange: '#E8833A',
   orangeSoft: '#FDEBDD',
@@ -60,7 +64,7 @@ export const colors = {
 };
 
 type Palette = Partial<typeof colors>;
-export type ThemeKey = 'forest' | 'ocean' | 'sunset' | 'lavender' | 'sakura' | 'midnight';
+export type ThemeKey = 'amalfi' | 'forest' | 'ocean' | 'sunset' | 'lavender' | 'sakura' | 'midnight';
 export type CornerStyle = 'rounded' | 'bubbly' | 'sharp';
 
 /** Every palette the user can choose from in "Make it yours". */
@@ -74,6 +78,18 @@ export const themes: Record<
     palette: Palette;
   }
 > = {
+  amalfi: {
+    name: 'Amalfi',
+    emoji: '🍋',
+    vibe: 'Bold black, sunny yellow',
+    palette: {
+      bg: '#F1F2F4', bgAlt: '#E8E9ED', cardMuted: '#F5F6F8', border: '#E6E7EC', borderStrong: '#D2D4DB',
+      primary: '#0B0B0D', primaryDark: '#000000', primaryPressed: '#1B1B1F', primarySoft: '#E9EAEE', primarySofter: '#F3F4F6', primaryLine: '#D5D7DE', navActive: 'rgba(0,0,0,0)',
+      accent: '#FBC91B', accentSoft: '#FEF3C7', heroA: '#0B0B0D', heroB: '#0B0B0D', heroC: '#FBC91B',
+      text: '#0D0D10', textSecondary: '#666973', textMuted: '#9A9DA8',
+      blue: '#1E73E8', blueSoft: '#E1EDFD',
+    },
+  },
   forest: {
     name: 'Forest',
     emoji: '🌲',
@@ -222,6 +238,7 @@ export const themes: Record<
       purpleSoft: '#2A2340',
       tealSoft: '#173431',
       overlay: 'rgba(0, 0, 0, 0.6)',
+      positive: '#4ADE80', onAccent: '#111111',
     },
   },
 };
@@ -238,7 +255,7 @@ export interface Appearance {
 }
 
 const PREFS_KEY = 'togetherwego-appearance';
-const DEFAULT_APPEARANCE: Appearance = { theme: 'forest', corners: 'rounded' };
+const DEFAULT_APPEARANCE: Appearance = { theme: 'amalfi', corners: 'rounded' };
 
 function prefsFile() {
   return new File(Paths.document, 'appearance.json');
@@ -297,13 +314,13 @@ export function applyAppearance(next: Appearance): boolean {
 
 /** Category colours used by the spending breakdown and expense dots. */
 export const categoryColors: Record<string, string> = {
-  Flights: colors.primary,
-  Stays: '#6BAA75',
-  Food: '#F2B33D',
-  Activities: '#E07A3F',
-  Transport: '#3D7DD8',
-  Shopping: '#7C5CD6',
-  Other: '#959A8E',
+  Flights: '#6C4CE0',
+  Stays: colors.text,
+  Food: '#FBC91B',
+  Activities: '#E8833A',
+  Transport: '#1E73E8',
+  Shopping: '#D94F86',
+  Other: '#9A9DA8',
 };
 
 const cornerScale = cornerStyles[appearance.corners].scale;
@@ -329,11 +346,13 @@ export const space = {
 } as const;
 
 export const fonts = {
-  regular: 'Outfit_400Regular',
-  medium: 'Outfit_500Medium',
-  semibold: 'Outfit_600SemiBold',
-  bold: 'Outfit_700Bold',
-  extrabold: 'Outfit_800ExtraBold',
+  regular: 'Manrope_400Regular',
+  medium: 'Manrope_500Medium',
+  semibold: 'Manrope_600SemiBold',
+  bold: 'Manrope_700Bold',
+  extrabold: 'Manrope_800ExtraBold',
+  /** Tall condensed headline face (THE PLAN, BUDGET…). */
+  display: 'Anton_400Regular',
 } as const;
 
 export const shadow = Platform.select({

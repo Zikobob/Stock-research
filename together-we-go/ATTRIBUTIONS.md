@@ -13,12 +13,13 @@ The project was scaffolded with `npx create-expo-app` (default template, MIT lic
 | `react-native` | 0.86.3 | MIT |
 | `react-native-web` | 0.21.3 | MIT |
 | `react-native-maps` | 1.27.2 | MIT |
+| `react-native-svg` (spending donut chart) | 15.x | MIT |
 | `react-native-safe-area-context`, `react-native-screens`, `react-native-gesture-handler`, `react-native-reanimated`, `react-native-worklets` | — | MIT |
 | `@react-native-async-storage/async-storage` | 2.2.0 | MIT |
 | `zustand` | 5.0.15 | MIT |
 | `immer` | 11.1.21 | MIT |
 | `@expo/vector-icons` (Ionicons, Material Community Icons) | 15.1.1 | MIT |
-| `@expo-google-fonts/outfit` (Outfit typeface by Rodrigo Fuenzalida) | 0.4.3 | MIT (package) / SIL Open Font License 1.1 (font) |
+| `@expo-google-fonts/manrope` (Manrope by Mikhail Sharanda), `@expo-google-fonts/anton` (Anton by Vernon Adams) | 0.4.x | MIT (package) / SIL Open Font License 1.1 (fonts) |
 | `@anthropic-ai/sdk` (optional Claude mode) | 0.131.0 | MIT |
 
 ## APIs & data
@@ -40,6 +41,7 @@ All photos are from [Unsplash](https://unsplash.com) and used under the [Unsplas
 
 | File | Source |
 |---|---|
+| `amalfi.jpg` | https://images.unsplash.com/photo-1612698093158-e07ac200d44e |
 | `tokyo.jpg` | https://images.unsplash.com/photo-1536098561742-ca998e48cbcc |
 | `kyoto.jpg` | https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e |
 | `paris.jpg` | https://images.unsplash.com/photo-1502602898657-3e91760cbb34 |

@@ -40,6 +40,22 @@ const P = (
 ): Place => ({ destinationId, id, name, area, category, durationMin, cost, rating, lat, lng, blurb });
 
 const curated: Place[] = [
+  // Positano & the Amalfi Coast
+  P('positano', 'da-vincenzo', 'Da Vincenzo', 'Viale Pasitea', 'food', 120, 64, 4.7, 40.6295, 14.488, 'Family-run trattoria: fresh pasta with a view over the rooftops.'),
+  P('positano', 'path-of-gods', 'Path of the Gods', 'Bomerano', 'adventure', 300, 0, 4.9, 40.619, 14.5176, 'A 7 km cliff trail above the sea, ending in Nocelle.'),
+  P('positano', 'capri-boat', 'Boat tour to Capri', 'Positano Marina', 'adventure', 540, 140, 4.8, 40.6272, 14.4868, 'Full day on the water: Blue Grotto, swim stops and limoncello.'),
+  P('positano', 'fornillo', 'Fornillo Beach', 'Fornillo', 'relax', 180, 35, 4.6, 40.6255, 14.4795, 'Quieter pebble beach — rent loungers and eat at the beach club.'),
+  P('positano', 'spiaggia-grande', 'Spiaggia Grande', 'Positano', 'relax', 120, 0, 4.4, 40.6275, 14.487, 'The main beach with the church dome behind it.'),
+  P('positano', 'santa-maria', 'Santa Maria Assunta', 'Positano', 'culture', 30, 0, 4.6, 40.6286, 14.489, 'Majolica-tiled dome and a Byzantine Black Madonna.'),
+  P('positano', 'sunset-bar', 'Sunset aperitivo at Le Sirenuse', 'Positano', 'nightlife', 90, 40, 4.8, 40.6293, 14.4868, 'Spritz on the terrace as the lights come on.'),
+  P('positano', 'limoncello', 'Limoncello tasting', 'Amalfi', 'food', 60, 23, 4.7, 40.634, 14.6027, 'Taste lemon-grove liqueurs and learn how they’re made.'),
+  P('positano', 'duomo-amalfi', 'Amalfi Cathedral', 'Amalfi', 'culture', 60, 4, 4.7, 40.6348, 14.603, 'Striped façade and the Cloister of Paradise.'),
+  P('positano', 'paper-museum', 'Museum of Amalfi Paper', 'Amalfi', 'culture', 45, 5, 4.5, 40.6355, 14.6013, 'Medieval paper mill still making sheets by hand.'),
+  P('positano', 'villa-rufolo', 'Villa Rufolo gardens', 'Ravello', 'sightseeing', 90, 8, 4.8, 40.649, 14.6118, 'Terraced gardens with the postcard view of the coast.'),
+  P('positano', 'furore', 'Fiordo di Furore', 'Furore', 'adventure', 90, 0, 4.6, 40.6139, 14.5517, 'A tiny fjord beach under a stone bridge — great for jumping in.'),
+  P('positano', 'emerald-grotto', 'Emerald Grotto', 'Conca dei Marini', 'sightseeing', 60, 8, 4.5, 40.6195, 14.5666, 'Sea cave glowing green; row-boat tours.'),
+  P('positano', 'trattoria-chitarrella', 'Trattoria da Adolfo', 'Laurito Beach', 'food', 150, 55, 4.6, 40.6224, 14.4731, 'Grilled fish and mozzarella-on-lemon-leaf, reached by boat.'),
+  P('positano', 'lemon-gelato', 'Gelato on Via dei Mulini', 'Positano', 'food', 30, 6, 4.5, 40.6291, 14.4851, 'Lemon sorbet served in a real lemon.'),
   // Tokyo
   P('tokyo', 'tsukiji', 'Tsukiji Outer Market', 'Tsukiji', 'food', 90, 25, 4.7, 35.6655, 139.7707, 'Tamagoyaki, fresh tuna and grilled scallops from 400+ stalls.'),
   P('tokyo', 'sensoji', 'Senso-ji Temple', 'Asakusa', 'culture', 90, 0, 4.8, 35.7148, 139.7967, 'Tokyo’s oldest temple with the iconic Kaminarimon gate.'),

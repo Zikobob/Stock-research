@@ -73,6 +73,15 @@ export function lengthBucketLabel(min: number): string {
   return 'Full day';
 }
 
+/** Short tag for activity cards: <1h, 1-2h, 2-4h, Half day, Full day. */
+export function lengthTag(min: number): string {
+  if (min < 60) return '<1h';
+  if (min <= 120) return '1-2h';
+  if (min <= 240) return '2-4h';
+  if (min <= 360) return 'Half day';
+  return 'Full day';
+}
+
 export function priceTier(cost: number): string {
   if (cost === 0) return 'Free';
   if (cost < 15) return '$';

@@ -5,13 +5,15 @@
 TogetherWeGo helps a group of friends or family plan, budget and enjoy a shared trip — from the first idea, through the trip itself, to the final recap. It runs natively on **iPhone and Android** (Expo / React Native, TypeScript) and keeps working **offline**, which matters at a conference venue with unreliable wifi.
 
 <p>
-<img src="docs/screenshots/03-explore.jpg" width="190" alt="Explore screen"/>
-<img src="docs/screenshots/04-itinerary.jpg" width="190" alt="Itinerary screen"/>
-<img src="docs/screenshots/06-budget.jpg" width="190" alt="Budget screen"/>
-<img src="docs/screenshots/07-chat-assistant.jpg" width="190" alt="Trip chat with the Trip Assistant"/>
-<img src="docs/screenshots/08-trip-hub.jpg" width="190" alt="Trip hub: invite code, roles, polls"/>
-<img src="docs/screenshots/15-make-it-yours.jpg" width="190" alt="Make it yours: pick a colour theme"/>
-<img src="docs/screenshots/16-midnight-theme.jpg" width="190" alt="Explore in the Midnight dark theme"/>
+<img src="docs/screenshots/03-home-night.jpg" width="170" alt="Home with the night skyline hero"/>
+<img src="docs/screenshots/04-home-day.jpg" width="170" alt="Home by day"/>
+<img src="docs/screenshots/05-plan.jpg" width="170" alt="The Plan"/>
+<img src="docs/screenshots/06-vote.jpg" width="170" alt="Vote tab with Lock in"/>
+<img src="docs/screenshots/07-budget.jpg" width="170" alt="Budget with who owes who"/>
+<img src="docs/screenshots/08-chat-scout-ai.jpg" width="170" alt="Chat: Crew and Scout AI"/>
+<img src="docs/screenshots/09-more.jpg" width="170" alt="More menu"/>
+<img src="docs/screenshots/15-make-it-yours.jpg" width="170" alt="Make it yours: pick a colour theme"/>
+<img src="docs/screenshots/16-midnight-theme.jpg" width="170" alt="Home in the Midnight dark theme"/>
 </p>
 
 ---
@@ -36,7 +38,7 @@ Scan the QR code (iPhone: Camera app · Android: Expo Go → *Scan QR code*).
 |---|---|
 | `maya.chen@togetherwego.app` | `TravelTogether2026!` |
 
-The sample trip is generated **relative to today**, so “Tokyo & Kyoto Explorer” always starts in 3 days. *Settings → Demo timeline* rebuilds it as **upcoming**, **in progress (Day 2)** or **just finished** to show every stage.
+The sample trip is generated **relative to today**, so “Amalfi Squad” (4 friends, 6 days in Positano, Italy) always starts in 3 days; a second 10-day “Tokyo & Kyoto Explorer” trip, a Bali plan and a finished Barcelona trip show multi-trip management. *Settings → Demo timeline* rebuilds it as **upcoming**, **in progress (Day 2)** or **just finished** to show every stage.
 
 ### For the competition: run with zero internet
 Expo Go needs the laptop’s dev server. For a fully standalone app, build an installable copy with EAS (free account):
@@ -56,28 +58,28 @@ Other scripts: `npm run web` (browser preview), `npx tsc --noEmit` (type-check),
 
 | Brief area | Feature in TogetherWeGo | Where |
 |---|---|---|
-| **Collaboration** | Trips with auto-generated invite codes (`TKY-2481`), join by code or deep link | Profile → Invite code · *Join a trip* |
-| | Roles: Organizer, Treasurer, Navigator, Food Lead, Photographer… with descriptions | Profile → Members & roles |
-| | Shared checklist with assignees | Profile → Checklist |
-| | Voting: 👍/👎 on activities (majority auto-confirms) + multi-option polls | Itinerary card · Profile → Vote |
+| **Collaboration** | Trips with auto-generated invite codes (`AML-2026`), join by code or deep link | Home code pill · More → Crew & roles · *Join a trip* |
+| | Roles: Organizer, Treasurer, Navigator, Food Lead, Photographer… with descriptions | More → Crew & roles |
+| | Shared checklist with assignees | More → Crew & roles |
+| | Voting: 👍/👎 on activities (majority auto-confirms) + multi-option polls | Plan → Vote tab (progress bar + **Lock in**) · More → Crew & roles (polls) |
 | **Communication** | Group trip chat with typing indicators | Chat tab |
 | | **Trip Assistant (AI chatbot)** — answers from live trip data: budget, who owes who, weather, food nearby, next activity, flights, time zones, currency, phrases, emergencies. Works offline; optional Claude mode with your own key | Chat tab (✨ button or quick chips) |
-| **Scheduling** | Day-by-day itinerary/calendar with timeline, status pills, assignees | Itinerary tab |
+| **Scheduling** | Day-by-day itinerary/calendar with timeline, status pills, assignees | Plan tab |
 | | Members upload flight tickets (photo/PDF); everyone’s arrivals & departures in one list | Flights |
-| | **Time zones**: times stored as exact instants; toggle trip time ↔ your phone’s time | Itinerary → Flights & arrivals |
+| | **Time zones**: times stored as exact instants; toggle trip time ↔ your phone’s time | More → Flights & arrivals |
 | | Trip map with itinerary pins, places and airports + **offline radar map** (no tiles needed) | Trip map |
-| | **Live reminders**: tap 🔔 on an activity → real phone notification before it starts (10/30/60/120 min) + live countdown on Explore | Activity card · Settings |
+| | **Live reminders**: tap 🔔 on an activity → real phone notification before it starts (10/30/60/120 min) + live countdown on Home | Activity card · Settings |
 | **Budgeting** | Group budget cap, spent so far, per-person, % used | Budget tab |
 | | Spending breakdown by category (Wanderlog-style bar) | Budget tab |
 | | Currency converter (live rates, cached offline) + **home ↔ local currency view** | Budget tab · Currency |
 | | Expenses in any currency, split between chosen members, **settle-up with fewest payments** | Budget tab |
 | | Daily spending planner + “budget finds” within budget & radius | Budget tab |
-| | Printable planner (print or save as PDF) | Itinerary → ⋯ → Print planner |
-| **Organization** | Offline document vault (PDFs, photos, notes) | Profile → Documents |
+| | Printable planner (print or save as PDF) | Plan → printer button · More → Printable Planner |
+| **Organization** | Offline document vault (PDFs, photos, notes) | More → Offline Docs |
 | | Weather (7-day forecast, best outdoor day, packing tips) | Weather |
-| | Choose your own radius → popular places nearby | Explore · Nearby |
+| | Choose your own radius → popular places nearby | Home · More → Explore Nearby |
 | | Photo dump with likes, captions, per-day filter, share to socials | Photo dump |
-| | Activity filters (adventure, sightseeing, food…) **and** time filters (under 1 h, 1–2 h, 2–4 h, half day, full day) | Itinerary · Nearby |
+| | Activity filters (adventure, sightseeing, food…) **and** time filters (under 1 h, 1–2 h, 2–4 h, half day, full day) | Plan · Nearby |
 | **Other** | Interactive travel quiz with timer, streak bonus and group leaderboard | Travel quiz |
 | | 6 languages: English, Español, Français, 日本語, हिन्दी, 中文 | Settings → Language |
 | | Bucket list with inspiration | Bucket list |
@@ -87,8 +89,15 @@ Other scripts: `npm run web` (browser preview), `npx tsc --noEmit` (type-check),
 | **Trip management** | Multiple trips, switch / create / edit / leave / delete, planning → active → completed | My trips |
 
 ### Extras to stand out
+- **Skyline hero that follows the clock** — the Home photo switches between a sunny day look (sun glare, drifting clouds) and a blue-hour night look (stars, moon) based on the local time in the trip’s city, with a sun/moon chip to preview the other half of the day.
+- **Lock in voting** — Plan → Vote shows each proposal’s vote count, a progress bar towards a majority and a **Lock in** button (organizer only) that confirms it and turns its reminder on.
+- **Scout AI tab** — the group chat stays human; the Trip Assistant has its own tab with quick questions (budget, food nearby, weather, who owes who…).
+- **Today card** — once the trip starts, Home shows “Today · Day 2 of 6” with a tick-off list.
+- **Who’s bringing what** — the packing list assigns every item to a person, with a “Split the rest fairly” button.
+- **Receipt photos** on expenses, and a shareable **story card** for the trip recap.
+- **First-run tour** and a **How it works** page (architecture, security, validation and a rubric map) inside the app.
 - **Make it yours** — a 7-step animated personalization survey: 6 colour themes (Forest, Ocean, Sunset, Lavender, Sakura, **Midnight dark mode**), card shape (Rounded / Bubbly / Crisp), travel interests with photos, pace & budget style, which Explore sections to show, nickname + emoji avatar, language and home currency — with a live preview and a confetti finish. New accounts get it right after sign-up; it's always in *Settings*, the 🎨 button on Explore and the menu.
-- **“Picked for you”** — Explore ranks destinations against your interests and budget style and shows a match %.
+- **“Picked for you”** — Home ranks destinations against your interests and budget style and shows a match %.
 - **Motion everywhere** — animated home hero (a plane flies a dotted route past drifting clouds and a pulsing sun), staggered card entrances, a tab highlight that glides between tabs, Ken Burns zoom on onboarding photos, floating logo, pulsing live-reminder bell. One *Animations* switch turns it all off for people who prefer less motion.
 - **Trip recap** — stats (days, km between stops, votes, photos), highlights, final balances, rating, shareable summary.
 - **Emergency & safety** — local police/ambulance numbers (tap to call), share live location, hospital & embassy finder.
@@ -105,7 +114,7 @@ Other scripts: `npm run web` (browser preview), `npx tsc --noEmit` (type-check),
 ```
 src/
   app/            Screens (Expo Router — every file is a route)
-    (tabs)/       Explore · Itinerary · Budget · Chat · Profile
+    (tabs)/       Home · Plan · Budget · Chat · More
     *.tsx         Feature screens (flights, map, weather, photos, …)
   components/     Reusable UI kit (ui/), trip widgets (trip/), map (native + web)
   store/          Zustand store: data model, actions, selectors, demo seed
@@ -140,6 +149,7 @@ See **[ATTRIBUTIONS.md](ATTRIBUTIONS.md)** for every library, API, font, icon se
 
 ## 5. Honest limitations
 - There is **no cloud server**: trips are stored on each device. Invite codes join trips that exist on that device plus a built-in demo directory (try `SEO-5521`). A production version would sync through a backend such as Firebase or Supabase — the store/service split means only the service layer would change.
+- The Home hero’s day/night effect is a bundled photo with code-drawn light, stars and clouds (no video file), so it works offline and adds no download size.
 - “Continue with Google” is a simulated account chooser; a store build would use Google OAuth (expo-auth-session).
 - Claude AI mode requires the user’s own Anthropic API key; without it the built-in offline assistant answers.
 - Standalone Android builds need a Google Maps API key for the native map (Expo Go already includes one); the offline radar map needs nothing.

@@ -15,6 +15,7 @@ export const photos = {
   'cape-town': require('@/assets/images/photos/cape-town.jpg'),
   'new-york': require('@/assets/images/photos/new-york.jpg'),
   santorini: require('@/assets/images/photos/santorini.jpg'),
+  amalfi: require('@/assets/images/photos/amalfi.jpg'),
   rome: require('@/assets/images/photos/rome.jpg'),
   london: require('@/assets/images/photos/london.jpg'),
   iceland: require('@/assets/images/photos/iceland.jpg'),

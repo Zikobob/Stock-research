@@ -68,7 +68,7 @@ export default function Notifications() {
                 key={n.id}
                 onPress={() => {
                   if (n.tripId) setActive(n.tripId);
-                  if (n.route) router.push(n.route as Href);
+                  if (n.route) router.push((n.route === '/(tabs)/profile' ? '/crew' : n.route) as Href);
                 }}
                 style={[styles.item, !n.read && styles.unread]}
                 accessibilityLabel={`${n.title}. ${n.body}`}>

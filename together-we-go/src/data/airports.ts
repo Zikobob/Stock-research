@@ -69,6 +69,7 @@ export const airports: Airport[] = [
   A('MXP', 'Milan Malpensa', 'Milan', 'Italy', 45.6306, 8.7281, 'Europe/Rome'),
   A('VCE', 'Venice Marco Polo', 'Venice', 'Italy', 45.5053, 12.3519, 'Europe/Rome'),
   A('PSA', 'Pisa International', 'Pisa', 'Italy', 43.6839, 10.3927, 'Europe/Rome'),
+  A('NAP', 'Naples International', 'Naples', 'Italy', 40.886, 14.2908, 'Europe/Rome'),
   A('MAD', 'Adolfo Suárez Madrid–Barajas', 'Madrid', 'Spain', 40.4983, -3.5676, 'Europe/Madrid'),
   A('BCN', 'Josep Tarradellas Barcelona–El Prat', 'Barcelona', 'Spain', 41.2974, 2.0833, 'Europe/Madrid'),
   A('LIS', 'Humberto Delgado', 'Lisbon', 'Portugal', 38.7742, -9.1342, 'Europe/Lisbon'),

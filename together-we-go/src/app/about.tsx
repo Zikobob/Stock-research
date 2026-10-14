@@ -12,7 +12,7 @@ const SOURCES: [string, string, string][] = [
   ['Exchange rates', 'ExchangeRate-API open access endpoint', 'https://www.exchangerate-api.com/docs/free'],
   ['Maps', 'Apple Maps / Google Maps via react-native-maps; OpenStreetMap on web (ODbL)', 'https://www.openstreetmap.org/copyright'],
   ['Photography', 'Unsplash — free to use under the Unsplash License (see ATTRIBUTIONS.md)', 'https://unsplash.com/license'],
-  ['Font', 'Outfit by Rodrigo Fuenzalida — SIL Open Font License', 'https://fonts.google.com/specimen/Outfit'],
+  ['Fonts', 'Manrope (Mikhail Sharanda) and Anton (Vernon Adams) — SIL Open Font License', 'https://fonts.google.com'],
   ['Icons', 'Ionicons & Material Community Icons (MIT) via @expo/vector-icons', 'https://icons.expo.fyi'],
   ['Emergency numbers', 'Official tourism / government sources per country (e.g. JNTO for Japan)', 'https://www.jnto.go.jp/safety-tips/eng/emergency-numbers.html'],
   ['AI (optional)', 'Anthropic Claude API — only when the user adds their own key', 'https://docs.claude.com'],
