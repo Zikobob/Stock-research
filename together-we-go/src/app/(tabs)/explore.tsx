@@ -111,6 +111,12 @@ export default function Home() {
                 <Ionicons name="chevron-down" size={14} color={colors.white} />
               </Press>
               <View style={{ flex: 1 }} />
+              <Press onPress={() => router.push({ pathname: '/panorama', params: { city: dest?.id } })} style={styles.pano} accessibilityLabel="Open the 360 degree city view">
+                <Ionicons name="globe-outline" size={15} color={colors.white} />
+                <T variant="micro" weight="extrabold" color={colors.white}>
+                  360°
+                </T>
+              </Press>
               <IconButton icon="notifications-outline" label={`Notifications, ${unread} unread`} badge={unread} onPress={() => router.push('/notifications')} bg="rgba(255,255,255,0.92)" color="#111111" bordered={false} />
             </View>
 
@@ -425,6 +431,7 @@ const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.bg, alignItems: 'center' },
   column: { width: '100%', maxWidth: MAX_WIDTH },
   heroTop: { position: 'absolute', left: 16, right: 16, flexDirection: 'row', alignItems: 'center', gap: 10 },
+  pano: { flexDirection: 'row', alignItems: 'center', gap: 5, height: 40, paddingHorizontal: 12, borderRadius: 999, backgroundColor: 'rgba(20,20,24,0.55)' },
   tripPill: { flexDirection: 'row', alignItems: 'center', gap: 6, height: 40, paddingHorizontal: 14, borderRadius: 999, backgroundColor: 'rgba(20,20,24,0.55)' },
   heroBottom: { position: 'absolute', left: 20, right: 20, bottom: 44 },
   place: { flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: 2 },

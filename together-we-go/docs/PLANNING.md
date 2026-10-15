@@ -47,6 +47,7 @@ flowchart TB
   More --> M5[My trips · New/Edit trip · Join · Notifications · Settings · Help · About]
   More --> M6[Make it yours — personalization survey]
   More --> M7[Crew & roles · How it works]
+  More --> M8[360° City Views — day / night panoramas]
 ```
 
 ## 5. Architecture
@@ -116,6 +117,7 @@ Key decisions:
 | Auth | Empty-field errors, wrong password, sign-up validation & strength meter, reset-code flow, old password rejected after reset |
 | Plan | Add-activity validation, overlap warning, vote → auto-confirm, **Lock in** (organizer only), reminder toggle, edit, delete, category + time filters |
 | Budget | Receipt attach, expense validation, who-owes-who, settle up, home/local currency view |
+| 360° views | Drag/arrows/auto-rotate wrap past 0°, day/night toggle, landmark jump + facts, city picker, entry points (Home, destination, More) |
 | Extras | Day/night hero toggle, Scout AI tab separate from the crew chat, packing assignment + fair split, first-run tour, story card |
 | Budget | Amount validation, ¥ expense converted to USD, settle-up records payment, budget-cap validation |
 | Collaboration | Join with empty/unknown/valid code, add-member validation (name, email), polls (vote, close), checklist add + empty-task error |

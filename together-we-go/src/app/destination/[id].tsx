@@ -9,6 +9,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AddToTripSheet, FavStar } from '@/components/explore';
 import { placeCategoryIcon } from '@/components/trip/meta';
 import { Button } from '@/components/ui/Button';
+import { panoById } from '@/data/panoramas';
 import { Card, EmptyState, IconButton, Pill, type IconName } from '@/components/ui/bits';
 import { Press } from '@/components/ui/Press';
 import { T } from '@/components/ui/T';
@@ -147,6 +148,7 @@ export default function DestinationScreen() {
         </View>
       </ScrollView>
       <View style={[styles.footer, { paddingBottom: insets.bottom + 12 }]}>
+        {panoById(d.id) ? <Button label="360° view" icon="globe-outline" variant="secondary" full={false} onPress={() => router.push({ pathname: '/panorama', params: { city: d.id } })} /> : null}
         <Button label="Add to Trip" icon="add-circle-outline" onPress={() => setAdding(d.id)} style={{ flex: 1 }} />
       </View>
       <AddToTripSheet destinationId={adding} onClose={() => setAdding(null)} />

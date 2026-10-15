@@ -12,6 +12,8 @@ TogetherWeGo helps a group of friends or family plan, budget and enjoy a shared 
 <img src="docs/screenshots/07-budget.jpg" width="170" alt="Budget with who owes who"/>
 <img src="docs/screenshots/08-chat-scout-ai.jpg" width="170" alt="Chat: Crew and Scout AI"/>
 <img src="docs/screenshots/09-more.jpg" width="170" alt="More menu"/>
+<img src="docs/screenshots/19-360-day.jpg" width="170" alt="360° view of Paris by day"/>
+<img src="docs/screenshots/20-360-night.jpg" width="170" alt="360° view of Paris at night with the lights on"/>
 <img src="docs/screenshots/15-make-it-yours.jpg" width="170" alt="Make it yours: pick a colour theme"/>
 <img src="docs/screenshots/16-midnight-theme.jpg" width="170" alt="Home in the Midnight dark theme"/>
 </p>
@@ -89,6 +91,7 @@ Other scripts: `npm run web` (browser preview), `npx tsc --noEmit` (type-check),
 | **Trip management** | Multiple trips, switch / create / edit / leave / delete, planning → active → completed | My trips |
 
 ### Extras to stand out
+- **360° city views** — drag (or use the arrows / auto-rotate) to spin all the way around 10 popular cities: Positano, Tokyo, Paris, New York, London, Dubai, Sydney, Singapore, Rio and Rome. Three parallax skyline layers, famous landmarks (tap a landmark chip to turn to it and read a fact), a compass readout and a **day / night toggle**: at night the windows light up, the landmarks glow, cars stream along the street and stars and a moon come out. Open it from Home (360° chip), a destination page or More → 360° City Views.
 - **Skyline hero that follows the clock** — the Home photo switches between a sunny day look (sun glare, drifting clouds) and a blue-hour night look (stars, moon) based on the local time in the trip’s city, with a sun/moon chip to preview the other half of the day.
 - **Lock in voting** — Plan → Vote shows each proposal’s vote count, a progress bar towards a majority and a **Lock in** button (organizer only) that confirms it and turns its reminder on.
 - **Scout AI tab** — the group chat stays human; the Trip Assistant has its own tab with quick questions (budget, food nearby, weather, who owes who…).
@@ -149,7 +152,7 @@ See **[ATTRIBUTIONS.md](ATTRIBUTIONS.md)** for every library, API, font, icon se
 
 ## 5. Honest limitations
 - There is **no cloud server**: trips are stored on each device. Invite codes join trips that exist on that device plus a built-in demo directory (try `SEO-5521`). A production version would sync through a backend such as Firebase or Supabase — the store/service split means only the service layer would change.
-- The Home hero’s day/night effect is a bundled photo with code-drawn light, stars and clouds (no video file), so it works offline and adds no download size.
+- The 360° city views are illustrated scenes drawn in code (SVG), not photographs, so they work offline and need no image licences. The Home hero’s day/night effect is a bundled photo with code-drawn light, stars and clouds (no video file), so it works offline and adds no download size.
 - “Continue with Google” is a simulated account chooser; a store build would use Google OAuth (expo-auth-session).
 - Claude AI mode requires the user’s own Anthropic API key; without it the built-in offline assistant answers.
 - Standalone Android builds need a Google Maps API key for the native map (Expo Go already includes one); the offline radar map needs nothing.

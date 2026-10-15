@@ -106,3 +106,4 @@ The visual style (cream background, forest-green accents, pill navigation, card 
 
 ## Developer tooling
 - **Ponytail** skills (`.claude/skills/ponytail*`, from [DietrichGebert/ponytail](https://github.com/DietrichGebert/ponytail) @ 9cc65d0, MIT licence) — coding-style instructions for the Claude Code assistant used while building the app. Not part of the app itself.
+- The 360° city scenes (`src/components/panorama`, `src/data/panoramas.ts`) are original code-drawn illustrations of public landmarks. Landmark facts were written from public sources (e.g. official tower and building heights).

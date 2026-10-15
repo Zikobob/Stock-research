@@ -42,6 +42,7 @@ export default function More() {
       title: 'Get around',
       rows: [
         { icon: 'map-outline', title: 'Trip Map', sub: 'Pins + nearest airport', href: '/map' },
+        { icon: 'globe-outline', title: '360° City Views', sub: 'Day & night skylines with the lights on', href: '/panorama' },
         { icon: 'compass-outline', title: 'Explore Nearby', sub: 'Food & sights by radius', href: '/nearby' },
         { icon: 'partly-sunny-outline', title: 'Weather', sub: '7-day forecast', href: '/weather' },
         { icon: 'cash-outline', title: 'Currency', sub: 'Live converter', href: '/currency' },

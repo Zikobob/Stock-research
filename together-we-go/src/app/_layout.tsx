@@ -65,6 +65,7 @@ export default function RootLayout() {
           <Stack.Screen name="flights" />
           <Stack.Screen name="crew" />
           <Stack.Screen name="how-it-works" />
+          <Stack.Screen name="panorama" options={{ animation: 'fade' }} />
           <Stack.Screen name="map" />
           <Stack.Screen name="weather" />
           <Stack.Screen name="photos" />
