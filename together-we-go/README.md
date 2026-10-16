@@ -112,6 +112,10 @@ Other scripts: `npm run web` (browser preview), `npx tsc --noEmit` (type-check),
 
 ---
 
+**Judges: [`docs/RATING_SHEET.md`](docs/RATING_SHEET.md)** lists every line of the FBLA rating sheet with where it is shown. The 7-minute script is in [`docs/DEMO_SCRIPT.md`](docs/DEMO_SCRIPT.md).
+
+---
+
 ## 3. How it’s built
 
 ```

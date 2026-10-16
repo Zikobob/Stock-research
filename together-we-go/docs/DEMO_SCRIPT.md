@@ -24,6 +24,8 @@ Built around the rating sheet so every scored item gets shown. Times are cumulat
 | 6:15 | Settings → Demo timeline “In progress” → Home “Today” card; then “Just finished” → Recap story card | The full lifecycle: planning → travelling → recap with stats, balances and a shareable story card. | Addresses all parts of prompt |
 | 6:40 | More → How it works; README / ATTRIBUTIONS | Layered MVVM architecture, reusable components, strict TypeScript, 0 lint errors; every library, API and photo documented. | Code quality · Architecture · Documentation |
 
+**Protocol reminders** (full checklist in `docs/RATING_SHEET.md`): max 3 devices, no external speakers, no power, never ask judges to scan a QR code or click a link, leave nothing behind, stay silent during set-up.
+
 ## Likely questions — short answers
 - **How do friends’ phones stay in sync?** In this version data is stored on each device (offline-first). The store/service split means adding a sync backend (Firebase/Supabase) only changes the service layer — the screens stay the same.
 - **Why Expo / React Native?** One TypeScript codebase for iOS and Android, native modules for notifications, maps, camera, files and secure storage.
