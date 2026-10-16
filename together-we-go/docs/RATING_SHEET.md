@@ -53,5 +53,5 @@ The FBLA 2026-27 *Mobile Application Development* rating sheet has 16 scored lin
 
 1. **Standalone run.** The rules say the solution must run standalone. Expo Go needs your laptop's dev server, so build an installed copy before the event: `npx eas-cli@latest build -p android --profile preview` gives an `.apk` (needs a free Expo account). iPhone standalone needs an Apple Developer account.
 2. **Phones don't sync with each other.** Data lives on each device. The service layer is where a Firebase/Supabase backend would plug in without touching the screens. Say this out loud rather than letting a judge find it.
-3. **Passwords** use one round of salted SHA-256. A real server should use bcrypt or Argon2, and sign-in should run on the server.
+3. **Passwords** use salted PBKDF2-HMAC-SHA256 with 10,000 rounds, a count chosen so sign-in stays under about a second in a phone's JavaScript engine (a server would use 600,000 or Argon2id). Accounts live on the phone, not on a server.
 4. **Live weather and exchange rates** need internet. Offline, the app shows the last saved data and labels it.

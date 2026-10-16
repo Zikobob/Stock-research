@@ -22,7 +22,7 @@ const STACK = [
   'Expo SDK 57 + React Native 0.86 (iOS & Android, TypeScript)',
   'Expo Router — file-based navigation with protected routes',
   'Zustand + Immer — state; AsyncStorage — offline persistence',
-  'expo-crypto (SHA-256 password hashing), expo-secure-store (API key)',
+  '@noble/hashes (PBKDF2 password hashing), expo-crypto (random salts), expo-secure-store (API key)',
   'expo-notifications, expo-location, expo-image-picker, expo-document-picker',
   'expo-print, expo-sharing, expo-speech, expo-file-system, react-native-maps',
 ];

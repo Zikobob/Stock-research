@@ -19,7 +19,7 @@ const LAYERS: { icon: IconName; title: string; where: string; body: string }[] =
 ];
 
 const SECURITY: [IconName, string, string][] = [
-  ['key-outline', 'Passwords are never stored', 'Each one is salted and hashed with SHA-256 (expo-crypto) before it is saved.'],
+  ['key-outline', 'Passwords are never stored', 'Each one is salted and stretched with PBKDF2-SHA256 before it is saved, so even the stored copy can’t be read back.'],
   ['lock-closed-outline', 'API key in the keychain', 'The optional AI key lives in the iOS Keychain or Android Keystore (expo-secure-store), not in the app database.'],
   ['cloud-offline-outline', 'Offline-first', 'Trips, chats, documents and maps are saved on the phone. Weather and exchange rates are cached for when you lose signal.'],
   ['shield-checkmark-outline', 'Your data stays with you', 'Trips and chats are stored on the device. Only weather, exchange-rate and optional AI requests go online.'],

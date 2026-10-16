@@ -2,7 +2,7 @@
  * Single source of truth for the app (MVVM "model" layer).
  * - zustand for state + actions, immer for safe nested updates
  * - persisted to AsyncStorage so everything works offline
- * - passwords are salted + SHA-256 hashed, never stored in plain text
+ * - passwords are salted + PBKDF2 hashed (see utils/password.ts), never stored in plain text
  */
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Crypto from 'expo-crypto';
@@ -13,6 +13,7 @@ import { immer } from 'zustand/middleware/immer';
 import { destinationById } from '@/data/destinations';
 import type { Role } from '@/data/reference';
 import { uid } from '@/utils/format';
+import { hashPassword, verifyPassword } from '@/utils/password';
 import { daysBetween, todayInTz } from '@/utils/time';
 import { EMAIL_RE } from '@/utils/validation';
 
@@ -46,10 +47,6 @@ import type {
   TripStatus,
   WeatherSnapshot,
 } from './types';
-
-export async function hashPassword(password: string, salt: string): Promise<string> {
-  return Crypto.digestStringAsync(Crypto.CryptoDigestAlgorithm.SHA256, `${salt}:${password}`);
-}
 
 type Result = { ok: true } | { ok: false; error: string };
 
@@ -271,9 +268,14 @@ export const useAppStore = create<AppStore>()(
           const acct = get().accounts.find((a) => a.email.toLowerCase() === email.trim().toLowerCase());
           if (!acct) return { ok: false, error: 'No account found with that email. Try Sign Up instead.' };
           if (acct.provider === 'google' && !acct.passwordHash) return { ok: false, error: 'This account uses Google sign-in.' };
-          const hash = await hashPassword(password, acct.salt);
-          if (hash !== acct.passwordHash) return { ok: false, error: 'Incorrect password. Please try again.' };
+          const check = await verifyPassword(password, acct);
+          if (!check.ok) return { ok: false, error: 'Incorrect password. Please try again.' };
           set((s) => {
+            // Old accounts used a single SHA-256 round: quietly move them to the stronger hash.
+            if (check.upgrade) {
+              const mine = s.accounts.find((a) => a.id === acct.id);
+              if (mine) mine.passwordHash = check.upgrade;
+            }
             s.session = { userId: acct.id, remember };
             const mine = s.trips.find((t) => t.members.some((m) => m.id === acct.id));
             if (!s.trips.find((t) => t.id === s.activeTripId && t.members.some((m) => m.id === acct.id))) {
@@ -639,7 +641,10 @@ export const useAppStore = create<AppStore>()(
           withTrip(tripId, (t) => {
             const have = new Set(t.packing.map((p) => p.text.toLowerCase()));
             items.forEach((i) => {
-              if (!have.has(i.text.toLowerCase())) t.packing.push({ ...i, id: uid('p-'), packed: false });
+              const key = i.text.toLowerCase();
+              if (have.has(key)) return;
+              have.add(key); // also skips duplicates inside this same batch
+              t.packing.push({ ...i, id: uid('p-'), packed: false });
             });
           }),
 

@@ -29,7 +29,7 @@ Built around the rating sheet so every scored item gets shown. Times are cumulat
 ## Likely questions — short answers
 - **How do friends’ phones stay in sync?** In this version data is stored on each device (offline-first). The store/service split means adding a sync backend (Firebase/Supabase) only changes the service layer — the screens stay the same.
 - **Why Expo / React Native?** One TypeScript codebase for iOS and Android, native modules for notifications, maps, camera, files and secure storage.
-- **How is data protected?** Salted SHA-256 password hashes, optional session persistence, API key in Keychain/Keystore, files in app-private storage.
+- **How is data protected?** Salted PBKDF2-HMAC-SHA256 password hashes (stretched, upgraded automatically), optional session persistence, API key in Keychain/Keystore, files in app-private storage.
 - **What makes it accessible?** Labels and roles on every control, adjustable text size, colour contrast, haptics toggle, 6 languages, clear inline errors.
 - **What happens with no internet?** Everything keeps working from local storage; weather and exchange rates show the last saved data (or an estimate) and say so.
 - **How does the AI work offline?** It’s our own intent-matching engine over the trip data (budget math, settle-up algorithm, weather cache, place database). Claude is optional for open-ended questions.

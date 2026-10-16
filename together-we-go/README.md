@@ -140,7 +140,7 @@ src/
 - **React Compiler** enabled; the code passes the compiler’s lint rules (`npx expo lint` → 0 problems) and `tsc --noEmit` with `strict: true`.
 
 ### Data handling & security
-- Passwords are **salted and SHA-256 hashed** (expo-crypto) — never stored in plain text.
+- Passwords are **salted and stretched with PBKDF2-HMAC-SHA256** (`@noble/hashes`, rounds stored in the hash, old hashes upgraded at next sign-in) — never stored in plain text. Covered by unit tests, including the official RFC test vector.
 - “Remember me” off → the session is not persisted.
 - The optional Anthropic API key lives in the **iOS Keychain / Android Keystore** (expo-secure-store), never in the app database.
 - Documents are copied into the app’s private storage so they stay available offline.

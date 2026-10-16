@@ -18,6 +18,8 @@ The project was scaffolded with `npx create-expo-app` (default template, MIT lic
 | `@react-native-async-storage/async-storage` | 2.2.0 | MIT |
 | `zustand` | 5.0.15 | MIT |
 | `immer` | 11.1.21 | MIT |
+| `@noble/hashes` (PBKDF2-SHA256 password hashing; audited, no dependencies) | 2.4.0 | MIT |
+| `jest`, `jest-expo`, `@types/jest` (unit tests, development only) | 29.x / 57.x | MIT |
 | `@expo/vector-icons` (Ionicons, Material Community Icons) | 15.1.1 | MIT |
 | `@expo-google-fonts/manrope` (Manrope by Mikhail Sharanda), `@expo-google-fonts/anton` (Anton by Vernon Adams) | 0.4.x | MIT (package) / SIL Open Font License 1.1 (fonts) |
 
