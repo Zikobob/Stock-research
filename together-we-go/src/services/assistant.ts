@@ -6,8 +6,6 @@
  *    Settings, questions go to Claude with the trip as context. Any failure
  *    falls back to the offline engine.
  */
-import Anthropic from '@anthropic-ai/sdk';
-
 import { destinationById } from '@/data/destinations';
 import { placesFor } from '@/data/places';
 import { currencies, emergencyByCountry, phrasebook } from '@/data/reference';
@@ -232,30 +230,31 @@ function systemPrompt(ctx: AssistantContext): string {
 }
 
 export async function askClaude(apiKey: string, question: string, history: ChatMessage[], ctx: AssistantContext): Promise<string> {
-  const client = new Anthropic({ apiKey, dangerouslyAllowBrowser: true, maxRetries: 1, timeout: 45_000 });
-  const recent = history.filter((m) => m.kind !== 'system').slice(-12);
-  const messages: Anthropic.Beta.BetaMessageParam[] = [];
-  for (const m of recent) {
+  // Plain fetch to the Messages API: the official SDK does not bundle for React Native.
+  const messages: { role: 'user' | 'assistant'; content: string }[] = [];
+  for (const m of history.filter((x) => x.kind !== 'system').slice(-12)) {
     if (m.ai) messages.push({ role: 'assistant', content: m.text });
     else messages.push({ role: 'user', content: `${ctx.trip.members.find((x) => x.id === m.authorId)?.name ?? 'Member'}: ${m.text}` });
   }
   while (messages.length && messages[0].role !== 'user') messages.shift();
   messages.push({ role: 'user', content: question });
 
-  const resp = await client.beta.messages.create({
-    model: CLAUDE_MODEL,
-    max_tokens: 2048,
-    betas: ['server-side-fallback-2026-07-01'],
-    fallbacks: 'default',
-    output_config: { effort: 'low' },
-    system: systemPrompt(ctx),
-    messages,
-  });
-  if (resp.stop_reason === 'refusal') throw new Error('refused');
-  const text = resp.content
-    .map((b) => (b.type === 'text' ? b.text : ''))
-    .join('\n')
-    .trim();
-  if (!text) throw new Error('empty');
-  return text;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 45_000);
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
+      body: JSON.stringify({ model: CLAUDE_MODEL, max_tokens: 1024, system: systemPrompt(ctx), messages }),
+      signal: controller.signal,
+    });
+    if (!res.ok) throw new Error(`Claude ${res.status}`);
+    const data = (await res.json()) as { stop_reason?: string; content?: { type: string; text?: string }[] };
+    if (data.stop_reason === 'refusal') throw new Error('refused');
+    const text = (data.content ?? []).map((b) => (b.type === 'text' ? b.text ?? '' : '')).join('\n').trim();
+    if (!text) throw new Error('empty');
+    return text;
+  } finally {
+    clearTimeout(timer);
+  }
 }

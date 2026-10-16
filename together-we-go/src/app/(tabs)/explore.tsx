@@ -100,7 +100,7 @@ export default function Home() {
 
   return (
     <View style={styles.root}>
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
+      <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
         <View style={styles.column}>
           <SkylineHero image={dest?.image ?? 'amalfi'} tz={tz} height={400 + insets.top}>
             <View style={[styles.heroTop, { top: insets.top + 10 }]}>
@@ -429,6 +429,8 @@ function pickedForYou(p: Personal): { d: Destination; match: number; why: string
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.bg, alignItems: 'center' },
+  // width 100% so the page is exactly as wide as the phone (the root centres its children, which would otherwise let a wide card row stretch the page sideways)
+  scroll: { width: '100%' },
   column: { width: '100%', maxWidth: MAX_WIDTH },
   heroTop: { position: 'absolute', left: 16, right: 16, flexDirection: 'row', alignItems: 'center', gap: 10 },
   pano: { flexDirection: 'row', alignItems: 'center', gap: 5, height: 40, paddingHorizontal: 12, borderRadius: 999, backgroundColor: 'rgba(20,20,24,0.55)' },

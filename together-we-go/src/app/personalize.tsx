@@ -199,7 +199,7 @@ export default function Personalize() {
           )}
         </View>
 
-        <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 30 }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+        <ScrollView style={{ width: '100%' }} contentContainerStyle={{ padding: 20, paddingBottom: 30 }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
           <FadeIn key={step} from="left" distance={28} duration={380}>
             {step === 0 ? (
               <View style={{ alignItems: 'center', paddingTop: 10 }}>

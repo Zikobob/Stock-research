@@ -20,7 +20,6 @@ The project was scaffolded with `npx create-expo-app` (default template, MIT lic
 | `immer` | 11.1.21 | MIT |
 | `@expo/vector-icons` (Ionicons, Material Community Icons) | 15.1.1 | MIT |
 | `@expo-google-fonts/manrope` (Manrope by Mikhail Sharanda), `@expo-google-fonts/anton` (Anton by Vernon Adams) | 0.4.x | MIT (package) / SIL Open Font License 1.1 (fonts) |
-| `@anthropic-ai/sdk` (optional Claude mode) | 0.131.0 | MIT |
 
 ## APIs & data
 | Data | Source | Terms |

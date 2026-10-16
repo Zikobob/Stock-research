@@ -67,7 +67,7 @@ const LIBRARIES = [
   'react-native-maps',
   'react-native-svg',
   'Reanimated',
-  'Anthropic SDK (optional)',
+  'Anthropic Messages API via fetch (optional)',
 ];
 
 function Section({ icon, title, children }: { icon: IconName; title: string; children: ReactNode }) {
