@@ -91,11 +91,12 @@ function authHtml() {
   const invite = (location.hash.match(/^#\/invite\/(\w+)/) || [])[1];
   if (invite) return `<div class="auth"><h1>Join as an admin</h1><form class="stack card" data-form="join">
     <input type="hidden" name="invite" value="${esc(invite)}">${nameAndPw()}<p><button class="primary" type="submit">Create my admin account</button></p></form>${privacy}</div>`;
+  const pre = (location.hash.match(/^#\/join\/(\w+)/) || [])[1] || ''; // link like https://site/#/join/K7M2QX fills in the code
   const tab = M.auth === 'login' ? 'login' : 'join';
   return `<div class="auth"><h1>${esc(boot.club.name)}</h1><p class="muted">Investment Club: Paper Trading. Real prices, fake money.</p>
     <div class="tabs"><button data-act="authTab" data-tab="join" aria-pressed="${tab === 'join'}">Join the club</button><button data-act="authTab" data-tab="login" aria-pressed="${tab === 'login'}">Sign in</button></div>
     <form class="stack card" data-form="${tab}">
-      ${tab === 'join' ? '<label for="code">Class code</label><input id="code" name="code" required maxlength="6" autocapitalize="characters" autocomplete="off">' : ''}
+      ${tab === 'join' ? '<label for="code">Class code</label><input id="code" name="code" required maxlength="6" autocapitalize="characters" autocomplete="off" value="${esc(pre.toUpperCase())}">' : ''}
       ${nameAndPw(tab === 'login')}
       <p><button class="primary" type="submit">${tab === 'join' ? 'Join' : 'Sign in'}</button></p></form>${privacy}</div>`;
 }
@@ -292,6 +293,7 @@ VIEWS.admin = async () => {
   const sel = (k, label, opts, v) => `<div><label for="s_${k}">${label}</label><select id="s_${k}" name="${k}">${opts.map(([val, t]) => `<option value="${val}" ${val === v ? 'selected' : ''}>${t}</option>`).join('')}</select></div>`;
   return `<h1>Admin</h1>
   <div class="card"><h2>Class code</h2><code class="big">${esc(a.code)}</code> ${a.codeOn ? '' : '<span class="pill">disabled</span>'}
+    <p>Join link to share: <code>${esc(location.origin)}/#/join/${esc(a.code)}</code></p>
     <p class="row"><button data-act="code" data-a="rotate">Make a new code</button><button data-act="code" data-a="${a.codeOn ? 'disable' : 'enable'}">${a.codeOn ? 'Turn code off' : 'Turn code on'}</button>
     <button data-act="code" data-a="approval" data-v="${a.needApproval ? '' : '1'}">${a.needApproval ? 'Stop requiring approval' : 'Require admin approval to join'}</button></p></div>
   ${owner ? `<div class="card"><h2>Admins</h2><p class="muted">A club has up to 3 admins. Send an invite link to each person.</p><button data-act="invite">Create an admin invite link</button>

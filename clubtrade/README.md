@@ -49,7 +49,7 @@ Run the unit tests (fill logic, average cost, guardrails, vote tally, market hou
    ```
    Do **not** set `MOCK_DATA` in production.
 8. **Deploy:** `npm run deploy`. Your site is at `https://clubtrade.pages.dev` (or the name you chose).
-9. **Create the club:** open the site, fill in the set-up screen. Open **Admin** to see your class code, then share it with members. Use **Admin, Create an admin invite link** to add up to two more admins.
+9. **Create the club:** open the site, fill in the set-up screen. Open **Admin** to see your class code, then share it with members, or share the **join link** shown right under it (`https://YOUR-SITE/#/join/CODE`), which fills in the code for them. Use **Admin, Create an admin invite link** to add up to two more admins.
 10. Open `/status` and check it says the data provider is reachable.
 
 Re-deploy after changes with `npm run deploy`. A custom domain can be added in the Cloudflare dashboard under *Workers & Pages, clubtrade, Custom domains*.
