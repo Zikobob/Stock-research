@@ -144,7 +144,14 @@ function applyOp(regs: Registers, op: Op): boolean {
   const cur = regs[key];
   if (cur && compareStamps(op.t, cur.t) <= 0) return false;
   regs[key] = op.d ? { t: op.t, d: 1 } : { t: op.t, v: op.v };
+  // Everything older that was inside a deleted item is void; dropping it keeps every phone's registers identical.
+  if (info.isItem) forgetOlderBelow(regs, key, op.t);
   return true;
+}
+
+function forgetOlderBelow(regs: Registers, itemKey: string, t: string): void {
+  const prefix = itemKey + PATH_SEP;
+  for (const key of Object.keys(regs)) if (key.startsWith(prefix) && compareStamps(regs[key].t, t) < 0) delete regs[key];
 }
 
 // ------------------------------------------------------------------ rebuild

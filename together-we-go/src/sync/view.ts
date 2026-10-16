@@ -32,9 +32,20 @@ export function mergeLocalOnly(shared: Trip, current: Trip | undefined): Trip {
       return next;
     });
   }
-  const privateMessages = (current?.messages ?? []).filter((m) => m.channel === 'ai');
-  if (privateMessages.length) out.messages = [...shared.messages, ...privateMessages].sort((a, b) => a.ts - b.ts);
+  const privateMessages = (current?.messages ?? []).filter((m) => m.channel === 'ai').sort((a, b) => a.ts - b.ts);
+  if (privateMessages.length) out.messages = placePrivate(shared.messages, privateMessages);
   return out as Trip;
+}
+
+/** Slots the private messages in by time without reordering the shared ones (their order is the order they were sent). */
+function placePrivate(shared: Trip['messages'], mine: Trip['messages']): Trip['messages'] {
+  const out = [...shared];
+  for (const m of mine) {
+    let i = out.length;
+    while (i > 0 && out[i - 1].ts > m.ts) i--;
+    out.splice(i, 0, m);
+  }
+  return out;
 }
 
 /**

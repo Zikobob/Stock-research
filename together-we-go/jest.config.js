@@ -10,5 +10,5 @@ module.exports = {
     preset.transformIgnorePatterns[0].replace('standard-navigation))', 'standard-navigation|immer|zustand|@noble))'),
     ...preset.transformIgnorePatterns.slice(1),
   ],
-  testPathIgnorePatterns: ['/node_modules/', '/server/', '/dist/'],
+  testPathIgnorePatterns: ['/node_modules/', '/dist/'],
 };
