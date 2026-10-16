@@ -1,0 +1,16 @@
+{
+  "name": "clubtrade",
+  "version": "1.0.0",
+  "description": "Paper trading site for a high school investment club",
+  "scripts": {
+    "dev": "wrangler d1 migrations apply clubtrade --local && wrangler pages dev public",
+    "seed": "node scripts/seed.js > seed.sql && wrangler d1 execute clubtrade --local --file=seed.sql",
+    "test": "node --test",
+    "deploy": "wrangler pages deploy public"
+  },
+  "devDependencies": {
+    "wrangler": "^4.151.0"
+  },
+  "private": true,
+  "type": "module"
+}

@@ -1,0 +1,6 @@
+# Copy to .dev.vars for local work. MOCK_DATA=1 uses fake prices so no keys are needed.
+MOCK_DATA=1
+SESSION_SECRET=change-me-to-a-long-random-string
+FINNHUB_KEY=
+TWELVEDATA_KEY=
+ALPHAVANTAGE_KEY=
