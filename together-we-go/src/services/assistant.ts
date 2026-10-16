@@ -9,7 +9,7 @@
 import { destinationById } from '@/data/destinations';
 import { placesFor } from '@/data/places';
 import { currencies, emergencyByCountry, phrasebook } from '@/data/reference';
-import { balances, settlePlan, totalSpent } from '@/store/useAppStore';
+import { balances, settlePlan, totalSpent } from '@/utils/money';
 import type { ChatMessage, RatesSnapshot, Trip, WeatherSnapshot } from '@/store/types';
 import { durationLabel, money } from '@/utils/format';
 import { distanceKm, kmLabel, nearestAirports } from '@/utils/geo';

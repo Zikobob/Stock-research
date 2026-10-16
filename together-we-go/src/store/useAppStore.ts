@@ -786,39 +786,4 @@ export function memberById(t: Trip | undefined, id: string): Member | undefined 
   return t?.members.find((m) => m.id === id);
 }
 
-export function totalSpent(t: Trip): number {
-  return t.expenses.filter((e) => !e.settlement).reduce((sum, e) => sum + e.amount, 0);
-}
-
-/** Net balance per member: positive = is owed money, negative = owes. */
-export function balances(t: Trip): Record<string, number> {
-  const bal: Record<string, number> = {};
-  t.members.forEach((m) => (bal[m.id] = 0));
-  for (const e of t.expenses) {
-    const split = e.splitBetween.filter((id) => id in bal);
-    if (!split.length) continue;
-    bal[e.paidBy] = (bal[e.paidBy] ?? 0) + e.amount;
-    const share = e.amount / split.length;
-    split.forEach((id) => (bal[id] -= share));
-  }
-  return bal;
-}
-
-/** Greedy minimal-transfer settle-up plan. */
-export function settlePlan(t: Trip): { from: string; to: string; amount: number }[] {
-  const bal = balances(t);
-  const debtors = Object.entries(bal).filter(([, v]) => v < -0.5).map(([id, v]) => ({ id, v: -v })).sort((a, b) => b.v - a.v);
-  const creditors = Object.entries(bal).filter(([, v]) => v > 0.5).map(([id, v]) => ({ id, v })).sort((a, b) => b.v - a.v);
-  const plan: { from: string; to: string; amount: number }[] = [];
-  let i = 0;
-  let j = 0;
-  while (i < debtors.length && j < creditors.length) {
-    const amt = Math.min(debtors[i].v, creditors[j].v);
-    plan.push({ from: debtors[i].id, to: creditors[j].id, amount: Math.round(amt * 100) / 100 });
-    debtors[i].v -= amt;
-    creditors[j].v -= amt;
-    if (debtors[i].v < 0.5) i++;
-    if (creditors[j].v < 0.5) j++;
-  }
-  return plan;
-}
+export { balances, settlePlan, totalSpent } from '@/utils/money';

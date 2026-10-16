@@ -48,7 +48,7 @@ export function validateName(v: string): string | null {
   if (!t) return 'Enter a name';
   if (t.length < 2) return 'Name is too short';
   if (t.length > 40) return 'Keep names under 40 characters';
-  if (!/^[\p{L}\p{M}' .-]+$/u.test(t)) return 'Names can only contain letters, spaces, hyphens and apostrophes';
+  if (!/^[\p{L}\p{M}'’ʼ .-]+$/u.test(t)) return 'Names can only contain letters, spaces, hyphens and apostrophes';
   return null;
 }
 
