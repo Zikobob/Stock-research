@@ -11,8 +11,10 @@
  *  - maps    : name -> value (each member's vote on an activity)
  *  - lists   : lists of items with an id (activities, expenses, chat messages...), each an item with its own fields
  *
- * Left out on purpose: member emails (privacy), the private Scout AI chat, and anything that points to a file on
- * one phone (photo, document, receipt and ticket files) because the other phones cannot open those paths.
+ * Left out on purpose: member emails (privacy), the private Scout AI chat, and the file paths of photos, documents,
+ * receipts and tickets, because other phones cannot open a path into this phone. Photos, documents and receipts
+ * instead share a `blob` id: the file itself travels through the server (see blobs.ts) and each phone keeps its
+ * own copy. Flight tickets stay on the phone that added them (they hold personal details).
  */
 export interface ItemSchema {
   /** Fields that hold one plain value. */
@@ -46,7 +48,7 @@ const activity: ItemSchema = {
 };
 
 const expense: ItemSchema = {
-  scalars: ['title', 'amount', 'category', 'paidBy', 'date', 'settlement'],
+  scalars: ['title', 'amount', 'category', 'paidBy', 'date', 'settlement', 'receiptBlob'],
   required: ['title', 'amount', 'paidBy'],
   json: ['original'],
   sets: ['splitBetween'],
@@ -64,9 +66,9 @@ const poll: ItemSchema = {
 };
 
 const task: ItemSchema = { scalars: ['text', 'done', 'assignee'], required: ['text'] };
-const doc: ItemSchema = { scalars: ['name', 'kind', 'note', 'size', 'addedBy', 'addedAt', 'offline'], required: ['name', 'kind'] };
+const doc: ItemSchema = { scalars: ['name', 'kind', 'note', 'size', 'addedBy', 'addedAt', 'offline', 'blob'], required: ['name', 'kind'] };
 const message: ItemSchema = { scalars: ['authorId', 'text', 'ts', 'kind', 'ai', 'aiSource', 'channel'], required: ['authorId', 'text', 'ts'] };
-const photo: ItemSchema = { scalars: ['caption', 'by', 'ts', 'day'], required: ['by', 'ts'], sets: ['likes'] };
+const photo: ItemSchema = { scalars: ['caption', 'by', 'ts', 'day', 'blob'], required: ['by', 'ts'], sets: ['likes'] };
 const packing: ItemSchema = { scalars: ['text', 'category', 'packed', 'broughtBy'], required: ['text'] };
 
 export const TRIP_SCHEMA: ItemSchema = {

@@ -1,17 +1,18 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Image } from 'expo-image';
 import * as Linking from 'expo-linking';
 import * as Sharing from 'expo-sharing';
 import { useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { Platform, StyleSheet, View } from 'react-native';
 
+import { DocFileBody } from '@/components/documents/DocFileBody';
+import { DocRow } from '@/components/documents/DocRow';
 import { NoTrip } from '@/components/trip/NoTrip';
 import { Button } from '@/components/ui/Button';
-import { Card, EmptyState, Pill } from '@/components/ui/bits';
+import { Card, EmptyState } from '@/components/ui/bits';
 import { confirmAction, toast } from '@/components/ui/feedback';
 import { Input } from '@/components/ui/Input';
-import { Press, tap } from '@/components/ui/Press';
+import { tap } from '@/components/ui/Press';
 import { Header, Screen } from '@/components/ui/Screen';
 import { Sheet } from '@/components/ui/Sheet';
 import { T } from '@/components/ui/T';
@@ -49,11 +50,10 @@ export default function Documents() {
     }
   };
 
-  const openFile = async (d: TripDoc) => {
-    if (!d.uri) return;
+  const openFile = async (uri: string, title: string) => {
     try {
-      if (Platform.OS !== 'web' && (await Sharing.isAvailableAsync())) await Sharing.shareAsync(d.uri, { dialogTitle: d.name });
-      else await Linking.openURL(d.uri);
+      if (Platform.OS !== 'web' && (await Sharing.isAvailableAsync())) await Sharing.shareAsync(uri, { dialogTitle: title });
+      else await Linking.openURL(uri);
     } catch {
       toast('No app available to open this file', { tone: 'warn' });
     }
@@ -82,22 +82,7 @@ export default function Documents() {
 
       <View style={{ gap: 8, marginTop: 16 }}>
         {trip.docs.length ? (
-          trip.docs.map((d) => (
-            <Press key={d.id} onPress={() => setOpen(d)} style={styles.row} scaleTo={0.99} accessibilityLabel={`Open ${d.name}`}>
-              <View style={styles.icon}>
-                <Ionicons name={d.kind === 'image' ? 'image-outline' : d.kind === 'note' ? 'document-text-outline' : d.kind === 'pdf' ? 'document-outline' : 'attach-outline'} size={20} color={colors.primary} />
-              </View>
-              <View style={{ flex: 1 }}>
-                <T variant="small" weight="semibold" numberOfLines={1}>
-                  {d.name}
-                </T>
-                <T variant="caption" color={colors.textMuted}>
-                  {d.kind === 'note' ? 'Note' : d.kind.toUpperCase()} {d.size ? `· ${sizeLabel(d.size)}` : ''} · {timeAgo(d.addedAt)} · {trip.members.find((m) => m.id === d.addedBy)?.name.split(' ')[0]}
-                </T>
-              </View>
-              <Pill label="Offline" icon="cloud-done-outline" />
-            </Press>
-          ))
+          trip.docs.map((d) => <DocRow key={d.id} doc={d} trip={trip} onPress={() => setOpen(d)} />)
         ) : (
           <EmptyState icon="folder-open-outline" title="No documents yet" body="Add tickets, bookings and passport copies so they’re always on hand." />
         )}
@@ -111,13 +96,7 @@ export default function Documents() {
             </T>
           </View>
         ) : null}
-        {open?.kind === 'image' && open.uri ? <Image source={{ uri: open.uri }} style={{ width: '100%', height: 320, borderRadius: 14 }} contentFit="contain" /> : null}
-        {open && open.kind !== 'note' && open.uri ? <Button label="Open / share file" icon="open-outline" onPress={() => openFile(open)} /> : null}
-        {open && open.kind !== 'note' && !open.uri ? (
-          <T variant="small" color={colors.textSecondary}>
-            This file is stored on {trip.members.find((m) => m.id === open.addedBy)?.name.split(' ')[0] ?? 'a friend'}’s phone. Its name and notes sync, the file itself does not.
-          </T>
-        ) : null}
+        {open ? <DocFileBody doc={open} adderName={trip.members.find((m) => m.id === open.addedBy)?.name.split(' ')[0] ?? 'a friend'} onOpen={(uri) => openFile(uri, open.name)} /> : null}
         {open && (open.addedBy === userId || trip.ownerId === userId) ? (
           <Button
             label="Delete"
@@ -166,7 +145,5 @@ export default function Documents() {
 
 const styles = StyleSheet.create({
   banner: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: colors.primarySofter, borderColor: colors.primaryLine },
-  row: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: colors.card, padding: 12, borderRadius: radius.md, borderWidth: 1, borderColor: colors.border },
-  icon: { width: 40, height: 40, borderRadius: 12, backgroundColor: colors.primarySofter, alignItems: 'center', justifyContent: 'center' },
   note: { backgroundColor: colors.cardMuted, padding: 14, borderRadius: radius.md, borderWidth: 1, borderColor: colors.border },
 });

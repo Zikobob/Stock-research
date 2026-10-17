@@ -12,6 +12,7 @@ import type { Trip } from '@/store/types';
 import { applyOps, diffTrip, materializeTrip, type Op, type Registers } from './crdt';
 import { HybridClock, newNodeId, type ClockState } from './hlc';
 import { NetworkError, ServerError, type SyncTransport } from './transport';
+import { quiet } from './timers';
 import { toViewTrip } from './view';
 
 /** What we remember about one shared trip. */
@@ -135,6 +136,11 @@ export class SyncEngine {
 
   isShared(tripId: string): boolean {
     return this.attached.has(tripId);
+  }
+
+  /** The id the server uses for a shared trip (undefined when the trip is not shared). */
+  remoteId(tripId: string): string | undefined {
+    return this.attached.get(tripId)?.sync.remoteId;
   }
 
   getStatus(): SyncStatus {
@@ -287,10 +293,12 @@ export class SyncEngine {
   private schedulePush(tripId: string, delayMs: number): void {
     const a = this.attached.get(tripId);
     if (!a || !this.running || a.retry) return;
-    a.retry = setTimeout(() => {
-      a.retry = null;
-      void this.push(tripId);
-    }, delayMs);
+    a.retry = quiet(
+      setTimeout(() => {
+        a.retry = null;
+        void this.push(tripId);
+      }, delayMs),
+    );
   }
 
   /** Sends our unconfirmed changes. Safe to call at any time; only one send per trip runs at once. */
@@ -373,7 +381,7 @@ export class SyncEngine {
           this.publishStatus();
           delay = Math.min(delay ? delay * 2 : 1000, 15000);
           await new Promise<void>((resolve) => {
-            const timer = setTimeout(resolve, delay);
+            const timer = quiet(setTimeout(resolve, delay));
             a.wake = () => {
               clearTimeout(timer);
               resolve();
@@ -403,10 +411,12 @@ export class SyncEngine {
 
   private scheduleSave(): void {
     if (this.saveTimer) return;
-    this.saveTimer = setTimeout(() => {
-      this.saveTimer = null;
-      void this.saveNow();
-    }, 800); // saving writes everything, so batch bursts of changes (the app also saves when it goes to the background)
+    this.saveTimer = quiet(
+      setTimeout(() => {
+        this.saveTimer = null;
+        void this.saveNow();
+      }, 800), // saving writes everything, so batch bursts of changes (the app also saves when it goes to the background)
+    );
   }
 
   async saveNow(): Promise<void> {

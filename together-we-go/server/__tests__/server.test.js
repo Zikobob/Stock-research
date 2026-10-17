@@ -96,6 +96,65 @@ describe('SyncStore', () => {
   });
 });
 
+describe('files (photos, documents, receipts)', () => {
+  const FILE = 'photo_abc12345';
+  const fresh = (options) => {
+    const s = new SyncStore(options);
+    s.append(TRIP, null, 'phoneA01', [op(1)]); // a trip has to exist first
+    return s;
+  };
+
+  it('keeps a file for a trip and gives the same bytes back', async () => {
+    const s = fresh();
+    const bytes = Buffer.from([0, 1, 2, 250, 251, 252, 255]);
+    expect(await s.putBlob(TRIP, FILE, bytes)).toEqual({ size: 7 });
+    expect(await s.getBlob(TRIP, FILE)).toEqual(bytes);
+    expect(await s.getBlob(TRIP, 'someone_else_1')).toBeNull();
+    expect(s.stats().files).toBe(1);
+  });
+
+  it('refuses unknown trips, bad ids, empty files and files that are too large', async () => {
+    const s = fresh({ maxBlobBytes: 100 });
+    await expect(s.putBlob('trip_zzzzzzzzzzzzzzzz9999', FILE, Buffer.from('x'))).rejects.toMatchObject({ status: 404 });
+    await expect(s.putBlob(TRIP, '../escape', Buffer.from('x'))).rejects.toMatchObject({ status: 400 });
+    await expect(s.putBlob(TRIP, 'a b', Buffer.from('x'))).rejects.toMatchObject({ status: 400 });
+    await expect(s.putBlob(TRIP, FILE, Buffer.alloc(0))).rejects.toMatchObject({ status: 400 });
+    await expect(s.putBlob(TRIP, FILE, 'not bytes')).rejects.toMatchObject({ status: 400 });
+    await expect(s.putBlob(TRIP, FILE, Buffer.alloc(101))).rejects.toMatchObject({ status: 413 });
+    expect(await s.getBlob(TRIP, '../escape')).toBeNull();
+    expect(s.stats().files).toBe(0);
+  });
+
+  it('stops one trip from filling the server, and lets a file be replaced by a smaller one', async () => {
+    const s = fresh({ maxBlobBytesPerTrip: 100 });
+    await s.putBlob(TRIP, 'file_one_1', Buffer.alloc(60));
+    await expect(s.putBlob(TRIP, 'file_two_2', Buffer.alloc(60))).rejects.toMatchObject({ status: 413 });
+    await s.putBlob(TRIP, 'file_one_1', Buffer.alloc(30)); // same id: replaces, frees 30
+    await s.putBlob(TRIP, 'file_two_2', Buffer.alloc(60));
+    expect(s.trips.get(TRIP).blobBytes).toBe(90);
+  });
+
+  it('counts two uploads at the same moment against the limit', async () => {
+    const s = fresh({ maxBlobBytesPerTrip: 100 });
+    const results = await Promise.allSettled([s.putBlob(TRIP, 'file_one_1', Buffer.alloc(70)), s.putBlob(TRIP, 'file_two_2', Buffer.alloc(70))]);
+    expect(results.filter((r) => r.status === 'fulfilled')).toHaveLength(1);
+    expect(s.trips.get(TRIP).blobBytes).toBe(70);
+  });
+
+  it('keeps files across a restart and ignores half-finished uploads', async () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'twg-'));
+    const file = path.join(dir, 'sync.json');
+    const a = fresh({ file });
+    await a.putBlob(TRIP, FILE, Buffer.from('hello'));
+    fs.writeFileSync(path.join(dir, 'files', TRIP, 'half_done_1.tmp'), 'junk'); // an interrupted upload
+    a.flush();
+    const b = new SyncStore({ file });
+    expect(b.stats().files).toBe(1);
+    expect(b.trips.get(TRIP).blobBytes).toBe(5);
+    expect((await b.getBlob(TRIP, FILE)).toString()).toBe('hello');
+  });
+});
+
 describe('HTTP API', () => {
   let server;
   let base;
@@ -110,6 +169,18 @@ describe('HTTP API', () => {
       });
       req.on('error', reject);
       if (data) req.write(data);
+      req.end();
+    });
+
+  const callRaw = (method, pathname, body) =>
+    new Promise((resolve, reject) => {
+      const req = http.request(base + pathname, { method, headers: body ? { 'Content-Type': 'application/octet-stream', 'Content-Length': body.length } : {} }, (res) => {
+        const chunks = [];
+        res.on('data', (c) => chunks.push(c));
+        res.on('end', () => resolve({ status: res.statusCode, headers: res.headers, body: Buffer.concat(chunks) }));
+      });
+      req.on('error', reject);
+      if (body) req.write(body);
       req.end();
     });
 
@@ -143,6 +214,7 @@ describe('HTTP API', () => {
     const r = await call('OPTIONS', `/v1/trips/${TRIP}/ops`);
     expect(r.status).toBe(204);
     expect(r.headers['access-control-allow-methods']).toContain('POST');
+    expect(r.headers['access-control-allow-methods']).toContain('PUT');
   });
 
   it('long-polling returns as soon as another phone posts', async () => {
@@ -162,6 +234,29 @@ describe('HTTP API', () => {
     expect((await call('GET', '/v1/trips/short/ops')).status).toBe(400);
     expect((await call('GET', '/nothing')).status).toBe(404);
     expect((await call('POST', `/v1/trips/${TRIP}/ops`, { client: 'phoneA01', ops: [{ p: ['x'], v: 'y'.repeat(1_100_000), t: stamp(1) }] })).status).toBe(413);
+  });
+
+
+  it('sends and receives files', async () => {
+    await call('POST', `/v1/trips/${TRIP}/ops`, { client: 'phoneA01', ops: [op(1)] });
+    const bytes = Buffer.from(Array.from({ length: 5000 }, (_, i) => i % 256));
+    const put = await callRaw('PUT', `/v1/trips/${TRIP}/files/photo_abc12345`, bytes);
+    expect(put.status).toBe(200);
+    expect(JSON.parse(put.body.toString())).toEqual({ size: 5000 });
+    const get = await callRaw('GET', `/v1/trips/${TRIP}/files/photo_abc12345`);
+    expect(get.status).toBe(200);
+    expect(get.body.equals(bytes)).toBe(true);
+    expect(get.headers['cache-control']).toContain('immutable');
+    expect(get.headers['access-control-allow-origin']).toBe('*');
+    expect((await call('GET', '/health')).json.files).toBe(1);
+  });
+
+  it('answers files that are missing, misplaced or too large with clear errors', async () => {
+    await call('POST', `/v1/trips/${TRIP}/ops`, { client: 'phoneA01', ops: [op(1)] });
+    expect((await callRaw('GET', `/v1/trips/${TRIP}/files/nothing_here_1`)).status).toBe(404);
+    expect((await callRaw('PUT', `/v1/trips/trip_unknownunknown123456/files/photo_abc12345`, Buffer.from('x'))).status).toBe(404);
+    expect((await callRaw('PUT', `/v1/trips/${TRIP}/files/bad!id`, Buffer.from('x'))).status).toBe(400);
+    expect((await callRaw('PUT', `/v1/trips/${TRIP}/files/photo_abc12345`, Buffer.alloc(9 * 1024 * 1024, 1))).status).toBe(413);
   });
 
   it('limits how fast invite codes can be guessed', async () => {

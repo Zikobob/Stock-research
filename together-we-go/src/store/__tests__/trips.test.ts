@@ -191,6 +191,24 @@ describe('collaboration features', () => {
     expect(tripOf(t).docs).toHaveLength(0);
   });
 
+  it('records which server file belongs to a photo, a document and a receipt', async () => {
+    const me = await signedInUser();
+    const t = newTrip();
+    s().addPhoto(t, { uri: 'file:///p.jpg', caption: 'Pasta' });
+    s().addDoc(t, { name: 'Ticket', kind: 'pdf', uri: 'file:///t.pdf', offline: true });
+    s().addExpense(t, { title: 'Taxi', amount: 20, category: 'Transport', paidBy: me, splitBetween: [me], date: '2026-09-10', receipt: 'file:///r.jpg' });
+    const [photo, doc, expense] = [tripOf(t).photos[0], tripOf(t).docs[0], tripOf(t).expenses[0]];
+    s().attachBlob(t, 'photos', photo.id, 'aaaa1111_jpg');
+    s().attachBlob(t, 'docs', doc.id, 'bbbb2222_pdf');
+    s().attachBlob(t, 'expenses', expense.id, 'cccc3333_jpg');
+    expect(tripOf(t).photos[0]).toMatchObject({ uri: 'file:///p.jpg', blob: 'aaaa1111_jpg' });
+    expect(tripOf(t).docs[0]).toMatchObject({ uri: 'file:///t.pdf', blob: 'bbbb2222_pdf' });
+    expect(tripOf(t).expenses[0]).toMatchObject({ receipt: 'file:///r.jpg', receiptBlob: 'cccc3333_jpg' });
+    s().attachBlob(t, 'photos', 'no-such-photo', 'dddd4444_jpg'); // an item deleted meanwhile is ignored
+    s().attachBlob('no-such-trip', 'photos', photo.id, 'eeee5555_jpg');
+    expect(tripOf(t).photos).toHaveLength(1);
+  });
+
   it('chat keeps only the latest 400 messages', async () => {
     const me = await signedInUser();
     const t = newTrip();

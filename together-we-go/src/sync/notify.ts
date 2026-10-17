@@ -5,7 +5,7 @@ const nameOf = (trip: Trip, id: string) => trip.members.find((m) => m.id === id)
 
 /**
  * Turns changes that arrived from friends into entries in the in-app notification list (and the unread dot on the
- * Chat tab): new chat messages, polls, expenses and people joining.
+ * Chat tab): new chat messages, polls, expenses, photos and people joining.
  */
 export function notifyRemoteChange(prev: Trip | undefined, next: Trip, me: string | undefined): void {
   if (!prev) return;
@@ -28,6 +28,13 @@ export function notifyRemoteChange(prev: Trip | undefined, next: Trip, me: strin
   const seenExpenses = known(prev.expenses);
   for (const e of next.expenses.filter((x) => !seenExpenses.has(x.id) && x.paidBy !== me && !x.settlement).slice(0, 2)) {
     pushNotification({ kind: 'expense', title: `${nameOf(next, e.paidBy)} added an expense`, body: `${e.title} · $${Math.round(e.amount)} split ${e.splitBetween.length} ways`, tripId: next.id, route: '/(tabs)/budget' });
+  }
+
+  const seenPhotos = known(prev.photos);
+  const photos = next.photos.filter((x) => !seenPhotos.has(x.id) && x.by !== me);
+  if (photos.length) {
+    const who = nameOf(next, photos[0].by);
+    pushNotification({ kind: 'photo', title: photos.length === 1 ? `${who} added a photo` : `${photos.length} new photos in ${next.name}`, body: photos[0].caption || 'Have a look in the photo dump 📸', tripId: next.id, route: '/photos' });
   }
 
   const seenMembers = known(prev.members);

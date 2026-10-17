@@ -14,6 +14,9 @@ const MAX_OPS_PER_REQUEST = 500;
 const MAX_OP_BYTES = 4000;
 const MAX_OPS_PER_TRIP = 50000;
 const PEER_WINDOW_MS = 45000;
+const BLOB_ID = /^[A-Za-z0-9_-]{8,40}$/;
+const MAX_BLOB_BYTES = 8 * 1024 * 1024;
+const MAX_BLOB_BYTES_PER_TRIP = 150 * 1024 * 1024;
 
 class SyncError extends Error {
   constructor(status, message) {
@@ -36,11 +39,17 @@ function checkOp(op) {
 }
 
 class SyncStore {
-  /** @param {{ file?: string, now?: () => number }} [options] */
+  /**
+   * @param {{ file?: string, blobDir?: string, now?: () => number, maxBlobBytes?: number, maxBlobBytesPerTrip?: number }} [options]
+   * Files (photos, documents, receipts) are kept next to the JSON file, or in memory when there is no file.
+   */
   constructor(options = {}) {
     this.file = options.file;
+    this.blobDir = options.blobDir || (options.file ? path.join(path.dirname(options.file), 'files') : null);
+    this.limits = { blob: options.maxBlobBytes || MAX_BLOB_BYTES, perTrip: options.maxBlobBytesPerTrip || MAX_BLOB_BYTES_PER_TRIP };
+    this.memBlobs = new Map();
     this.now = options.now || Date.now;
-    /** @type {Map<string, { ops: object[], code: string | null, created: number, clients: Map<string, number> }>} */
+    /** @type {Map<string, { ops: object[], code: string | null, created: number, clients: Map<string, number>, blobs: Map<string, number>, blobBytes: number }>} */
     this.trips = new Map();
     /** @type {Map<string, string>} */
     this.codes = new Map();
@@ -53,7 +62,7 @@ class SyncStore {
     if (!TRIP_ID.test(tripId)) throw new SyncError(400, 'Bad trip id');
     let t = this.trips.get(tripId);
     if (!t && create) {
-      t = { ops: [], code: null, created: this.now(), clients: new Map() };
+      t = { ops: [], code: null, created: this.now(), clients: new Map(), blobs: new Map(), blobBytes: 0 };
       this.trips.set(tripId, t);
     }
     return t;
@@ -117,6 +126,50 @@ class SyncStore {
     for (const done of [...(this.waiters.get(tripId) || [])]) done();
   }
 
+  /** Keeps one file (a photo, document or receipt) for a trip. Sending the same id again replaces it. */
+  async putBlob(tripId, blobId, bytes) {
+    const t = this.trip(tripId, false);
+    if (!t) throw new SyncError(404, 'Unknown trip');
+    if (!BLOB_ID.test(blobId || '')) throw new SyncError(400, 'Bad file id');
+    if (!Buffer.isBuffer(bytes) || bytes.length === 0) throw new SyncError(400, 'The file is empty');
+    if (bytes.length > this.limits.blob) throw new SyncError(413, 'That file is too large to share');
+    const before = t.blobs.get(blobId);
+    if (t.blobBytes - (before || 0) + bytes.length > this.limits.perTrip) throw new SyncError(413, 'This trip has reached the server’s file limit');
+    t.blobBytes += bytes.length - (before || 0); // counted first, so two uploads at once cannot both slip under the limit
+    t.blobs.set(blobId, bytes.length);
+    try {
+      if (this.blobDir) {
+        const dir = path.join(this.blobDir, tripId);
+        await fs.promises.mkdir(dir, { recursive: true });
+        const tmp = path.join(dir, `${blobId}.tmp`);
+        await fs.promises.writeFile(tmp, bytes);
+        await fs.promises.rename(tmp, path.join(dir, blobId));
+      } else {
+        this.memBlobs.set(`${tripId}/${blobId}`, bytes);
+      }
+    } catch (e) {
+      t.blobBytes += (before || 0) - bytes.length;
+      if (before) t.blobs.set(blobId, before);
+      else t.blobs.delete(blobId);
+      throw e;
+    }
+    return { size: bytes.length };
+  }
+
+  /** A stored file, or null when there is none with that id. */
+  async getBlob(tripId, blobId) {
+    const t = this.trip(tripId, false);
+    if (!t) throw new SyncError(404, 'Unknown trip');
+    if (!BLOB_ID.test(blobId || '') || !t.blobs.has(blobId)) return null;
+    if (!this.blobDir) return this.memBlobs.get(`${tripId}/${blobId}`) || null;
+    try {
+      return await fs.promises.readFile(path.join(this.blobDir, tripId, blobId));
+    } catch (e) {
+      if (e.code === 'ENOENT') return null;
+      throw e;
+    }
+  }
+
   lookup(code) {
     return CODE.test(code || '') ? this.codes.get(code) || null : null;
   }
@@ -129,7 +182,8 @@ class SyncStore {
   }
 
   stats() {
-    return { trips: this.trips.size, ops: [...this.trips.values()].reduce((a, t) => a + t.ops.length, 0) };
+    const all = [...this.trips.values()];
+    return { trips: this.trips.size, ops: all.reduce((a, t) => a + t.ops.length, 0), files: all.reduce((a, t) => a + t.blobs.size, 0) };
   }
 
   // ---- saving to a plain JSON file, so a restart loses nothing ----
@@ -137,12 +191,31 @@ class SyncStore {
     try {
       const data = JSON.parse(fs.readFileSync(this.file, 'utf8'));
       for (const [id, t] of Object.entries(data.trips || {})) {
-        this.trips.set(id, { ops: t.ops, code: t.code, created: t.created, clients: new Map() });
+        this.trips.set(id, { ops: t.ops, code: t.code, created: t.created, clients: new Map(), ...this.indexBlobs(id) });
         if (t.code) this.codes.set(t.code, id);
       }
     } catch (e) {
       if (e.code !== 'ENOENT') console.error('Could not read', this.file, e.message);
     }
+  }
+
+  /** Which files are on disk for a trip (after a restart), and how big they are. */
+  indexBlobs(tripId) {
+    const blobs = new Map();
+    let blobBytes = 0;
+    if (this.blobDir) {
+      try {
+        for (const name of fs.readdirSync(path.join(this.blobDir, tripId))) {
+          if (!BLOB_ID.test(name)) continue; // leftovers of an interrupted upload end in .tmp
+          const size = fs.statSync(path.join(this.blobDir, tripId, name)).size;
+          blobs.set(name, size);
+          blobBytes += size;
+        }
+      } catch (e) {
+        if (e.code !== 'ENOENT') console.error('Could not read files of', tripId, e.message);
+      }
+    }
+    return { blobs, blobBytes };
   }
 
   scheduleSave() {
@@ -165,4 +238,4 @@ class SyncStore {
   }
 }
 
-module.exports = { SyncStore, SyncError, TRIP_ID, CODE };
+module.exports = { SyncStore, SyncError, TRIP_ID, CODE, BLOB_ID };

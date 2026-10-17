@@ -12,6 +12,7 @@ import { createAppSlice } from './slices/app';
 import { createAuthSlice } from './slices/auth';
 import { createBudgetSlice } from './slices/budget';
 import { createDemoSlice } from './slices/demo';
+import { createFilesSlice } from './slices/files';
 import { createGroupToolsSlice } from './slices/groupTools';
 import { createItinerarySlice } from './slices/itinerary';
 import { createSocialSlice } from './slices/social';
@@ -29,6 +30,7 @@ export const useAppStore = create<AppStore>()(
       ...createBudgetSlice(...a),
       ...createGroupToolsSlice(...a),
       ...createSocialSlice(...a),
+      ...createFilesSlice(...a),
       ...createDemoSlice(...a),
       ...createAppSlice(...a),
     })),

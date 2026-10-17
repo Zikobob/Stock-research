@@ -51,8 +51,10 @@ export interface Expense {
   /** Original amount when entered in a foreign currency. */
   original?: { amount: number; currency: string };
   settlement?: boolean;
-  /** Photo uri of the receipt. */
+  /** Photo uri of the receipt (on the phone that took it). */
   receipt?: string;
+  /** The receipt's file on the sync server, so friends' phones can fetch it. */
+  receiptBlob?: string;
 }
 
 export interface Flight {
@@ -98,6 +100,8 @@ export interface TripDoc {
   name: string;
   kind: 'pdf' | 'image' | 'note' | 'file';
   uri?: string;
+  /** The file on the sync server, so friends' phones can fetch it. */
+  blob?: string;
   note?: string;
   size?: number;
   addedBy: string;
@@ -121,6 +125,8 @@ export interface ChatMessage {
 export interface Photo {
   id: string;
   uri: string;
+  /** The file on the sync server, so friends' phones can fetch it. */
+  blob?: string;
   caption: string;
   by: string;
   likes: string[];
@@ -191,7 +197,7 @@ export interface AppNotification {
   body: string;
   ts: number;
   read: boolean;
-  kind: 'reminder' | 'chat' | 'vote' | 'expense' | 'system' | 'member';
+  kind: 'reminder' | 'chat' | 'vote' | 'expense' | 'system' | 'member' | 'photo';
   tripId?: string;
   route?: string;
 }

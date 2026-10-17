@@ -4,17 +4,23 @@
  */
 import { AppState } from 'react-native';
 
+import { toast } from '@/components/ui/feedback';
 import { useAppStore } from '@/store/useAppStore';
 
 import { storeAdapter } from './adapter';
+import { BlobSync } from './blobs';
+import { blobCache, useFileStatus } from './blobCache';
 import { SyncEngine } from './engine';
+import { deviceFiles } from './fileio';
+import { newNodeId } from './hlc';
 import { notifyRemoteChange } from './notify';
-import { effectiveServerUrl } from './prefs';
+import { effectiveServerUrl, useSyncPrefs } from './prefs';
 import { useSyncStatus } from './status';
 import { asyncStorageMeta } from './storage';
 import { createHttpTransport, type SyncTransport } from './transport';
 
 let engine: SyncEngine | null = null;
+let blobSync: BlobSync | null = null;
 let ready: Promise<void> | null = null;
 let cached: { url: string; transport: SyncTransport } | null = null;
 
@@ -36,11 +42,34 @@ export function getEngine(): SyncEngine {
   return engine;
 }
 
+/** Sends your photos, documents and receipts to the server and fetches your friends' ones. */
+export function getBlobSync(): BlobSync {
+  blobSync ??= new BlobSync({
+    trips: () => useAppStore.getState().trips,
+    remoteId: (tripId) => getEngine().remoteId(tripId),
+    baseUrl: effectiveServerUrl,
+    files: deviceFiles,
+    cache: blobCache,
+    attach: (tripId, list, itemId, blobId) => useAppStore.getState().attachBlob(tripId, list, itemId, blobId),
+    newId: newNodeId,
+    onNotice: (message) => toast(message, { tone: 'warn', icon: 'alert-circle-outline' }),
+    onPending: (pending) => useFileStatus.setState({ pending }),
+  });
+  return blobSync;
+}
+
 /** Call once when the app is ready. Safe to call again. */
 export function startSync(): Promise<void> {
   ready ??= (async () => {
     const e = getEngine();
     await e.init();
+    const files = getBlobSync();
+    useAppStore.subscribe(() => files.schedule()); // a new photo here, or a friend's change that mentions a file
+    useSyncPrefs.subscribe(() => files.schedule());
+    useSyncStatus.subscribe((now, before) => {
+      if (now.online && !before.online) files.schedule(0); // the connection came back
+    });
+    files.schedule(1000);
     if (AppState.currentState === 'active') e.start();
     AppState.addEventListener('change', (state) => {
       if (state === 'active') e.start();

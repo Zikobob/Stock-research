@@ -1,7 +1,9 @@
 /** The few things screens ask the sync engine to do: share a trip, join one, test the server. */
 import { useAppStore } from '@/store/useAppStore';
 
+import { useBlobCache } from './blobCache';
 import { CodeTakenError } from './engine';
+import { deleteSharedFiles } from './fileio';
 import { SERVER_PORT, effectiveServerUrl } from './prefs';
 import { syncReady } from './runtime';
 import { NetworkError, ServerError, normalizeServerUrl } from './transport';
@@ -57,6 +59,8 @@ export async function stopSharing(tripId: string): Promise<void> {
 /** Forgets all sync state (used when the app's data is reset). */
 export async function resetSync(): Promise<void> {
   await (await syncReady()).reset();
+  useBlobCache.getState().clear();
+  deleteSharedFiles();
 }
 
 export type ConnectionTest = { ok: true; trips: number } | { ok: false; message: string };

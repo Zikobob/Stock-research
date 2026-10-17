@@ -7,6 +7,8 @@
  *
  *   POST /v1/trips/:id/ops      { code, client, ops }        send changes
  *   GET  /v1/trips/:id/ops      ?since=N&wait=ms&client=ID   get changes (waits for new ones if there are none)
+ *   PUT  /v1/trips/:id/files/:fileId   (raw bytes)           send a photo, document or receipt
+ *   GET  /v1/trips/:id/files/:fileId                         get it back
  *   GET  /v1/codes/:code                                     invite code -> trip id
  *   GET  /health                                             is the server alive?
  */
@@ -17,6 +19,7 @@ const path = require('path');
 const { SyncStore, SyncError } = require('./store');
 
 const MAX_BODY = 1_000_000;
+const MAX_FILE = 8 * 1024 * 1024;
 const MAX_WAIT_MS = 25000;
 const LOOKUPS_PER_MINUTE = 60;
 
@@ -42,31 +45,46 @@ function createServer(store, options = {}) {
       'Cache-Control': 'no-store',
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Headers': 'content-type',
-      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, OPTIONS',
     });
     res.end(text);
   }
 
-  function readJson(req) {
+  function sendFile(res, bytes) {
+    res.writeHead(200, {
+      'Content-Type': 'application/octet-stream',
+      'Content-Length': bytes.length,
+      'Cache-Control': 'private, max-age=31536000, immutable', // a file never changes under its id
+      'Access-Control-Allow-Origin': '*',
+    });
+    res.end(bytes);
+  }
+
+  /** The whole request body, or a 413 if it is bigger than `limit`. */
+  function readBody(req, limit) {
     return new Promise((resolve, reject) => {
       let size = 0;
       let tooBig = false;
       const chunks = [];
       req.on('data', (c) => {
         size += c.length;
-        if (size > MAX_BODY) tooBig = true; // keep reading (and ignoring) so the 413 answer can still reach the sender
+        if (size > limit * 4) return req.destroy(); // far too much: stop listening
+        if (size > limit) tooBig = true; // keep reading (and ignoring) so the 413 answer can still reach the sender
         else chunks.push(c);
       });
-      req.on('end', () => {
-        if (tooBig) return reject(new SyncError(413, 'Request too large'));
-        try {
-          resolve(JSON.parse(Buffer.concat(chunks).toString('utf8') || '{}'));
-        } catch {
-          reject(new SyncError(400, 'Body must be JSON'));
-        }
-      });
+      req.on('end', () => (tooBig ? reject(new SyncError(413, 'Request too large')) : resolve(Buffer.concat(chunks))));
       req.on('error', reject);
+      req.on('close', () => reject(new SyncError(400, 'The request was cut off')));
     });
+  }
+
+  async function readJson(req) {
+    const raw = await readBody(req, MAX_BODY);
+    try {
+      return JSON.parse(raw.toString('utf8') || '{}');
+    } catch {
+      throw new SyncError(400, 'Body must be JSON');
+    }
   }
 
   return http.createServer(async (req, res) => {
@@ -102,6 +120,18 @@ function createServer(store, options = {}) {
           req.on('close', () => waiting.cancel && waiting.cancel()); // the phone hung up: stop waiting
           await waiting;
           return send(res, 200, store.since(tripId, since, url.searchParams.get('client')));
+        }
+      }
+      if (parts[0] === 'v1' && parts[1] === 'trips' && parts[3] === 'files' && parts.length === 5) {
+        const [tripId, fileId] = [parts[2], parts[4]];
+        if (req.method === 'PUT') {
+          const bytes = await readBody(req, MAX_FILE);
+          return send(res, 200, await store.putBlob(tripId, fileId, bytes));
+        }
+        if (req.method === 'GET') {
+          const bytes = await store.getBlob(tripId, fileId);
+          if (!bytes) throw new SyncError(404, 'No such file');
+          return sendFile(res, bytes);
         }
       }
       throw new SyncError(404, 'Not found');

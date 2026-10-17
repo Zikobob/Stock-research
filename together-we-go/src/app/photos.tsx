@@ -1,28 +1,24 @@
-import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { useMemo, useState } from 'react';
 import { Modal, Platform, ScrollView, StyleSheet, View, useWindowDimensions } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { PhotoTile } from '@/components/photos/PhotoTile';
+import { PhotoViewer } from '@/components/photos/PhotoViewer';
 import { ShareSheet } from '@/components/ShareSheet';
 import { NoTrip } from '@/components/trip/NoTrip';
 import { Button } from '@/components/ui/Button';
-import { Avatar, Chip, EmptyState } from '@/components/ui/bits';
-import { confirmAction, toast } from '@/components/ui/feedback';
+import { Chip, EmptyState } from '@/components/ui/bits';
+import { toast } from '@/components/ui/feedback';
 import { Input } from '@/components/ui/Input';
-import { Press, tap } from '@/components/ui/Press';
+import { tap } from '@/components/ui/Press';
 import { Header, Screen } from '@/components/ui/Screen';
 import { Sheet } from '@/components/ui/Sheet';
-import { T } from '@/components/ui/T';
-import { imageSource } from '@/data/images';
 import { destinationById } from '@/data/destinations';
-import { FileTooLargeError, deleteLocalFile, pickImage } from '@/services/files';
-import { sharePhoto } from '@/services/share';
+import { FileTooLargeError, pickImage } from '@/services/files';
 import { useActiveTrip, useAppStore } from '@/store/useAppStore';
 import type { Photo } from '@/store/types';
-import { MAX_WIDTH, colors } from '@/theme';
-import { timeAgo } from '@/utils/format';
-import { dayLabel, todayInTz, tripDays } from '@/utils/time';
+import { MAX_WIDTH } from '@/theme';
+import { todayInTz, tripDays } from '@/utils/time';
 import { maxLen } from '@/utils/validation';
 
 type Filter = 'all' | 'mine' | 'liked' | string;
@@ -30,7 +26,6 @@ type Filter = 'all' | 'mine' | 'liked' | string;
 export default function Photos() {
   const trip = useActiveTrip();
   const { width } = useWindowDimensions();
-  const insets = useSafeAreaInsets();
   const userId = useAppStore((s) => s.session?.userId ?? '');
   const addPhoto = useAppStore((s) => s.addPhoto);
   const like = useAppStore((s) => s.toggleLikePhoto);
@@ -88,26 +83,7 @@ export default function Photos() {
       {list.length ? (
         <View style={styles.grid}>
           {list.map((p) => (
-            <Press key={p.id} onPress={() => setViewing(p)} style={{ width: tile, height: tile }} scaleTo={0.96} accessibilityLabel={p.caption || 'Photo'}>
-              {p.uri ? (
-                <Image source={imageSource(p.uri)} style={styles.img} contentFit="cover" transition={150} />
-              ) : (
-                <View style={[styles.img, styles.missing]}>
-                  <Ionicons name="image-outline" size={26} color={colors.textMuted} />
-                  <T variant="micro" color={colors.textMuted} center numberOfLines={2}>
-                    {p.caption || `Photo from ${trip.members.find((x) => x.id === p.by)?.name.split(' ')[0] ?? 'a friend'}`}
-                  </T>
-                </View>
-              )}
-              {p.likes.length ? (
-                <View style={styles.likes}>
-                  <Ionicons name="heart" size={10} color={colors.white} />
-                  <T variant="micro" color={colors.white}>
-                    {p.likes.length}
-                  </T>
-                </View>
-              ) : null}
-            </Press>
+            <PhotoTile key={p.id} photo={p} size={tile} who={trip.members.find((x) => x.id === p.by)?.name.split(' ')[0] ?? 'a friend'} onPress={() => setViewing(p)} />
           ))}
         </View>
       ) : (
@@ -139,65 +115,18 @@ export default function Photos() {
 
       <Modal visible={!!live} transparent animationType="fade" onRequestClose={() => setViewing(null)}>
         {live ? (
-          <View style={[styles.viewer, { paddingTop: insets.top + 8, paddingBottom: insets.bottom + 16 }]}>
-            <View style={styles.viewerTop}>
-              <Press onPress={() => setViewing(null)} style={styles.round} accessibilityLabel="Close photo">
-                <Ionicons name="close" size={22} color={colors.white} />
-              </Press>
-              <View style={{ flexDirection: 'row', gap: 10 }}>
-                <Press onPress={() => setShareFor(live)} style={styles.round} accessibilityLabel="Share photo to social media">
-                  <Ionicons name="share-social-outline" size={20} color={colors.white} />
-                </Press>
-                {live.by === userId ? (
-                  <Press
-                    onPress={() =>
-                      confirmAction('Delete photo?', 'It will be removed from the photo dump for everyone.', () => {
-                        deleteLocalFile(live.uri);
-                        remove(trip.id, live.id);
-                        setViewing(null);
-                      }, { destructive: true, confirmLabel: 'Delete' })
-                    }
-                    style={styles.round}
-                    accessibilityLabel="Delete photo">
-                    <Ionicons name="trash-outline" size={20} color={colors.white} />
-                  </Press>
-                ) : null}
-              </View>
-            </View>
-            {live.uri ? (
-              <Image source={imageSource(live.uri)} style={{ flex: 1, width: '100%' }} contentFit="contain" />
-            ) : (
-              <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: 8, padding: 30 }}>
-                <Ionicons name="phone-portrait-outline" size={40} color="rgba(255,255,255,0.6)" />
-                <T variant="small" color="rgba(255,255,255,0.8)" center>
-                  This photo is on {trip.members.find((x) => x.id === live.by)?.name.split(' ')[0] ?? 'a friend'}’s phone. Likes and captions still sync.
-                </T>
-              </View>
-            )}
-            <View style={styles.viewerBottom}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                {(() => {
-                  const m = trip.members.find((x) => x.id === live.by);
-                  return <Avatar name={m?.name ?? '?'} src={m?.avatar} size={32} />;
-                })()}
-                <View style={{ flex: 1 }}>
-                  <T variant="small" weight="semibold" color={colors.white}>
-                    {live.caption || 'Untitled'}
-                  </T>
-                  <T variant="caption" color="rgba(255,255,255,0.7)">
-                    {trip.members.find((x) => x.id === live.by)?.name.split(' ')[0]} · {live.day ? dayLabel(live.day) : ''} · {timeAgo(live.ts)}
-                  </T>
-                </View>
-                <Press onPress={() => like(trip.id, live.id)} style={styles.likeBtn} accessibilityLabel={live.likes.includes(userId) ? 'Unlike' : 'Like'}>
-                  <Ionicons name={live.likes.includes(userId) ? 'heart' : 'heart-outline'} size={22} color={live.likes.includes(userId) ? '#FF6B81' : colors.white} />
-                  <T variant="small" weight="semibold" color={colors.white}>
-                    {live.likes.length}
-                  </T>
-                </Press>
-              </View>
-              {live.uri ? <Button label="Save & share" variant="light" size="md" icon="download-outline" onPress={() => sharePhoto(live.uri, live.caption)} /> : null}
-            </View>
-          </View>
+          <PhotoViewer
+            photo={live}
+            trip={trip}
+            userId={userId}
+            onClose={() => setViewing(null)}
+            onShare={() => setShareFor(live)}
+            onLike={() => like(trip.id, live.id)}
+            onDelete={() => {
+              remove(trip.id, live.id);
+              setViewing(null);
+            }}
+          />
         ) : null}
         <ShareSheet
           visible={!!shareFor}
@@ -212,12 +141,4 @@ export default function Photos() {
 
 const styles = StyleSheet.create({
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 4 },
-  img: { width: '100%', height: '100%', borderRadius: 8 },
-  missing: { backgroundColor: colors.bgAlt, alignItems: 'center', justifyContent: 'center', gap: 4, padding: 8 },
-  likes: { position: 'absolute', bottom: 5, left: 5, flexDirection: 'row', alignItems: 'center', gap: 2, backgroundColor: 'rgba(0,0,0,0.45)', paddingHorizontal: 5, paddingVertical: 2, borderRadius: 999 },
-  viewer: { flex: 1, backgroundColor: '#0B0F0A' },
-  viewerTop: { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 16, marginBottom: 8 },
-  round: { width: 42, height: 42, borderRadius: 21, backgroundColor: 'rgba(255,255,255,0.14)', alignItems: 'center', justifyContent: 'center' },
-  viewerBottom: { paddingHorizontal: 16, paddingTop: 12, gap: 12 },
-  likeBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 999, backgroundColor: 'rgba(255,255,255,0.14)' },
 });

@@ -66,7 +66,7 @@ export function ExpensesSection({ trip, fmt, onOpen }: { trip: Trip; fmt: (usd: 
               <T variant="bodySm" weight="bold" numberOfLines={1} style={{ flexShrink: 1 }}>
                 {e.title}
               </T>
-              {e.receipt ? <Ionicons name="attach" size={15} color={colors.textMuted} accessibilityLabel="Has receipt" /> : null}
+              {e.receipt || e.receiptBlob ? <Ionicons name="attach" size={15} color={colors.textMuted} accessibilityLabel="Has receipt" /> : null}
             </View>
             <T variant="caption" color={colors.textSecondary} numberOfLines={1}>
               {e.settlement ? 'Settlement' : e.category} · {t('budget.paidBy', { name: memberById(trip, e.paidBy)?.name.split(' ')[0] ?? '—' })}

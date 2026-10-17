@@ -22,6 +22,7 @@ const ICONS: Record<AppNotification['kind'], { icon: IconName; color: string }> 
   expense: { icon: 'wallet-outline', color: colors.primary },
   system: { icon: 'information-circle-outline', color: colors.textSecondary },
   member: { icon: 'person-add-outline', color: colors.teal },
+  photo: { icon: 'images-outline', color: colors.red },
 };
 
 export default function Notifications() {

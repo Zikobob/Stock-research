@@ -25,7 +25,14 @@ describe('http transport', () => {
   it('gives up on a server that never answers instead of waiting forever', async () => {
     const t = createHttpTransport('http://10.0.0.9:8787', hangingFetch, { timeoutMs: 40 });
     const started = Date.now();
-    await expect(t.lookup('AML-2026')).rejects.toThrow(NetworkError);
+    await expect(t.push('r1', 'AML-2026', 'phone001', [])).rejects.toThrow(NetworkError);
+    await expect(t.pull('r1', 0, 'phone001', 0)).rejects.toThrow(/too long/);
+    expect(Date.now() - started).toBeLessThan(1000);
+  });
+
+  it('looks up invite codes with a shorter limit than other requests', async () => {
+    const t = createHttpTransport('http://10.0.0.9:8787', hangingFetch, { timeoutMs: 5000, lookupTimeoutMs: 40 });
+    const started = Date.now();
     await expect(t.lookup('AML-2026')).rejects.toThrow(/too long/);
     expect(Date.now() - started).toBeLessThan(1000);
   });

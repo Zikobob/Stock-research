@@ -48,19 +48,22 @@ export function normalizeServerUrl(input: string): string | null {
 export interface HttpTransportOptions {
   /** How long a request may take before we give up on the server (ms). Waiting requests get extra time on top. */
   timeoutMs?: number;
+  /** Looking up an invite code is quick on a home network, so it gives up sooner (a server that is not there should not stall "Join"). */
+  lookupTimeoutMs?: number;
 }
 
 export function createHttpTransport(serverUrl: string, fetchImpl: typeof fetch = fetch, options: HttpTransportOptions = {}): SyncTransport {
   const base = serverUrl.replace(/\/+$/, '');
   const timeoutMs = options.timeoutMs ?? 8000;
+  const lookupTimeoutMs = options.lookupTimeoutMs ?? 3000;
 
   /** One request with a time limit, so a wifi that silently drops packets cannot freeze "Join" for a minute. */
-  async function request<T>(path: string, init?: RequestInit & { signal?: AbortSignal }, extraMs = 0): Promise<{ status: number; data: T }> {
+  async function request<T>(path: string, init?: RequestInit & { signal?: AbortSignal }, extraMs = 0, limitMs = timeoutMs): Promise<{ status: number; data: T }> {
     const limit = new AbortController();
     const outer = init?.signal;
     const cancel = () => limit.abort();
     outer?.addEventListener('abort', cancel);
-    const timer = setTimeout(cancel, timeoutMs + extraMs);
+    const timer = setTimeout(cancel, limitMs + extraMs);
     try {
       let res: Response;
       try {
@@ -89,7 +92,7 @@ export function createHttpTransport(serverUrl: string, fetchImpl: typeof fetch =
 
   return {
     async lookup(code) {
-      const { status, data } = await request<{ tripId: string }>(`/v1/codes/${encodeURIComponent(code)}`);
+      const { status, data } = await request<{ tripId: string }>(`/v1/codes/${encodeURIComponent(code)}`, undefined, 0, lookupTimeoutMs);
       if (status === 404) return null;
       if (status !== 200) fail(status, data);
       return data.tripId;
