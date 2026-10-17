@@ -3,6 +3,7 @@ import type { Trip } from '@/store/types';
 import { SyncStore } from '../../../server/store';
 import { CodeTakenError, SyncEngine } from '../engine';
 import { FakeStore, MemoryStorage, fakeNow, makeTrip, memoryTransport, seeded, sharedPart } from '../testing';
+import type { SyncTransport } from '../transport';
 
 type Server = InstanceType<typeof SyncStore>;
 
@@ -144,6 +145,38 @@ describe('working together', () => {
     ana.store.edit('trip-1', (d) => void d.messages.push({ id: 'ai-new', authorId: 'assistant', text: 'secret', ts: 7000, ai: true, channel: 'ai' }));
     await settle(ana, ben);
     expect(ben.store.getTrip('trip-1')!.messages.map((m) => m.id)).not.toContain('ai-new');
+  });
+});
+
+describe('the live connection', () => {
+  it('asks for a quick answer first, so a quiet connection shows as live right away', async () => {
+    const server = new SyncStore();
+    const ana = phone(server, 'u-a', 1);
+    ana.store.trips = [makeTrip()];
+    await ana.engine.init();
+    await ana.engine.share('trip-1');
+    await ana.engine.syncNow();
+
+    const waits: number[] = [];
+    const base = memoryTransport(server);
+    const transport: SyncTransport = {
+      ...base,
+      // a long wait only ends when the engine stops (like a real long poll with nothing new to report)
+      pull: (id, since, client, waitMs, signal) => {
+        waits.push(waitMs);
+        return waitMs > 0 ? new Promise((_resolve, reject) => signal?.addEventListener('abort', () => reject(new Error('aborted')))) : base.pull(id, since, client, 0);
+      },
+    };
+    const store = new FakeStore();
+    store.userId = 'u-b';
+    const engine = new SyncEngine({ store, storage: new MemoryStorage(), getTransport: () => transport, pollWaitMs: 5000, random: seeded(2).next });
+    await engine.init();
+    engine.start();
+    await engine.join('ROM-1234');
+    await new Promise((resolve) => setTimeout(resolve, 20));
+    expect(waits.slice(-2)).toEqual([0, 5000]);
+    expect(engine.getStatus().online).toBe(true);
+    engine.stop();
   });
 });
 

@@ -113,6 +113,11 @@ export default function Documents() {
         ) : null}
         {open?.kind === 'image' && open.uri ? <Image source={{ uri: open.uri }} style={{ width: '100%', height: 320, borderRadius: 14 }} contentFit="contain" /> : null}
         {open && open.kind !== 'note' && open.uri ? <Button label="Open / share file" icon="open-outline" onPress={() => openFile(open)} /> : null}
+        {open && open.kind !== 'note' && !open.uri ? (
+          <T variant="small" color={colors.textSecondary}>
+            This file is stored on {trip.members.find((m) => m.id === open.addedBy)?.name.split(' ')[0] ?? 'a friend'}’s phone. Its name and notes sync, the file itself does not.
+          </T>
+        ) : null}
         {open && (open.addedBy === userId || trip.ownerId === userId) ? (
           <Button
             label="Delete"

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { FlatList, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { SyncBadge } from '@/components/sync/SyncBadge';
 import { NoTrip } from '@/components/trip/NoTrip';
 import { Card, Chip, IconButton } from '@/components/ui/bits';
 import { toast } from '@/components/ui/feedback';
@@ -13,6 +14,7 @@ import { T } from '@/components/ui/T';
 import { useT } from '@/i18n';
 import { answerLocally, askClaude, type AssistantContext } from '@/services/assistant';
 import { getApiKey } from '@/services/secrets';
+import { useSyncStatus } from '@/sync/status';
 import { useActiveTrip, useAppStore } from '@/store/useAppStore';
 import type { ChatMessage, Trip } from '@/store/types';
 import { MAX_WIDTH, colors, fonts, shadow } from '@/theme';
@@ -58,6 +60,7 @@ function ChatInner() {
   const send = useAppStore((s) => s.sendMessage);
   const aiMode = useAppStore((s) => s.settings.aiMode);
   const markKindRead = useAppStore((s) => s.markKindRead);
+  const synced = useSyncStatus((s) => s.shared.includes(trip.id)); // real friends are on the other end: no pretend replies
   const [text, setText] = useState('');
   const [tab, setTab] = useState<'crew' | 'ai'>('crew');
   const [typing, setTyping] = useState<string | null>(null);
@@ -111,7 +114,7 @@ function ChatInner() {
       return;
     }
     send(trip.id, { authorId: userId, text: msg });
-    const plan = planFriendReply(trip.members.filter((m) => m.id !== userId && !m.invited));
+    const plan = synced ? null : planFriendReply(trip.members.filter((m) => m.id !== userId && !m.invited));
     if (plan) {
       later(() => setTyping(plan.friend.id), 900);
       later(() => {
@@ -196,6 +199,14 @@ function ChatInner() {
             <IconButton icon="images-outline" label="Photo dump" onPress={() => router.push('/photos')} />
           </View>
           <Segmented options={TABS} value={tab} onChange={setTab} />
+          {synced ? (
+            <View style={styles.syncRow}>
+              <SyncBadge tripId={trip.id} />
+              <T variant="micro" color={colors.textSecondary}>
+                Shared with your group
+              </T>
+            </View>
+          ) : null}
           {isAi ? (
             <Press onPress={() => router.push('/settings')} style={styles.modePill} accessibilityLabel="Assistant settings">
               <Ionicons name={aiMode === 'claude' ? 'sparkles' : 'cloud-offline-outline'} size={12} color={colors.text} />
@@ -287,6 +298,7 @@ const styles = StyleSheet.create({
   column: { flex: 1, width: '100%', maxWidth: MAX_WIDTH },
   header: { gap: 12, paddingHorizontal: 20, paddingBottom: 12, backgroundColor: colors.card, borderBottomWidth: 1, borderBottomColor: colors.border },
   titleRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  syncRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   modePill: { alignSelf: 'flex-start', flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 999, backgroundColor: colors.bgAlt },
   system: { alignSelf: 'center', backgroundColor: colors.bgAlt, paddingHorizontal: 12, paddingVertical: 5, borderRadius: 999, marginVertical: 8 },
   msgRow: { flexDirection: 'row', alignItems: 'flex-end', gap: 8, marginTop: 12 },

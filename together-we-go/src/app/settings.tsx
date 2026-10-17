@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 
 import { CurrencyPickerSheet } from '@/components/CurrencyPickerSheet';
+import { SyncSettingsCard } from '@/components/sync/SyncSettingsCard';
 import { Button } from '@/components/ui/Button';
 import { Avatar, Card, Chip, ListRow, ToggleRow } from '@/components/ui/bits';
 import { confirmAction, toast } from '@/components/ui/feedback';
@@ -19,6 +20,7 @@ import { ensurePermission, sendTestReminder } from '@/services/notifications';
 import { getApiKey, looksLikeApiKey, setApiKey } from '@/services/secrets';
 import { pickImage } from '@/services/files';
 import { shareText } from '@/services/share';
+import { resetSync } from '@/sync/actions';
 import { useActiveTrip, useAppStore, useCurrentUser } from '@/store/useAppStore';
 import type { TextScale } from '@/store/types';
 import { appearance, colors, cornerStyles, radius, themes } from '@/theme';
@@ -110,6 +112,8 @@ export default function Settings() {
       <Card style={{ marginBottom: 14 }}>
         <ToggleRow icon="sparkles-outline" label="Animations" sub="Flying plane, floating cards and smooth entrances" value={personal.motion} onChange={(v) => updatePersonal({ motion: v })} />
       </Card>
+
+      <SyncSettingsCard />
 
       {/* Profile */}
       <Card style={{ gap: 12 }}>
@@ -299,6 +303,7 @@ export default function Settings() {
           sub="Deletes all trips and accounts on this device"
           onPress={() =>
             confirmAction('Reset everything?', 'All trips, chats and accounts on this device will be erased and the demo data restored.', async () => {
+              await resetSync(); // also forget which trips were shared with friends
               resetEverything();
               await ensureSeed();
               router.replace('/sign-in');

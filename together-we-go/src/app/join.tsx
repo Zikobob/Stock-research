@@ -9,30 +9,33 @@ import { toast } from '@/components/ui/feedback';
 import { Press, tap } from '@/components/ui/Press';
 import { Header, Screen } from '@/components/ui/Screen';
 import { T } from '@/components/ui/T';
-import { useAppStore } from '@/store/useAppStore';
+import { joinTripAnywhere } from '@/sync/actions';
 import { colors, fonts, radius } from '@/theme';
 import { normalizeInvite, validateInvite } from '@/utils/validation';
 
 /** Join a trip with an invite code (also opened by togetherwego://join?code=XXX-1234 links). */
 export default function Join() {
   const params = useLocalSearchParams<{ code?: string }>();
-  const joinTrip = useAppStore((s) => s.joinTrip);
   const [code, setCode] = useState(params.code ? normalizeInvite(String(params.code)) : '');
   const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
 
-  const submit = () => {
+  const submit = async () => {
+    if (busy) return;
     const e = validateInvite(code);
     if (e) {
       setError(e);
       return tap('warning');
     }
-    const r = joinTrip(code);
+    setBusy(true);
+    const r = await joinTripAnywhere(code);
+    setBusy(false);
     if (!r.ok) {
       setError(r.error);
       return tap('warning');
     }
     tap('success');
-    toast('You’re in! 🎉 Say hi in the trip chat');
+    toast(r.synced ? 'You’re in! 🎉 This trip now syncs live with your friends' : r.offlineCopy ? 'Joined the copy on this phone. The sync server was not reachable.' : 'You’re in! 🎉 Say hi in the trip chat');
     router.dismissAll?.();
     router.replace('/(tabs)/chat');
   };
@@ -72,7 +75,7 @@ export default function Join() {
           {error}
         </T>
       ) : null}
-      <Button label="Join trip" icon="enter-outline" onPress={submit} style={{ marginTop: 18 }} />
+      <Button label="Join trip" icon="enter-outline" onPress={submit} loading={busy} style={{ marginTop: 18 }} testID="join-submit" />
       <Card style={{ marginTop: 18, gap: 8 }}>
         <T variant="small" weight="semibold">
           Try it with a demo trip

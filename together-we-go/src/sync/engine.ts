@@ -359,13 +359,16 @@ export class SyncEngine {
     a.running = true;
     void (async () => {
       let delay = 0;
+      let quick = true; // the first answer after starting (or after a failure) is not held back, so "Live" shows at once
       while (this.running && a.running && this.attached.get(tripId) === a) {
         a.abort = new AbortController();
         try {
-          await this.pull(tripId, this.o.pollWaitMs ?? 20000, a.abort.signal);
+          await this.pull(tripId, quick ? 0 : (this.o.pollWaitMs ?? 20000), a.abort.signal);
           delay = 0;
+          quick = false;
         } catch (e) {
           if (!this.running || !a.running || a.abort.signal.aborted) break;
+          quick = true;
           this.setOnline(false, describe(e));
           this.publishStatus();
           delay = Math.min(delay ? delay * 2 : 1000, 15000);

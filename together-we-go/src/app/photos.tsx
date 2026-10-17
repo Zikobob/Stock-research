@@ -89,7 +89,16 @@ export default function Photos() {
         <View style={styles.grid}>
           {list.map((p) => (
             <Press key={p.id} onPress={() => setViewing(p)} style={{ width: tile, height: tile }} scaleTo={0.96} accessibilityLabel={p.caption || 'Photo'}>
-              <Image source={imageSource(p.uri)} style={styles.img} contentFit="cover" transition={150} />
+              {p.uri ? (
+                <Image source={imageSource(p.uri)} style={styles.img} contentFit="cover" transition={150} />
+              ) : (
+                <View style={[styles.img, styles.missing]}>
+                  <Ionicons name="image-outline" size={26} color={colors.textMuted} />
+                  <T variant="micro" color={colors.textMuted} center numberOfLines={2}>
+                    {p.caption || `Photo from ${trip.members.find((x) => x.id === p.by)?.name.split(' ')[0] ?? 'a friend'}`}
+                  </T>
+                </View>
+              )}
               {p.likes.length ? (
                 <View style={styles.likes}>
                   <Ionicons name="heart" size={10} color={colors.white} />
@@ -155,7 +164,16 @@ export default function Photos() {
                 ) : null}
               </View>
             </View>
-            <Image source={imageSource(live.uri)} style={{ flex: 1, width: '100%' }} contentFit="contain" />
+            {live.uri ? (
+              <Image source={imageSource(live.uri)} style={{ flex: 1, width: '100%' }} contentFit="contain" />
+            ) : (
+              <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: 8, padding: 30 }}>
+                <Ionicons name="phone-portrait-outline" size={40} color="rgba(255,255,255,0.6)" />
+                <T variant="small" color="rgba(255,255,255,0.8)" center>
+                  This photo is on {trip.members.find((x) => x.id === live.by)?.name.split(' ')[0] ?? 'a friend'}’s phone. Likes and captions still sync.
+                </T>
+              </View>
+            )}
             <View style={styles.viewerBottom}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
                 {(() => {
@@ -177,7 +195,7 @@ export default function Photos() {
                   </T>
                 </Press>
               </View>
-              <Button label="Save & share" variant="light" size="md" icon="download-outline" onPress={() => sharePhoto(live.uri, live.caption)} />
+              {live.uri ? <Button label="Save & share" variant="light" size="md" icon="download-outline" onPress={() => sharePhoto(live.uri, live.caption)} /> : null}
             </View>
           </View>
         ) : null}
@@ -195,6 +213,7 @@ export default function Photos() {
 const styles = StyleSheet.create({
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 4 },
   img: { width: '100%', height: '100%', borderRadius: 8 },
+  missing: { backgroundColor: colors.bgAlt, alignItems: 'center', justifyContent: 'center', gap: 4, padding: 8 },
   likes: { position: 'absolute', bottom: 5, left: 5, flexDirection: 'row', alignItems: 'center', gap: 2, backgroundColor: 'rgba(0,0,0,0.45)', paddingHorizontal: 5, paddingVertical: 2, borderRadius: 999 },
   viewer: { flex: 1, backgroundColor: '#0B0F0A' },
   viewerTop: { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 16, marginBottom: 8 },

@@ -45,24 +45,41 @@ export function normalizeServerUrl(input: string): string | null {
   }
 }
 
-export function createHttpTransport(serverUrl: string, fetchImpl: typeof fetch = fetch): SyncTransport {
-  const base = serverUrl.replace(/\/+$/, '');
+export interface HttpTransportOptions {
+  /** How long a request may take before we give up on the server (ms). Waiting requests get extra time on top. */
+  timeoutMs?: number;
+}
 
-  async function request<T>(path: string, init?: RequestInit & { signal?: AbortSignal }): Promise<{ status: number; data: T }> {
-    let res: Response;
+export function createHttpTransport(serverUrl: string, fetchImpl: typeof fetch = fetch, options: HttpTransportOptions = {}): SyncTransport {
+  const base = serverUrl.replace(/\/+$/, '');
+  const timeoutMs = options.timeoutMs ?? 8000;
+
+  /** One request with a time limit, so a wifi that silently drops packets cannot freeze "Join" for a minute. */
+  async function request<T>(path: string, init?: RequestInit & { signal?: AbortSignal }, extraMs = 0): Promise<{ status: number; data: T }> {
+    const limit = new AbortController();
+    const outer = init?.signal;
+    const cancel = () => limit.abort();
+    outer?.addEventListener('abort', cancel);
+    const timer = setTimeout(cancel, timeoutMs + extraMs);
     try {
-      res = await fetchImpl(base + path, init);
-    } catch (e) {
-      if (init?.signal?.aborted) throw e;
-      throw new NetworkError(e instanceof Error ? e.message : 'Network request failed');
+      let res: Response;
+      try {
+        res = await fetchImpl(base + path, { ...init, signal: limit.signal });
+      } catch (e) {
+        if (outer?.aborted) throw e; // the app cancelled this request on purpose
+        throw new NetworkError(limit.signal.aborted ? 'The sync server took too long to answer' : e instanceof Error ? e.message : 'Network request failed');
+      }
+      let data: unknown = null;
+      try {
+        data = await res.json();
+      } catch {
+        // an empty or non-JSON body is handled below
+      }
+      return { status: res.status, data: data as T };
+    } finally {
+      clearTimeout(timer);
+      outer?.removeEventListener('abort', cancel);
     }
-    let data: unknown = null;
-    try {
-      data = await res.json();
-    } catch {
-      // an empty or non-JSON body is handled below
-    }
-    return { status: res.status, data: data as T };
   }
 
   const fail = (status: number, data: unknown): never => {
@@ -87,7 +104,7 @@ export function createHttpTransport(serverUrl: string, fetchImpl: typeof fetch =
       return data;
     },
     async pull(tripId, since, client, waitMs, signal) {
-      const { status, data } = await request<PullResult>(`/v1/trips/${tripId}/ops?since=${since}&wait=${waitMs}&client=${client}`, { signal });
+      const { status, data } = await request<PullResult>(`/v1/trips/${tripId}/ops?since=${since}&wait=${waitMs}&client=${client}`, { signal }, waitMs);
       if (status !== 200) fail(status, data);
       return data;
     },

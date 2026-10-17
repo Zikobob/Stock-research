@@ -9,6 +9,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { ReminderService } from '@/components/ReminderService';
 import { DialogHost, ToastHost, toast } from '@/components/ui/feedback';
 import { initNotifications } from '@/services/notifications';
+import { startSync } from '@/sync/runtime';
 import { useAppStore } from '@/store/useAppStore';
 import { colors, isDark } from '@/theme';
 
@@ -33,6 +34,7 @@ export default function RootLayout() {
   useEffect(() => {
     if (!ready) return;
     SplashScreen.hideAsync().catch(() => {});
+    void startSync(); // phone-to-phone sync for trips that were shared (does nothing until you share or join one)
     // Back from the reload that applies a new theme: say so, then forget the one-off session.
     const { restyled, setRestyled } = useAppStore.getState();
     if (restyled) {

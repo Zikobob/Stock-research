@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { StyleSheet, TextInput, View } from 'react-native';
 
 import { ShareSheet } from '@/components/ShareSheet';
+import { SyncTripCard } from '@/components/sync/SyncTripCard';
 import { MemberPickerSheet } from '@/components/trip/MemberPickerSheet';
 import { NoTrip } from '@/components/trip/NoTrip';
 import { Button } from '@/components/ui/Button';
@@ -122,6 +123,8 @@ function Hub() {
           ) : null}
         </View>
       </Card>
+
+      <SyncTripCard trip={trip} />
 
       {/* Members */}
       <SectionHeader title={t('hub.members')} action="+ Add" onAction={() => setAddOpen(true)} style={{ marginTop: 26 }} />
