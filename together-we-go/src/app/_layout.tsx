@@ -1,0 +1,98 @@
+import { Anton_400Regular } from '@expo-google-fonts/anton';
+import { Manrope_400Regular, Manrope_500Medium, Manrope_600SemiBold, Manrope_700Bold, Manrope_800ExtraBold, useFonts } from '@expo-google-fonts/manrope';
+import { Stack } from 'expo-router';
+import * as SplashScreen from 'expo-splash-screen';
+import { StatusBar } from 'expo-status-bar';
+import { useEffect } from 'react';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+
+import { ReminderService } from '@/components/ReminderService';
+import { DialogHost, ToastHost, toast } from '@/components/ui/feedback';
+import { useWatchOsReduceMotion } from '@/hooks/useReduceMotion';
+import { initNotifications } from '@/services/notifications';
+import { startSync } from '@/sync/runtime';
+import { useAppStore } from '@/store/useAppStore';
+import { colors, isDark } from '@/theme';
+
+SplashScreen.preventAutoHideAsync().catch(() => {});
+
+export default function RootLayout() {
+  const [fontsLoaded, fontError] = useFonts({ Anton_400Regular, Manrope_400Regular, Manrope_500Medium, Manrope_600SemiBold, Manrope_700Bold, Manrope_800ExtraBold });
+  const hydrated = useAppStore((s) => s.hydrated);
+  const seeded = useAppStore((s) => s.seeded);
+  const signedIn = useAppStore((s) => !!s.session);
+  const ensureSeed = useAppStore((s) => s.ensureSeed);
+
+  useWatchOsReduceMotion();
+  useEffect(() => {
+    initNotifications();
+  }, []);
+
+  useEffect(() => {
+    if (hydrated) ensureSeed();
+  }, [hydrated, ensureSeed]);
+
+  const ready = (fontsLoaded || !!fontError) && hydrated && seeded;
+  useEffect(() => {
+    if (!ready) return;
+    SplashScreen.hideAsync().catch(() => {});
+    void startSync(); // phone-to-phone sync for trips that were shared (does nothing until you share or join one)
+    // Back from the reload that applies a new theme: say so, then forget the one-off session.
+    const { restyled, setRestyled } = useAppStore.getState();
+    if (restyled) {
+      setRestyled(false);
+      setTimeout(() => toast('Your new look is live ✨', { icon: 'sparkles' }), 600);
+    }
+  }, [ready]);
+
+  if (!ready) return null;
+
+  return (
+    <SafeAreaProvider>
+      <StatusBar style={isDark ? 'light' : 'dark'} />
+      <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.bg }, animation: 'slide_from_right' }}>
+        <Stack.Screen name="index" />
+        <Stack.Protected guard={!signedIn}>
+          <Stack.Screen name="onboarding" options={{ animation: 'fade' }} />
+          <Stack.Screen name="sign-in" options={{ animation: 'fade' }} />
+          <Stack.Screen name="sign-up" />
+          <Stack.Screen name="forgot-password" />
+        </Stack.Protected>
+        <Stack.Protected guard={signedIn}>
+          <Stack.Screen name="(tabs)" options={{ animation: 'fade' }} />
+          <Stack.Screen name="destination/[id]" />
+          <Stack.Screen name="destinations" />
+          <Stack.Screen name="nearby" />
+          <Stack.Screen name="trips" />
+          <Stack.Screen name="new-trip" options={{ presentation: 'modal', animation: 'slide_from_bottom' }} />
+          <Stack.Screen name="join" options={{ presentation: 'modal', animation: 'slide_from_bottom' }} />
+          <Stack.Screen name="flights" />
+          <Stack.Screen name="crew" />
+          <Stack.Screen name="how-it-works" />
+          <Stack.Screen name="panorama" options={{ animation: 'fade' }} />
+          <Stack.Screen name="map" />
+          <Stack.Screen name="weather" />
+          <Stack.Screen name="photos" />
+          <Stack.Screen name="bucket-list" />
+          <Stack.Screen name="quiz" />
+          <Stack.Screen name="survey" />
+          <Stack.Screen name="documents" />
+          <Stack.Screen name="packing" />
+          <Stack.Screen name="currency" />
+          <Stack.Screen name="notifications" />
+          <Stack.Screen name="settings" />
+          <Stack.Screen name="emergency" />
+          <Stack.Screen name="phrasebook" />
+          <Stack.Screen name="recap" />
+          <Stack.Screen name="airport" />
+          <Stack.Screen name="help" />
+          <Stack.Screen name="about" />
+          <Stack.Screen name="personalize" options={{ presentation: 'modal', animation: 'slide_from_bottom' }} />
+        </Stack.Protected>
+      </Stack>
+      {signedIn ? <ReminderService /> : null}
+      <ToastHost />
+      <DialogHost />
+    </SafeAreaProvider>
+  );
+}
