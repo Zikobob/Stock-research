@@ -13,6 +13,8 @@ import type { Activity, Expense, Flight, Member, PackingItem, Photo, Trip } from
 export const DEMO_EMAIL = 'maya.chen@togetherwego.app';
 export const DEMO_PASSWORD = 'TravelTogether2026!';
 export const DEMO_USER_ID = 'u-maya';
+/** The sample trips that come with the app (the fourth is from an older version). "Clear sample trips" removes exactly these. */
+export const DEMO_TRIP_IDS = ['trip-amalfi', 'trip-bali', 'trip-bcn', 'trip-tokyo'];
 
 export type DemoTimeline = 'upcoming' | 'active' | 'completed';
 

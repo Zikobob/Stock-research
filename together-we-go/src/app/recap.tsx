@@ -2,8 +2,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import { useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { useRef, useState } from 'react';
+import { Platform, StyleSheet, View } from 'react-native';
 
 import { ShareSheet } from '@/components/ShareSheet';
 import { NoTrip } from '@/components/trip/NoTrip';
@@ -16,6 +16,7 @@ import { Header, Screen } from '@/components/ui/Screen';
 import { T, type TProps } from '@/components/ui/T';
 import { destinationById } from '@/data/destinations';
 import { imageSource } from '@/data/images';
+import { shareView } from '@/services/share';
 import { settlePlan, totalSpent, tripStatus, useActiveTrip } from '@/store/useAppStore';
 import { colors, radius, shadow } from '@/theme';
 import { money } from '@/utils/format';
@@ -27,6 +28,7 @@ export default function Recap() {
   const trip = useActiveTrip();
   const [share, setShare] = useState(false);
   const [rating, setRating] = useState(0);
+  const card = useRef<View>(null);
   if (!trip) return <NoTrip />;
 
   const dest = destinationById(trip.destinationId)!;
@@ -71,7 +73,7 @@ export default function Recap() {
       </View>
 
       <FadeIn from="scale" style={{ alignItems: 'center' }}>
-        <View style={styles.story} accessible accessibilityLabel={`Story card. ${summary}`}>
+        <View ref={card} collapsable={false} style={styles.story} accessible accessibilityLabel={`Story card. ${summary}`}>
           <Image source={imageSource(trip.cover)} style={StyleSheet.absoluteFill} contentFit="cover" />
           <LinearGradient colors={['rgba(0,0,0,0.35)', 'rgba(0,0,0,0.05)', 'rgba(0,0,0,0.92)']} locations={[0, 0.3, 0.82]} style={StyleSheet.absoluteFill} />
           <View style={styles.storyTag}>
@@ -112,7 +114,10 @@ export default function Recap() {
           </View>
         </View>
       </FadeIn>
-      <Button label="Share story card" icon="share-social-outline" onPress={() => setShare(true)} style={{ marginTop: 14 }} />
+      <View style={{ flexDirection: 'row', gap: 8, marginTop: 14 }}>
+        {Platform.OS !== 'web' ? <Button label="Share picture" icon="image-outline" onPress={() => shareView(card, 'Share your trip recap', summary)} style={{ flex: 1 }} testID="share-picture" /> : null}
+        <Button label={Platform.OS === 'web' ? 'Share story card' : 'Share text'} icon="share-social-outline" variant={Platform.OS === 'web' ? 'primary' : 'secondary'} onPress={() => setShare(true)} style={{ flex: 1 }} />
+      </View>
 
       <View style={styles.grid}>
         {stats.map(([icon, value, label]) => (

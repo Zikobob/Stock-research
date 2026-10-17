@@ -228,6 +228,33 @@ describe('collaboration features', () => {
   });
 });
 
+describe('sample data', () => {
+  it('can be cleared without touching the person’s own trips, and does not come back', async () => {
+    s().resetEverything();
+    await s().ensureSeed();
+    expect(s().trips.some((t) => t.id === 'trip-amalfi')).toBe(true);
+    await s().signUp('Own Trip', 'own@example.com', 'Passw0rd!x');
+    const mine = newTrip();
+    s().clearDemoData();
+    expect(s().trips.map((t) => t.id)).toEqual([mine]);
+    expect(s().activeTripId).toBe(mine);
+    expect(s().notifications.every((n) => !n.tripId || n.tripId === mine)).toBe(true);
+    expect(s().bucket).toEqual([]);
+    expect(s().seeded).toBe(true);
+    await s().ensureSeed(); // already seeded: nothing returns
+    expect(s().trips.map((t) => t.id)).toEqual([mine]);
+    expect(s().accounts.some((a) => a.email === 'own@example.com')).toBe(true);
+  });
+
+  it('keeps bucket-list items the person added themselves', async () => {
+    s().resetEverything();
+    await s().ensureSeed();
+    s().addBucket('Learn to surf in Portugal');
+    s().clearDemoData();
+    expect(s().bucket.map((b) => b.text)).toEqual(['Learn to surf in Portugal']);
+  });
+});
+
 describe('app-level state', () => {
   it('bucket list, favourites, notifications and settings', async () => {
     await signedInUser();

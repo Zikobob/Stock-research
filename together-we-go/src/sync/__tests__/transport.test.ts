@@ -8,6 +8,36 @@ const hangingFetch: typeof fetch = (_url, init) =>
 
 const jsonFetch = (status: number, body: unknown): typeof fetch => async () => ({ status, json: async () => body }) as Response;
 
+// The phone's own URL class (React Native's) is a simple text matcher, much looser than Node's or a browser's.
+// Run the address checks against both, so a typo is rejected on the phone too.
+const PHONE_URL = jest.requireActual('react-native/Libraries/Blob/URL').URL as typeof URL;
+describe.each([
+  ['Node', URL],
+  ['the phone', PHONE_URL],
+])('normalizeServerUrl with the URL class of %s', (_name, UrlClass) => {
+  const original = globalThis.URL;
+  beforeAll(() => {
+    globalThis.URL = UrlClass;
+  });
+  afterAll(() => {
+    globalThis.URL = original;
+  });
+
+  it('adds http:// and drops paths and trailing slashes', () => {
+    expect(normalizeServerUrl('192.168.1.20:8787')).toBe('http://192.168.1.20:8787');
+    expect(normalizeServerUrl(' http://192.168.1.20:8787/ ')).toBe('http://192.168.1.20:8787');
+    expect(normalizeServerUrl('https://sync.example.org/path?x=1')).toBe('https://sync.example.org');
+    expect(normalizeServerUrl('HTTP://Laptop.local:8787')).toBe('http://laptop.local:8787');
+    expect(normalizeServerUrl('localhost:8787')).toBe('http://localhost:8787');
+  });
+
+  it('rejects things that are not addresses', () => {
+    for (const bad of ['', '   ', 'http://', 'not an address at all', 'my laptop', 'ftp://192.168.1.2', 'http://192.168.1.2 :8787', 'http://-bad-.com', 'http://[::1]:8787', 'http://host:99999999']) {
+      expect(normalizeServerUrl(bad)).toBeNull();
+    }
+  });
+});
+
 describe('normalizeServerUrl', () => {
   it('adds http:// and drops paths and trailing slashes', () => {
     expect(normalizeServerUrl('192.168.1.20:8787')).toBe('http://192.168.1.20:8787');

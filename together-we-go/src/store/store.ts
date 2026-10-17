@@ -8,6 +8,7 @@ import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
 
+import { DEMO_TRIP_IDS } from './seed';
 import { createAppSlice } from './slices/app';
 import { createAuthSlice } from './slices/auth';
 import { createBudgetSlice } from './slices/budget';
@@ -41,7 +42,7 @@ export const useAppStore = create<AppStore>()(
       migrate: (persisted, version) => {
         const old = persisted as Partial<AppStore>;
         if (version >= 2) return old as AppStore;
-        const demoIds = ['trip-tokyo', 'trip-bali', 'trip-bcn', 'trip-amalfi'];
+        const demoIds = DEMO_TRIP_IDS;
         return { ...old, seeded: false, activeTripId: null, trips: (old.trips ?? []).filter((t) => !demoIds.includes(t.id)) } as AppStore;
       },
       // New settings added in later versions fall back to their defaults instead of vanishing.

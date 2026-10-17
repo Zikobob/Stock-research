@@ -6,19 +6,22 @@ import * as Crypto from 'expo-crypto';
 import { uid } from '@/utils/format';
 import { hashPassword } from '@/utils/password';
 
-import { DEMO_EMAIL, DEMO_PASSWORD, DEMO_USER_ID, buildDemoTrip, buildSecondaryTrips, type DemoTimeline } from '../seed';
+import { DEMO_EMAIL, DEMO_PASSWORD, DEMO_TRIP_IDS, DEMO_USER_ID, buildDemoTrip, buildSecondaryTrips, type DemoTimeline } from '../seed';
 import type { Account, AppNotification, BucketItem } from '../types';
 import type { Slice } from './types';
 
+/** The sample bucket-list items: text, destination, done. */
+const BUCKET_SEED: [string, string, boolean][] = [
+  ['See the northern lights in Iceland', 'iceland', false],
+  ['Sunrise at Machu Picchu', 'machu-picchu', false],
+  ['Eat street tacos in Mexico City', 'mexico-city', false],
+  ['Watch the sunset in Oia, Santorini', 'santorini', false],
+  ['Tapas crawl in Barcelona', 'barcelona', true],
+];
+
 function seedBucket(): BucketItem[] {
   const now = Date.now();
-  return [
-    { id: uid('b-'), text: 'See the northern lights in Iceland', destinationId: 'iceland', done: false, addedAt: now - 9e7 },
-    { id: uid('b-'), text: 'Sunrise at Machu Picchu', destinationId: 'machu-picchu', done: false, addedAt: now - 8e7 },
-    { id: uid('b-'), text: 'Eat street tacos in Mexico City', destinationId: 'mexico-city', done: false, addedAt: now - 7e7 },
-    { id: uid('b-'), text: 'Watch the sunset in Oia, Santorini', destinationId: 'santorini', done: false, addedAt: now - 6e7 },
-    { id: uid('b-'), text: 'Tapas crawl in Barcelona', destinationId: 'barcelona', done: true, addedAt: now - 5e7 },
-  ];
+  return BUCKET_SEED.map(([text, destinationId, done], i) => ({ id: uid('b-'), text, destinationId, done, addedAt: now - (9 - i) * 1e7 }));
 }
 
 function seedNotifications(): AppNotification[] {
@@ -35,6 +38,8 @@ export interface DemoSlice {
   seeded: boolean;
   ensureSeed: () => Promise<void>;
   reseedDemo: (timeline: DemoTimeline) => void;
+  /** Removes the sample trips, their notifications and the sample bucket list; accounts and your own trips stay. */
+  clearDemoData: () => void;
 }
 
 /** Starting values, also used by "reset everything". */
@@ -68,6 +73,16 @@ export const createDemoSlice: Slice<DemoSlice> = (set, get) => {
         s.trips = [fresh, ...s.trips.filter((t) => t.id !== fresh.id)];
         s.activeTripId = fresh.id;
         s.demoTimeline = timeline;
+        s.firedReminders = {};
+      }),
+
+    clearDemoData: () =>
+      set((s) => {
+        s.trips = s.trips.filter((t) => !DEMO_TRIP_IDS.includes(t.id));
+        s.activeTripId = s.trips.find((t) => t.members.some((m) => m.id === s.session?.userId))?.id ?? null;
+        s.notifications = s.notifications.filter((n) => !n.tripId || !DEMO_TRIP_IDS.includes(n.tripId));
+        const sample = new Set(BUCKET_SEED.map(([text]) => text));
+        s.bucket = s.bucket.filter((b) => !sample.has(b.text));
         s.firedReminders = {};
       }),
   };

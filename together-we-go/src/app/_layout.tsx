@@ -8,6 +8,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { ReminderService } from '@/components/ReminderService';
 import { DialogHost, ToastHost, toast } from '@/components/ui/feedback';
+import { useWatchOsReduceMotion } from '@/hooks/useReduceMotion';
 import { initNotifications } from '@/services/notifications';
 import { startSync } from '@/sync/runtime';
 import { useAppStore } from '@/store/useAppStore';
@@ -22,6 +23,7 @@ export default function RootLayout() {
   const signedIn = useAppStore((s) => !!s.session);
   const ensureSeed = useAppStore((s) => s.ensureSeed);
 
+  useWatchOsReduceMotion();
   useEffect(() => {
     initNotifications();
   }, []);

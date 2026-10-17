@@ -1,13 +1,15 @@
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { router, useLocalSearchParams } from 'expo-router';
-import { useEffect, useRef, useState } from 'react';
+import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Animated, Easing, ScrollView, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { headingOf, K, layout, PanoramaScene, posForHeading } from '@/components/panorama/Scene';
 import { timeOfDayAt } from '@/components/SkylineHero';
+import { toast } from '@/components/ui/feedback';
+import { useMotion } from '@/components/ui/motion';
 import { Press, tap } from '@/components/ui/Press';
 import { T } from '@/components/ui/T';
 import { useNow } from '@/hooks/useTrip';
@@ -32,6 +34,8 @@ export default function PanoramaScreen() {
   const startLm = pano.landmarks.find((l) => l.id === focus) ?? pano.landmarks[0];
   const [forced, setForced] = useState<'day' | 'night' | null>(null);
   const [auto, setAuto] = useState(true);
+  const motion = useMotion(); // off when "Animations" is off or the phone asks apps to reduce motion: no auto-rotation, no coasting, no glides
+  const autoOn = auto && motion;
   const [heading, setHeading] = useState(startLm.heading);
   const mode = forced ?? timeOfDayAt(pano.tz, now);
 
@@ -43,12 +47,14 @@ export default function PanoramaScreen() {
   const busyRef = useRef(false);
   const idleRef = useRef(1000);
   const autoRef = useRef(true);
+  const motionRef = useRef(true);
   const gestureRef = useRef({ x: 0, pos: 0, last: 0 });
 
   // Keep the mirrors of state that the animation loop and gesture handlers read.
   useEffect(() => {
-    autoRef.current = auto;
-  }, [auto]);
+    motionRef.current = motion;
+    autoRef.current = autoOn;
+  }, [autoOn, motion]);
   useEffect(() => {
     const id = pos.addListener(({ value }) => {
       posRef.current = value;
@@ -58,32 +64,39 @@ export default function PanoramaScreen() {
 
   // Day ↔ night cross-fade.
   useEffect(() => {
-    const anim = Animated.timing(night, { toValue: mode === 'night' ? 1 : 0, duration: 1200, easing: Easing.inOut(Easing.cubic), useNativeDriver: false });
+    const anim = Animated.timing(night, { toValue: mode === 'night' ? 1 : 0, duration: motion ? 1200 : 0, easing: Easing.inOut(Easing.cubic), useNativeDriver: false });
     anim.start();
     return () => anim.stop();
-  }, [mode, night]);
+  }, [mode, night, motion]);
 
   // One ~30 fps loop: coasting after a flick, gentle auto-rotation when idle, and the compass readout.
-  useEffect(() => {
-    let tick = 0;
-    const id = setInterval(() => {
-      tick++;
-      if (!dragRef.current && !busyRef.current) {
-        velRef.current *= 0.94;
-        idleRef.current++;
-        const idle = idleRef.current > 105;
-        const step = velRef.current + (autoRef.current && idle && Math.abs(velRef.current) < 0.2 ? 0.45 : 0);
-        if (Math.abs(step) > 0.01) pos.setValue(posRef.current + step);
-      }
-      if (tick % 4 === 0) setHeading(Math.round(headingOf(posRef.current, S)) % 360);
-    }, 33);
-    return () => clearInterval(id);
-  }, [pos, S]);
+  // It only runs while this screen is the one being looked at, so it costs nothing behind another screen.
+  useFocusEffect(
+    useCallback(() => {
+      let tick = 0;
+      const id = setInterval(() => {
+        tick++;
+        if (!dragRef.current && !busyRef.current) {
+          velRef.current = motionRef.current ? velRef.current * 0.94 : 0;
+          idleRef.current++;
+          const idle = idleRef.current > 105;
+          const step = velRef.current + (autoRef.current && idle && Math.abs(velRef.current) < 0.2 ? 0.45 : 0);
+          if (Math.abs(step) > 0.01) pos.setValue(posRef.current + step);
+        }
+        if (tick % 4 === 0) setHeading(Math.round(headingOf(posRef.current, S)) % 360);
+      }, 33);
+      return () => clearInterval(id);
+    }, [pos, S]),
+  );
 
   const glide = (delta: number) => {
-    busyRef.current = true;
     idleRef.current = 0;
     velRef.current = 0;
+    if (!motion) {
+      pos.setValue(posRef.current + delta); // no sweeping animation when motion is off
+      return;
+    }
+    busyRef.current = true;
     Animated.timing(pos, { toValue: posRef.current + delta, duration: 800, easing: Easing.out(Easing.cubic), useNativeDriver: false }).start(() => {
       busyRef.current = false;
     });
@@ -154,10 +167,15 @@ export default function PanoramaScreen() {
             <Ionicons name="chevron-back" size={20} color={colors.white} />
           </Press>
           <View style={{ flex: 1 }} />
-          <Press onPress={() => setAuto((a) => !a)} style={styles.chip} accessibilityRole="switch" accessibilityState={{ checked: auto }} accessibilityLabel="Auto rotate">
-            <Ionicons name={auto ? 'sync' : 'pause'} size={14} color={colors.white} />
+          <Press
+            onPress={() => (motion ? setAuto((a) => !a) : toast('Animations are off, so the view only moves when you drag it', { icon: 'accessibility-outline' }))}
+            style={styles.chip}
+            accessibilityRole="switch"
+            accessibilityState={{ checked: autoOn }}
+            accessibilityLabel="Auto rotate">
+            <Ionicons name={autoOn ? 'sync' : 'pause'} size={14} color={colors.white} />
             <T variant="micro" weight="bold" color={colors.white}>
-              {auto ? 'Auto' : 'Paused'}
+              {autoOn ? 'Auto' : 'Paused'}
             </T>
           </Press>
           <Press

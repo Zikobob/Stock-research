@@ -31,15 +31,21 @@ export class ServerError extends Error {
   }
 }
 
-/** "192.168.1.5:8787" or "http://192.168.1.5:8787/" -> "http://192.168.1.5:8787". Returns null if it cannot be an address. */
+const HOST = /^[A-Za-z0-9]([A-Za-z0-9.-]*[A-Za-z0-9])?$/;
+
+/**
+ * "192.168.1.5:8787" or "http://192.168.1.5:8787/" -> "http://192.168.1.5:8787". Returns null if it cannot be an address.
+ * The phone's built-in URL class is much looser than a browser's (it accepts spaces in a host name), so the host is checked here too.
+ */
 export function normalizeServerUrl(input: string): string | null {
   let url = input.trim();
   if (!url) return null;
-  if (!/^https?:\/\//i.test(url)) url = `http://${url}`;
+  url = /^[a-z][a-z0-9+.-]*:\/\//i.test(url) ? url.replace(/^[a-z][a-z0-9+.-]*:\/\//i, (scheme) => scheme.toLowerCase()) : `http://${url}`;
   try {
     const parsed = new URL(url);
-    if (!parsed.hostname) return null;
-    return `${parsed.protocol}//${parsed.host}`;
+    if (!/^https?:$/i.test(parsed.protocol) || !HOST.test(parsed.hostname)) return null;
+    if (!/^[A-Za-z0-9.-]+(:\d{1,5})?$/.test(parsed.host)) return null;
+    return `${parsed.protocol.toLowerCase()}//${parsed.host.toLowerCase()}`;
   } catch {
     return null;
   }

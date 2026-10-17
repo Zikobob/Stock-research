@@ -92,13 +92,13 @@ export default function MapScreen() {
           </View>
           <IconButton icon="locate-outline" label="Show my location" onPress={locate} bordered={false} />
         </View>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6, paddingHorizontal: 16 }}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chips} contentContainerStyle={{ gap: 6, paddingHorizontal: 16 }}>
           <Chip small label="All days" active={day === 'all'} onPress={() => setDay('all')} />
           {days.map((d, i) => (
             <Chip key={d} small label={`Day ${i + 1}`} active={day === d} onPress={() => setDay(d)} />
           ))}
         </ScrollView>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6, paddingHorizontal: 16 }}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chips} contentContainerStyle={{ gap: 6, paddingHorizontal: 16 }}>
           <Chip small icon="calendar-outline" label="Itinerary" active={layers.plan} onPress={() => setLayers((l) => ({ ...l, plan: !l.plan }))} />
           <Chip small icon="compass-outline" label="Places" active={layers.places} onPress={() => setLayers((l) => ({ ...l, places: !l.places }))} />
           <Chip small icon="airplane-outline" label="Airports" active={layers.airports} onPress={() => setLayers((l) => ({ ...l, airports: !l.airports }))} />
@@ -150,6 +150,8 @@ const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.bg },
   mapWrap: { ...StyleSheet.absoluteFill },
   top: { position: 'absolute', left: 0, right: 0, top: 0, gap: 8, alignItems: 'center' },
+  // a centred column would size a row of chips to its content (wider than the screen); keep it as wide as the screen
+  chips: { width: '100%', maxWidth: MAX_WIDTH, flexGrow: 0 },
   topRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%', maxWidth: MAX_WIDTH, paddingHorizontal: 16 },
   seg: { flexDirection: 'row', backgroundColor: colors.card, borderRadius: 999, padding: 3, ...shadowStrong },
   segBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 12, paddingVertical: 7, borderRadius: 999 },

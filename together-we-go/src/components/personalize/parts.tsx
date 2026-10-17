@@ -4,10 +4,9 @@ import { useEffect, useState } from 'react';
 import { Animated, View } from 'react-native';
 
 import type { IconName } from '@/components/ui/bits';
-import { nativeDriver } from '@/components/ui/motion';
+import { nativeDriver, useMotion } from '@/components/ui/motion';
 import { Press } from '@/components/ui/Press';
 import { T } from '@/components/ui/T';
-import { useAppStore } from '@/store/useAppStore';
 import { cornerStyles, type CornerStyle } from '@/theme';
 
 import type { Personal } from '@/store/types';
@@ -155,7 +154,7 @@ const CONFETTI = ['#F2B33D', '#E8833A', '#3D7DD8', '#7C5CD6', '#2A9D8F', '#D94F8
 /** One-shot confetti burst for the final step. */
 export function Confetti({ pal }: { pal: Pal }) {
   const [v] = useState(() => new Animated.Value(0));
-  const motion = useAppStore((s) => s.personal.motion);
+  const motion = useMotion();
   useEffect(() => {
     if (!motion) return;
     Animated.timing(v, {

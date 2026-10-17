@@ -20,6 +20,7 @@ import { ensurePermission, sendTestReminder } from '@/services/notifications';
 import { getApiKey, looksLikeApiKey, setApiKey } from '@/services/secrets';
 import { pickImage } from '@/services/files';
 import { shareText } from '@/services/share';
+import { useOsReduceMotion } from '@/hooks/useReduceMotion';
 import { resetSync } from '@/sync/actions';
 import { useActiveTrip, useAppStore, useCurrentUser } from '@/store/useAppStore';
 import type { TextScale } from '@/store/types';
@@ -39,8 +40,10 @@ export default function Settings() {
   const timeline = useAppStore((s) => s.demoTimeline);
   const signOut = useAppStore((s) => s.signOut);
   const resetEverything = useAppStore((s) => s.resetEverything);
+  const clearDemoData = useAppStore((s) => s.clearDemoData);
   const ensureSeed = useAppStore((s) => s.ensureSeed);
   const personal = useAppStore((s) => s.personal);
+  const osReduceMotion = useOsReduceMotion((s) => s.on);
   const updatePersonal = useAppStore((s) => s.updatePersonal);
 
   const [name, setName] = useState(user?.name ?? '');
@@ -110,7 +113,7 @@ export default function Settings() {
         <Ionicons name="chevron-forward" size={20} color={colors.white} />
       </Press>
       <Card style={{ marginBottom: 14 }}>
-        <ToggleRow icon="sparkles-outline" label="Animations" sub="Flying plane, floating cards and smooth entrances" value={personal.motion} onChange={(v) => updatePersonal({ motion: v })} />
+        <ToggleRow icon="sparkles-outline" label="Animations" sub={osReduceMotion ? 'Off for now: your phone’s Reduce Motion setting is on' : 'Flying plane, floating cards and smooth entrances'} value={personal.motion && !osReduceMotion} onChange={(v) => updatePersonal({ motion: v })} />
       </Card>
 
       <SyncSettingsCard />
@@ -296,6 +299,17 @@ export default function Settings() {
             }}
           />
         ) : null}
+        <ListRow
+          icon="leaf-outline"
+          label="Clear the sample trips"
+          sub="Start with a blank app. Your own trips and accounts stay"
+          onPress={() =>
+            confirmAction('Clear the sample trips?', 'Amalfi Squad and the other example trips are removed from this phone. Trips you made yourself are not touched.', () => {
+              clearDemoData();
+              toast('Sample trips cleared');
+            }, { destructive: true, confirmLabel: 'Clear' })
+          }
+        />
         <ListRow
           icon="refresh-circle-outline"
           tint={colors.red}

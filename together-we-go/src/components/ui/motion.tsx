@@ -6,12 +6,16 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { Animated, Easing, Platform, type StyleProp, type ViewStyle } from 'react-native';
 
+import { effectiveMotion, useOsReduceMotion } from '@/hooks/useReduceMotion';
 import { useAppStore } from '@/store/useAppStore';
 
 export const nativeDriver = Platform.OS !== 'web';
 
+/** True when animations should run: the "Animations" switch is on and the phone's Reduce Motion setting is off. */
 export function useMotion() {
-  return useAppStore((s) => s.personal.motion);
+  const wanted = useAppStore((s) => s.personal.motion);
+  const osReduce = useOsReduceMotion((s) => s.on);
+  return effectiveMotion(wanted, osReduce);
 }
 
 /** Fades + slides its children in once, after `delay` ms. Use for staggered entrances. */
@@ -33,7 +37,10 @@ export function FadeIn({
   const motion = useMotion();
   const [v] = useState(() => new Animated.Value(motion ? 0 : 1));
   useEffect(() => {
-    if (!motion) return;
+    if (!motion) {
+      v.setValue(1); // motion was switched off (or the phone's setting arrived) after the first frame: show the content now
+      return;
+    }
     const anim = Animated.timing(v, {
       toValue: 1,
       duration,

@@ -6,11 +6,15 @@ import { Asset } from 'expo-asset';
 import * as Clipboard from 'expo-clipboard';
 import * as Linking from 'expo-linking';
 import * as Sharing from 'expo-sharing';
-import { Platform, Share } from 'react-native';
+import type { RefObject } from 'react';
+import { Platform, Share, type View } from 'react-native';
+import { captureRef } from 'react-native-view-shot';
 
 import { toast } from '@/components/ui/feedback';
 import type { IconName } from '@/components/ui/bits';
 import { photos, type PhotoKey } from '@/data/images';
+import { buildInviteUrl, inviteText } from '@/sync/invite';
+import { serverForInvites } from '@/sync/prefs';
 
 export type SocialTarget = 'whatsapp' | 'x' | 'facebook' | 'messenger' | 'telegram' | 'instagram' | 'sms' | 'email';
 
@@ -25,12 +29,13 @@ export const socialTargets: { key: SocialTarget; label: string; icon: IconName; 
   { key: 'email', label: 'Email', icon: 'mail-outline', color: '#5F645A' },
 ];
 
+/** The link that opens TogetherWeGo on the join screen with the code (and the sync server, if there is one) filled in. */
 export function inviteLink(code: string): string {
-  return Linking.createURL('/join', { queryParams: { code } });
+  return buildInviteUrl(Linking.createURL('/join'), code, serverForInvites());
 }
 
 export function inviteMessage(tripName: string, code: string): string {
-  return `Join my trip “${tripName}” on TogetherWeGo ✈️\nInvite code: ${code}\nOpen: ${inviteLink(code)}`;
+  return inviteText(tripName, code, inviteLink(code));
 }
 
 export async function copy(text: string, label = 'Copied to clipboard') {
@@ -116,5 +121,19 @@ export async function sharePhoto(uri: string, caption: string) {
     await shareText(`${caption} 📸 — shared from TogetherWeGo`);
   } catch {
     await shareText(`${caption} 📸 — shared from TogetherWeGo`);
+  }
+}
+
+/**
+ * Turns something on screen (like the recap story card) into a picture and opens the phone's share sheet with it, so it
+ * can go to Instagram, Snapchat, Messages or anywhere else that takes images. Falls back to plain text.
+ */
+export async function shareView(view: RefObject<View | null>, title: string, fallbackText: string) {
+  try {
+    if (Platform.OS === 'web' || !(await Sharing.isAvailableAsync())) return await shareText(fallbackText);
+    const uri = await captureRef(view, { format: 'png', quality: 1, result: 'tmpfile' });
+    await Sharing.shareAsync(uri, { mimeType: 'image/png', UTI: 'public.png', dialogTitle: title });
+  } catch {
+    await shareText(fallbackText);
   }
 }

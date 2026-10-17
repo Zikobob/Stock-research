@@ -59,6 +59,13 @@
           "color": "#0B0B0D"
         }
       ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "TogetherWeGo uses the camera to scan invite QR codes from your friends.",
+          "recordAudioAndroid": false
+        }
+      ],
       "expo-sharing",
       "expo-localization",
       "expo-secure-store",

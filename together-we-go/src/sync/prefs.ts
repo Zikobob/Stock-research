@@ -45,3 +45,9 @@ export function guessServerUrl(): string | null {
 export function effectiveServerUrl(): string | null {
   return normalizeServerUrl(useSyncPrefs.getState().serverUrl) ?? guessServerUrl();
 }
+
+/** The address to put in an invite. "localhost" only means something on the computer that runs the server, so it is left out. */
+export function serverForInvites(): string | null {
+  const url = effectiveServerUrl();
+  return url && !/^https?:\/\/(localhost|127\.\d+\.\d+\.\d+)(:|$)/i.test(url) ? url : null;
+}
