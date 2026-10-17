@@ -21,6 +21,17 @@ const vis = async (loc, t = 2500) => loc.filter({ visible: true }).first().waitF
   check('survey needs an interest', await vis(p.getByText(/at least one interest/)));
   await p.getByRole('checkbox', { name: 'Beaches' }).click();
   await p.getByLabel('Skip to the end').click(); await p.waitForTimeout(600);
+  // the last page lists every answer; tapping a row opens that step, and "Back to summary" (or the back arrow) returns
+  check('last page lists the answers as tappable rows', await vis(p.getByLabel(/Change interests, now .*🏖/)));
+  await p.getByLabel('Change interests').click(); await p.waitForTimeout(500);
+  check('a summary row opens its step', await vis(p.getByRole('checkbox', { name: 'Nightlife' })));
+  await p.getByRole('checkbox', { name: 'Nightlife' }).click();
+  await p.getByRole('button', { name: 'Back to summary' }).click(); await p.waitForTimeout(600);
+  check('"Back to summary" returns with the change applied', await vis(p.getByLabel(/Change interests, now .*🏖.*🌃/)));
+  await p.getByLabel('Change card shape').click(); await p.waitForTimeout(500);
+  await p.getByRole('radio', { name: 'Bubbly corners' }).click();
+  await p.getByRole('button', { name: 'Back', exact: true }).click(); await p.waitForTimeout(600);
+  check('the back arrow also returns to the summary', await vis(p.getByLabel(/Change card shape, now Bubbly corners/)));
   await p.getByRole('button', { name: 'Apply my style' }).click(); await p.waitForTimeout(5500);
   const saved = await p.evaluate(() => localStorage.getItem('togetherwego-appearance'));
   check('theme saved', /sunset/.test(saved || ''), saved);

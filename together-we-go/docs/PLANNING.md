@@ -132,7 +132,7 @@ Key decisions:
 | Home ranking, pretend friends, Reduce Motion | The "Picked for you" ranking, canned replies, the motion rule |
 
 ### 9b. Automated browser tests (`npm run e2e`, see `e2e/README.md`)
-Seven scripts drive the web build in a phone-sized window: every main flow, the personalisation survey, the 360° views, Reduce Motion, a **sideways-overflow audit of every screen at 390 px, 320 px and with larger text**, and a **two-phone sync run** against the real server (share, join, chat, expenses, offline catch-up, restart, a photo, a receipt and a PDF).
+Eight scripts drive the web build in a phone-sized window: every main flow, the personalisation survey (including tapping a summary row to change an answer), the 360° views, Reduce Motion, a **sideways-overflow audit of every screen at 390 px, 320 px and with larger text**, a **no-button-inside-a-button audit** (the web warning *"`<button>` cannot contain a nested `<button>`"*), and a **two-phone sync run** against the real server (share, join, chat, expenses, offline catch-up, restart, a photo, a receipt and a PDF).
 
 ### 9c. Manual + earlier browser runs
 | Area | Checks |

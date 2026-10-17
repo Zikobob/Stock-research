@@ -278,7 +278,7 @@ function skylineLayers(pano: Pano, S: number, H: number, night: boolean) {
 function Skyline({ pano, S, H, night, pos }: { pano: Pano; S: number; H: number; night: boolean; pos: Animated.Value }) {
   const [built] = useState(() => skylineLayers(pano, S, H, night));
   const { W } = built;
-  const glowDefs = <GlowDefs list={pano.landmarks} />;
+  const glowDefs = <GlowDefs key="glow" list={pano.landmarks} />; // goes into a list of defs below, so it needs a key
   return (
     <>
       <Layer pos={pos} k={K.far} W={W.far} H={H} defs={null}>

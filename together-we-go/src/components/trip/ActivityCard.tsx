@@ -78,8 +78,9 @@ export function ActivityCard({ trip, activity: a, onEdit, onAssign, mode = 'plan
 
   return (
     <View style={[styles.card, a.done && { opacity: 0.6 }]}>
-      <Press onPress={toggle} scaleTo={0.99} accessibilityLabel={`${a.title}, ${weekdayShort(a.date)} ${a.time}, ${ups.length} of ${total} in`} accessibilityHint="Shows details and actions">
-        <View style={styles.top}>
+      {/* The delete button sits next to the card button, not inside it: on the web a button inside a button is invalid HTML. */}
+      <View style={styles.top}>
+        <Press onPress={toggle} scaleTo={0.99} style={styles.topMain} accessibilityLabel={`${a.title}, ${weekdayShort(a.date)} ${a.time}, ${ups.length} of ${total} in`} accessibilityHint="Shows details and actions">
           <View style={styles.badge}>
             <T style={{ fontSize: 22, lineHeight: 28 }}>{typeEmoji[a.type]}</T>
           </View>
@@ -107,19 +108,19 @@ export function ActivityCard({ trip, activity: a, onEdit, onAssign, mode = 'plan
               {a.status !== 'confirmed' && mode === 'plan' ? <Tag label={t(a.status === 'voting' ? 'itin.voting' : 'itin.pending')} tone="warn" /> : null}
             </View>
           </View>
-          <Press
-            onPress={() =>
-              confirmAction('Delete activity?', `“${a.title}” will be removed for everyone.`, () => {
-                remove(trip.id, a.id);
-                toast('Activity deleted');
-              }, { confirmLabel: 'Delete', destructive: true })
-            }
-            hitSlop={10}
-            accessibilityLabel={`Delete ${a.title}`}>
-            <Ionicons name="trash-outline" size={17} color={colors.textMuted} />
-          </Press>
-        </View>
-      </Press>
+        </Press>
+        <Press
+          onPress={() =>
+            confirmAction('Delete activity?', `“${a.title}” will be removed for everyone.`, () => {
+              remove(trip.id, a.id);
+              toast('Activity deleted');
+            }, { confirmLabel: 'Delete', destructive: true })
+          }
+          hitSlop={10}
+          accessibilityLabel={`Delete ${a.title}`}>
+          <Ionicons name="trash-outline" size={17} color={colors.textMuted} />
+        </Press>
+      </View>
 
       <View style={styles.bottom}>
         <Press
@@ -222,6 +223,7 @@ function Action({ icon, label, onPress }: { icon: IconName; label: string; onPre
 const styles = StyleSheet.create({
   card: { backgroundColor: colors.card, borderRadius: radius.xl, padding: 16, marginBottom: 12, ...shadow },
   top: { flexDirection: 'row', alignItems: 'flex-start', gap: 12 },
+  topMain: { flex: 1, flexDirection: 'row', alignItems: 'flex-start', gap: 12 },
   badge: { width: 46, height: 46, borderRadius: 23, backgroundColor: colors.bgAlt, alignItems: 'center', justifyContent: 'center' },
   meta: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', columnGap: 10, rowGap: 2 },
   inline: { flexDirection: 'row', alignItems: 'center', gap: 4 },

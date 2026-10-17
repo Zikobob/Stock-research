@@ -37,6 +37,8 @@ export default function Personalize() {
   const setRestyled = useAppStore((s) => s.setRestyled);
 
   const [step, setStep] = useState(0);
+  // True after a row on the summary was tapped: Continue and Back then return straight to the summary.
+  const [fromSummary, setFromSummary] = useState(false);
   const [theme, setTheme] = useState<ThemeKey>(appearance.theme);
   const [corners, setCorners] = useState<CornerStyle>(appearance.corners);
   const [p, setP] = useState<Personal>(() => ({
@@ -63,6 +65,15 @@ export default function Personalize() {
   const shownName = p.nickname.trim() || firstName;
   const last = step === STEPS.length - 1;
 
+  const toSummary = () => {
+    setFromSummary(false);
+    setStep(STEPS.length - 1);
+  };
+  const edit = (to: number) => {
+    setFromSummary(true);
+    setStep(to);
+  };
+
   const next = () => {
     if (step === 2 && p.interests.length === 0) {
       toast('Pick at least one interest so we can tailor Explore', {
@@ -78,9 +89,10 @@ export default function Personalize() {
       });
       return;
     }
+    if (fromSummary) return toSummary();
     setStep((s) => Math.min(STEPS.length - 1, s + 1));
   };
-  const back = () => (step === 0 ? router.back() : setStep((s) => s - 1));
+  const back = () => (step === 0 ? router.back() : fromSummary ? toSummary() : setStep((s) => s - 1));
 
   const apply = () => {
     setApplying(true);
@@ -133,7 +145,7 @@ export default function Personalize() {
             </T>
           </View>
           {!last ? (
-            <Press onPress={() => setStep(STEPS.length - 1)} hitSlop={8} accessibilityLabel="Skip to the end">
+            <Press onPress={toSummary} hitSlop={8} accessibilityLabel="Skip to the end">
               <T variant="small" weight="semibold" color={pal.textSecondary}>
                 Skip
               </T>
@@ -151,7 +163,7 @@ export default function Personalize() {
             {step === 3 ? <StepStyle pal={pal} p={p} set={set} /> : null}
             {step === 4 ? <StepHome pal={pal} p={p} set={set} corners={corners} setCorners={setCorners} /> : null}
             {step === 5 ? <StepYou pal={pal} p={p} set={set} firstName={firstName} lang={lang} setLang={setLang} currency={currency} setCurrency={setCurrency} /> : null}
-            {step === 6 ? <StepDone pal={pal} p={p} theme={theme} corners={corners} lang={lang} currency={currency} shownName={shownName} /> : null}
+            {step === 6 ? <StepDone pal={pal} p={p} theme={theme} corners={corners} lang={lang} currency={currency} shownName={shownName} onEdit={edit} /> : null}
           </FadeIn>
         </ScrollView>
 
@@ -168,11 +180,11 @@ export default function Personalize() {
             onPress={last ? apply : next}
             disabled={applying}
             accessibilityRole="button"
-            accessibilityLabel={last ? 'Apply my style' : step === 0 ? 'Let’s go' : 'Continue'}
+            accessibilityLabel={last ? 'Apply my style' : fromSummary ? 'Back to summary' : step === 0 ? 'Let’s go' : 'Continue'}
             style={[styles.cta, { opacity: applying ? 0.6 : 1 }]}>
             <LinearGradient colors={[pal.primary, pal.heroB]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={[StyleSheet.absoluteFill, { borderRadius: 999 }]} />
             <T variant="title" weight="bold" color="#FFFFFF">
-              {applying ? 'Applying your look…' : last ? 'Apply my style ✨' : step === 0 ? 'Let’s go' : 'Continue'}
+              {applying ? 'Applying your look…' : last ? 'Apply my style ✨' : fromSummary ? 'Back to summary' : step === 0 ? 'Let’s go' : 'Continue'}
             </T>
             {!last ? <Ionicons name="arrow-forward" size={18} color="#FFFFFF" /> : null}
           </Press>

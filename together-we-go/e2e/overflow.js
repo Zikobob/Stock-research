@@ -1,6 +1,5 @@
 // Visits every screen at two phone widths and reports anything that sticks out sideways (the "page scrolls horizontally" bug).
-const { BASE, start } = require('./lib');
-const routes = ['', 'explore', 'itinerary', 'budget', 'chat', 'profile', 'about', 'airport', 'bucket-list', 'crew', 'currency', 'destinations', 'documents', 'emergency', 'flights', 'help', 'how-it-works', 'join', 'map', 'nearby', 'new-trip', 'notifications', 'packing', 'personalize', 'photos', 'phrasebook', 'quiz', 'recap', 'settings', 'trips', 'weather', 'destination/tokyo', 'sign-up', 'sign-in'];
+const { BASE, start, ROUTES: routes } = require('./lib');
 const passes = [{ w: 390, scale: 1 }, { w: 320, scale: 1 }, { w: 360, scale: 1.25 }]; // the last one is the "larger text" setting
 const SKIP = new Set(['panorama']); // the 360° scene is meant to be wider than the screen
 

@@ -36,28 +36,31 @@ export function FavStar({ id, size = 30 }: { id: string; size?: number }) {
 
 export function PlaceCard({ d, style, height = 190 }: { d: Destination; style?: StyleProp<ViewStyle>; height?: number }) {
   return (
-    <Press onPress={() => router.push({ pathname: '/destination/[id]', params: { id: d.id } })} style={[styles.place, { height }, style]} accessibilityLabel={`${d.city}, ${d.country}, rated ${d.rating}`}>
-      <Image source={imageSource(d.image)} style={StyleSheet.absoluteFill} contentFit="cover" transition={200} />
-      <LinearGradient colors={['rgba(0,0,0,0)', 'rgba(0,0,0,0.65)']} locations={[0.45, 1]} style={StyleSheet.absoluteFill} />
+    // The heart sits next to the card button, not inside it: on the web a button inside a button is invalid HTML.
+    <View style={[styles.place, { height }, style]}>
+      <Press onPress={() => router.push({ pathname: '/destination/[id]', params: { id: d.id } })} style={StyleSheet.absoluteFill} accessibilityLabel={`${d.city}, ${d.country}, rated ${d.rating}`}>
+        <Image source={imageSource(d.image)} style={StyleSheet.absoluteFill} contentFit="cover" transition={200} />
+        <LinearGradient colors={['rgba(0,0,0,0)', 'rgba(0,0,0,0.65)']} locations={[0.45, 1]} style={StyleSheet.absoluteFill} />
+        <View style={styles.placeText}>
+          <T variant="title" weight="bold" color={colors.white} numberOfLines={1}>
+            {d.city}
+          </T>
+          <View style={styles.row}>
+            <Ionicons name="location-sharp" size={10} color="rgba(255,255,255,0.85)" />
+            <T variant="micro" color="rgba(255,255,255,0.85)" numberOfLines={1} style={{ flex: 1 }}>
+              {d.country}
+            </T>
+            <Ionicons name="star" size={10} color={colors.star} />
+            <T variant="micro" weight="bold" color={colors.white}>
+              {d.rating.toFixed(1)}
+            </T>
+          </View>
+        </View>
+      </Press>
       <View style={{ position: 'absolute', top: 10, right: 10 }}>
         <FavStar id={d.id} />
       </View>
-      <View style={styles.placeText}>
-        <T variant="title" weight="bold" color={colors.white} numberOfLines={1}>
-          {d.city}
-        </T>
-        <View style={styles.row}>
-          <Ionicons name="location-sharp" size={10} color="rgba(255,255,255,0.85)" />
-          <T variant="micro" color="rgba(255,255,255,0.85)" numberOfLines={1} style={{ flex: 1 }}>
-            {d.country}
-          </T>
-          <Ionicons name="star" size={10} color={colors.star} />
-          <T variant="micro" weight="bold" color={colors.white}>
-            {d.rating.toFixed(1)}
-          </T>
-        </View>
-      </View>
-    </Press>
+    </View>
   );
 }
 

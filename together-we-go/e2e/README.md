@@ -18,6 +18,7 @@ npm run e2e -- twophones overflow      # only some scripts
 | `verify4.js` | The 360° city views: spin, day and night, landmarks, city picker |
 | `motion.js` | The phone's *Reduce Motion* setting: nothing hidden, nothing moving, Settings says why |
 | `overflow.js` | **Every screen** at 390 px, 320 px and with larger text: nothing may stick out sideways |
+| `nesting.js` | **Every screen**: no button may sit inside another button (React's *"`<button>` cannot contain a nested `<button>`"* warning) |
 | `twophones.js` | Two phones and the real sync server: share, join from a QR code, chat, expenses, offline catch-up, restart, photo, receipt and PDF |
 
 Each script prints `PASS`/`FAIL` lines and `errors:` (browser console errors). `run.js` adds them up and exits with a non-zero code if anything failed.

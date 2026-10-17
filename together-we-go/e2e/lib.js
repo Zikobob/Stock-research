@@ -9,7 +9,24 @@ exports.shot = (name) => path.join(__dirname, 'shots', name);
 /** Set E2E_CHROME to a Chrome/Chromium path, or run `npx playwright-core install chromium` once. */
 exports.launch = () => chromium.launch(process.env.E2E_CHROME ? { executablePath: process.env.E2E_CHROME } : {});
 
-exports.start = async () => {
+/** Every screen of the app (route paths). */
+exports.ROUTES = ['', 'explore', 'itinerary', 'budget', 'chat', 'profile', 'about', 'airport', 'bucket-list', 'crew', 'currency', 'destinations', 'documents', 'emergency', 'flights', 'help', 'how-it-works', 'join', 'map', 'nearby', 'new-trip', 'notifications', 'packing', 'personalize', 'photos', 'phrasebook', 'quiz', 'recap', 'settings', 'trips', 'weather', 'destination/tokyo', 'sign-up', 'sign-in'];
+
+/** Buttons and links that sit inside another button or link on the current screen, as `"outer" contains "inner"`. */
+exports.nestedControls = (p) =>
+  p.evaluate(() => {
+    const SEL = 'button, a, [role=button], [role=link]';
+    const name = (el) => (el.getAttribute('aria-label') || el.textContent || el.tagName).trim().slice(0, 40);
+    const out = [];
+    for (const inner of document.querySelectorAll(SEL)) {
+      const outer = inner.parentElement && inner.parentElement.closest(SEL);
+      if (outer) out.push(`"${name(outer)}" contains "${name(inner)}"`);
+    }
+    return [...new Set(out)];
+  });
+
+/** `beforeSignIn(page)` runs on the sign-in screen, before the demo account is used. */
+exports.start = async ({ beforeSignIn } = {}) => {
   const b = await exports.launch();
   const ctx = await b.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true });
   const p = await ctx.newPage();
@@ -20,6 +37,7 @@ exports.start = async () => {
   await p.goto(exports.BASE + '/', { waitUntil: 'networkidle' });
   await p.waitForTimeout(2000);
   if (await p.getByRole('button', { name: 'Skip' }).count()) { await p.getByRole('button', { name: 'Skip' }).click(); await p.waitForTimeout(1000); }
+  if (beforeSignIn) await beforeSignIn(p);
   await p.getByLabel('Use the demo account').click(); await p.waitForTimeout(300);
   await p.getByTestId('sign-in').click(); await p.waitForTimeout(2500);
   if (!process.env.KEEP_TOUR && await p.getByRole('button', { name: 'Skip' }).count()) { await p.getByRole('button', { name: 'Skip' }).first().click(); await p.waitForTimeout(600); }

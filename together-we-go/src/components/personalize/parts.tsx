@@ -79,9 +79,10 @@ export function SmallChip({ pal, on, label, onPress }: { pal: Pal; on: boolean; 
   );
 }
 
-export function Summary({ pal, icon, label, value }: { pal: Pal; icon: IconName; label: string; value: string }) {
+/** One answer on the last page. Tapping the row (icon, words or pencil) opens the step where it can be changed. */
+export function Summary({ pal, icon, label, value, onPress }: { pal: Pal; icon: IconName; label: string; value: string; onPress: () => void }) {
   return (
-    <View style={styles.secRow}>
+    <Press onPress={onPress} scaleTo={0.99} accessibilityLabel={`Change ${label.toLowerCase()}, now ${value}`} style={styles.secRow}>
       <View style={[styles.secIcon, { backgroundColor: pal.primarySofter }]}>
         <Ionicons name={icon} size={16} color={pal.primary} />
       </View>
@@ -91,7 +92,8 @@ export function Summary({ pal, icon, label, value }: { pal: Pal; icon: IconName;
       <T variant="small" weight="semibold" color={pal.text} style={{ flex: 1, textAlign: 'right' }}>
         {value}
       </T>
-    </View>
+      <Ionicons name="create-outline" size={16} color={pal.textMuted} />
+    </Press>
   );
 }
 

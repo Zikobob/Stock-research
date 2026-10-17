@@ -6,7 +6,7 @@ The competition rules ask for a solution that runs on its own. Expo Go is a deve
 |---|---|---|
 | Android phone, no laptop needed | Build an **`.apk`** with EAS (below) | Free Expo account |
 | iPhone, no laptop needed | EAS build for iOS or TestFlight | **Apple Developer Program** (paid, yearly) |
-| iPhone, free | Expo Go with the laptop on the same wifi or a phone hotspot (`npx expo start`, or `--tunnel` if the wifi blocks devices from seeing each other) | Free, but the laptop must stay running |
+| iPhone, laptop running | Expo Go with the laptop on the same wifi or a phone hotspot (`npx expo start`, or `--tunnel` if the wifi blocks devices from seeing each other). SDK 57 is not in Apple's App Store: build your own Expo Go with `npx eas-cli@latest go` (see the README) | Apple Developer Program for that TestFlight build, and the laptop must stay running |
 | Any phone or laptop browser | Web export (below) | Free, fewer features |
 
 ## Android `.apk` with EAS (about 15 minutes, mostly waiting)
@@ -31,7 +31,7 @@ npx eas-cli@latest device:create     # registers a phone (internal distribution)
 npx eas-cli@latest build -p ios --profile preview
 ```
 
-Without that account use Expo Go. Tip for the competition: start Expo on the laptop **before** the set-up window, join a phone hotspot with both devices, and keep the screenshots in `docs/screenshots/` as a backup.
+Without that account, use the web build on the iPhone (below) or an Android phone with Expo Go. Tip for the competition: start Expo on the laptop **before** the set-up window, join a phone hotspot with both devices, and keep the screenshots in `docs/screenshots/` as a backup.
 
 ## Web build
 

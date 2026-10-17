@@ -67,34 +67,38 @@ export default function Survey() {
           {results.map((r, i) => {
             const d = destinationById(r.id)!;
             return (
-              <Press key={r.id} onPress={() => router.push({ pathname: '/destination/[id]', params: { id: d.id } })} style={[styles.result, i === 0 && { height: 300 }]} scaleTo={0.985}>
-                <Image source={imageSource(d.image)} style={StyleSheet.absoluteFill} contentFit="cover" transition={250} />
-                <LinearGradient colors={['rgba(0,0,0,0)', 'rgba(0,0,0,0.72)']} locations={[0.35, 1]} style={StyleSheet.absoluteFill} />
-                <View style={styles.match}>
-                  <T variant="micro" weight="bold" color={colors.primary}>
-                    {r.match}% match
-                  </T>
-                </View>
-                <View style={styles.resultText}>
-                  {i === 0 ? (
-                    <T variant="kicker" color="rgba(255,255,255,0.85)">
-                      Top pick for you
+              // The Add button sits next to the card button, not inside it: on the web a button inside a button is invalid HTML.
+              <View key={r.id} style={[styles.result, i === 0 && { height: 300 }]}>
+                <Press onPress={() => router.push({ pathname: '/destination/[id]', params: { id: d.id } })} style={StyleSheet.absoluteFill} scaleTo={0.985} accessibilityLabel={`${d.city}, ${r.match}% match`}>
+                  <Image source={imageSource(d.image)} style={StyleSheet.absoluteFill} contentFit="cover" transition={250} />
+                  <LinearGradient colors={['rgba(0,0,0,0)', 'rgba(0,0,0,0.72)']} locations={[0.35, 1]} style={StyleSheet.absoluteFill} />
+                  <View style={styles.match}>
+                    <T variant="micro" weight="bold" color={colors.primary}>
+                      {r.match}% match
                     </T>
-                  ) : null}
-                  <T variant={i === 0 ? 'display' : 'h2'} color={colors.white}>
-                    {d.city}
-                  </T>
-                  <T variant="small" color="rgba(255,255,255,0.9)" numberOfLines={2}>
-                    {d.blurb}
-                  </T>
-                  <View style={{ flexDirection: 'row', gap: 6, marginTop: 6, alignItems: 'center' }}>
-                    <Pill label={`~${money(d.dailyCost)}/day`} tone="yellow" />
-                    <Pill label={`★ ${d.rating}`} />
-                    <View style={{ flex: 1 }} />
-                    <Button label="Add" size="sm" full={false} variant="light" icon="add" onPress={() => setAdding(d.id)} />
                   </View>
+                  <View style={styles.resultText}>
+                    {i === 0 ? (
+                      <T variant="kicker" color="rgba(255,255,255,0.85)">
+                        Top pick for you
+                      </T>
+                    ) : null}
+                    <T variant={i === 0 ? 'display' : 'h2'} color={colors.white}>
+                      {d.city}
+                    </T>
+                    <T variant="small" color="rgba(255,255,255,0.9)" numberOfLines={2}>
+                      {d.blurb}
+                    </T>
+                    <View style={styles.resultPills}>
+                      <Pill label={`~${money(d.dailyCost)}/day`} tone="yellow" />
+                      <Pill label={`★ ${d.rating}`} />
+                    </View>
+                  </View>
+                </Press>
+                <View style={styles.resultAdd}>
+                  <Button label="Add" size="sm" full={false} variant="light" icon="add" onPress={() => setAdding(d.id)} />
                 </View>
-              </Press>
+              </View>
             );
           })}
         </View>
@@ -141,4 +145,6 @@ const styles = StyleSheet.create({
   result: { height: 220, borderRadius: radius.xl, overflow: 'hidden' },
   match: { position: 'absolute', top: 12, right: 12, backgroundColor: colors.white, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 999 },
   resultText: { position: 'absolute', left: 16, right: 16, bottom: 14 },
+  resultPills: { flexDirection: 'row', gap: 6, marginTop: 6, alignItems: 'center', minHeight: 36 },
+  resultAdd: { position: 'absolute', right: 16, bottom: 14 },
 });

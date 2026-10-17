@@ -163,8 +163,9 @@ export default function SignIn() {
         </Link>
       </View>
 
-      <Press onPress={fillDemo} style={styles.demo} scaleTo={0.99} accessibilityLabel="Use the demo account">
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 10 }}>
+      {/* Tapping the card fills the form. The copy buttons sit beside the text, not inside a button: on the web a button inside a button is invalid HTML. */}
+      <View style={styles.demo}>
+        <Press onPress={fillDemo} scaleTo={0.99} accessibilityLabel="Use the demo account" style={styles.demoHead}>
           <Ionicons name="information-circle-outline" size={16} color={colors.primary} />
           <T variant="small" weight="semibold" color={colors.primary}>
             {t('auth.demo')}
@@ -172,24 +173,26 @@ export default function SignIn() {
           <T variant="caption" color={colors.textMuted} style={{ marginLeft: 'auto' }}>
             Tap to fill
           </T>
-        </View>
+        </Press>
         {[
           ['Email', DEMO_EMAIL],
           ['Password', DEMO_PASSWORD],
         ].map(([k, v]) => (
           <View key={k} style={styles.demoRow}>
-            <T variant="caption" color={colors.textSecondary} style={{ width: 62 }}>
-              {k}
-            </T>
-            <T variant="caption" style={{ flex: 1 }} selectable>
-              {v}
-            </T>
+            <Press onPress={fillDemo} scaleTo={0.99} accessible={false} accessibilityRole="none" style={styles.demoFill}>
+              <T variant="caption" color={colors.textSecondary} style={{ width: 62 }}>
+                {k}
+              </T>
+              <T variant="caption" style={{ flex: 1 }} selectable>
+                {v}
+              </T>
+            </Press>
             <Press onPress={() => copy(v, `${k} copied`)} accessibilityLabel={`Copy demo ${k.toLowerCase()}`} style={styles.copyBtn} hitSlop={6}>
               <Ionicons name="copy-outline" size={13} color={colors.primary} />
             </Press>
           </View>
         ))}
-      </Press>
+      </View>
 
       <T variant="caption" color={colors.textMuted} center style={{ marginTop: 18 }}>
         By continuing, you agree to our{' '}
@@ -236,6 +239,8 @@ const styles = StyleSheet.create({
   },
   signupRow: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginTop: 20 },
   demo: { marginTop: 22, padding: 14, borderRadius: radius.md, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border },
+  demoHead: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 10 },
   demoRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 4 },
+  demoFill: { flex: 1, flexDirection: 'row', alignItems: 'center' },
   copyBtn: { width: 26, height: 26, borderRadius: 8, backgroundColor: colors.primarySofter, alignItems: 'center', justifyContent: 'center' },
 });

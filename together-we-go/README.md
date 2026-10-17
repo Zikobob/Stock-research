@@ -25,7 +25,11 @@ TogetherWeGo helps a group of friends or family plan, budget and enjoy a shared 
 
 ## 1. Run it on your phone (5 minutes)
 
-**You need:** a laptop with [Node.js 20+](https://nodejs.org), and the free **Expo Go** app on your phone ([iOS](https://apps.apple.com/app/expo-go/id982107779) · [Android](https://play.google.com/store/apps/details?id=host.exp.exponent)). Make sure Expo Go is up to date — this project uses **Expo SDK 57**.
+**You need:** a laptop with [Node.js 20+](https://nodejs.org) and **Expo Go** on your phone. This project uses **Expo SDK 57**, so it must be the SDK 57 build of Expo Go:
+
+* **Android:** install it from [expo.dev/go](https://expo.dev/go) (pick SDK 57; the Play Store copy can lag behind a new SDK).
+* **iPhone:** Apple's App Store copy of Expo Go stops at SDK 54, so build your own with `npx eas-cli@latest go` and install it through TestFlight. That needs the paid Apple Developer Program, and each teammate's Apple ID must be added as an *internal tester* (App Store Connect → Expo Go → TestFlight). Expo's walkthrough: [Set up your environment → iOS device with Expo Go](https://docs.expo.dev/get-started/set-up-your-environment/).
+* **No Apple account?** Use an Android phone, or the web build on the iPhone ([docs/BUILDING.md](docs/BUILDING.md)).
 
 ```bash
 cd together-we-go
@@ -36,6 +40,18 @@ npx expo start --tunnel
 ```
 
 Scan the QR code (iPhone: Camera app · Android: Expo Go → *Scan QR code*).
+
+**On an iPhone, sign in first.** Expo Go only opens a project from your laptop when the laptop and the phone use the *same* Expo account: run `npx expo login` on the laptop (check with `npx expo whoami`), then tap the account icon (top right) in Expo Go and sign in with that account. Android phones do not need this.
+
+### A teammate cannot open the app?
+One running `npx expo start` can serve several phones. Match what the teammate's phone says:
+
+| The phone shows | Fix |
+|---|---|
+| *You need to be signed in to Expo Go and Expo CLI…* or *You're signed in to Expo CLI as … and to Expo Go as …* (iPhone only) | Use the same Expo account in both places: `npx expo whoami` on the laptop, account icon in Expo Go, then tap *Try again* (restart `npx expo start` if you changed the laptop's account). A teammate who wants their own account runs the app from their own laptop instead: `git clone`, `npm install`, `npx expo login`, `npx expo start`. |
+| *Project is incompatible with this version of Expo Go* or *requires a newer version of Expo Go* | Wrong Expo Go version: install the SDK 57 build (see above). |
+| It keeps spinning, or *Could not connect to the server* / *Network request failed* | Same wifi as the laptop (a phone hotspot is safest). Windows: allow Node.js on **private** networks in the firewall prompt. Turn VPNs off. iPhone: *Settings → Expo Go → Local Network* on. Not on the same wifi at all? Start with `npx expo start --tunnel`. |
+| Scanning does nothing | iPhone: scan with the Camera app. In Expo Go choose *Enter URL manually* and type the `exp://…` address printed under the QR code. |
 
 **Demo login** (also shown on the sign-in screen — tap the box to fill it in):
 
@@ -105,7 +121,7 @@ Other scripts: `npm test` (unit tests), `npm run e2e` (browser tests, see [`e2e/
 - **Who’s bringing what** — the packing list assigns every item to a person, with a “Split the rest fairly” button.
 - **Receipt photos** on expenses, and a shareable **story card** for the trip recap.
 - **First-run tour** and a **How it works** page (architecture, security, validation and a rubric map) inside the app.
-- **Make it yours** — a 7-step animated personalization survey: 6 colour themes (Forest, Ocean, Sunset, Lavender, Sakura, **Midnight dark mode**), card shape (Rounded / Bubbly / Crisp), travel interests with photos, pace & budget style, which Explore sections to show, nickname + emoji avatar, language and home currency — with a live preview and a confetti finish. New accounts get it right after sign-up; it's always in *Settings*, the 🎨 button on Explore and the menu.
+- **Make it yours** — a 7-step animated personalization survey: 6 colour themes (Forest, Ocean, Sunset, Lavender, Sakura, **Midnight dark mode**), card shape (Rounded / Bubbly / Crisp), travel interests with photos, pace & budget style, which Explore sections to show, nickname + emoji avatar, language and home currency — with a live preview and a confetti finish; on the last page, tapping any answer jumps back to change it. New accounts get it right after sign-up; it's always in *Settings*, the 🎨 button on Explore and the menu.
 - **“Picked for you”** — Home ranks destinations against your interests and budget style and shows a match %.
 - **Motion everywhere** — animated home hero (a plane flies a dotted route past drifting clouds and a pulsing sun), staggered card entrances, a tab highlight that glides between tabs, Ken Burns zoom on onboarding photos, floating logo, pulsing live-reminder bell. One *Animations* switch turns it all off for people who prefer less motion.
 - **Trip recap** — stats (days, km between stops, votes, photos), highlights, final balances, rating, shareable summary.
@@ -152,7 +168,7 @@ docs/             Planning, rating-sheet map, demo script, sync, building, judge
 
 ### Testing
 - `npm test` runs **unit tests** for the money maths (exact settle-up), validation, time zones, password hashing (against the official RFC test vector), the store, the assistant (including the Claude request), invites and QR codes, and the whole sync stack (merge convergence on random runs, the real server over real HTTP).
-- `npm run e2e` runs **browser tests** against the web build: every main flow, a sideways-overflow audit of every screen at three sizes, Reduce Motion, and two phones syncing through the real server. See [`docs/PLANNING.md`](docs/PLANNING.md) §9 for what each covers.
+- `npm run e2e` runs **browser tests** against the web build: every main flow, a sideways-overflow audit of every screen at three sizes, a check that no button sits inside another button, Reduce Motion, and two phones syncing through the real server. See [`docs/PLANNING.md`](docs/PLANNING.md) §9 for what each covers.
 - Not covered: the parts that need a physical phone (native file upload and download, the camera QR scanner, "share as picture", notifications). They are built into the iPhone bundle but were not run on a device here.
 
 ### Data handling & security
