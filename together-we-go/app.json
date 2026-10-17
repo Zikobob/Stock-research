@@ -11,7 +11,13 @@
     "backgroundColor": "#F1F2F4",
     "ios": {
       "bundleIdentifier": "com.togetherwego.app",
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSAppTransportSecurity": {
+          "NSAllowsLocalNetworking": true
+        },
+        "NSLocalNetworkUsageDescription": "TogetherWeGo connects to your group's sync server on your wifi so friends see the same trip."
+      }
     },
     "android": {
       "package": "com.togetherwego.app",
@@ -50,7 +56,7 @@
         "expo-image-picker",
         {
           "photosPermission": "TogetherWeGo lets you add trip photos and flight tickets from your library.",
-          "cameraPermission": "TogetherWeGo lets you snap photos for the group photo dump."
+          "cameraPermission": "TogetherWeGo uses the camera to take photos for the group photo dump and to scan the invite QR code from a friend."
         }
       ],
       [
@@ -62,7 +68,7 @@
       [
         "expo-camera",
         {
-          "cameraPermission": "TogetherWeGo uses the camera to scan invite QR codes from your friends.",
+          "cameraPermission": "TogetherWeGo uses the camera to take photos for the group photo dump and to scan the invite QR code from a friend.",
           "recordAudioAndroid": false
         }
       ],
@@ -70,7 +76,15 @@
       "expo-localization",
       "expo-secure-store",
       "expo-asset",
-      "expo-font"
+      "expo-font",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "usesCleartextTraffic": true
+          }
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

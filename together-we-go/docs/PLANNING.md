@@ -65,9 +65,13 @@ flowchart LR
   subgraph Svc[Services — src/services]
     W[weather] & C[currency] & N[notifications] & AI[assistant] & F[files] & PR[print] & SH[share] & L[location] & SE[secrets]
   end
+  subgraph Sync[Sync — src/sync + server]
+    E[Sync engine<br/>diff · merge · outbox] --> SV[(Sync server<br/>Node, runs on your computer)]
+  end
   S --> H --> Z
   S -- actions --> Z
   S --> Svc
+  Z <--> E
   W --> OM[(Open-Meteo)]
   C --> ER[(ExchangeRate API)]
   AI -. optional .-> CL[(Claude API)]
@@ -97,11 +101,14 @@ Key decisions:
 - **Dates vs. instants.** Itinerary times are wall-clock times in the destination’s zone (`2026-10-06` + `14:30`), because that is how people plan. Flights are stored as UTC instants so they convert correctly to any time zone.
 - **Money in one base currency.** Expenses are stored in USD (with the original amount kept) so totals and splits are always comparable; views convert to home or local currency.
 - **Majority voting.** A “voting” activity becomes “confirmed” when more than half of members vote yes.
+- **Exact money.** Splits and balances are calculated in whole cents, and the fewest-payments settle-up is solved exactly for groups up to 12 people, so the books always balance to the cent.
+- **Passwords.** Salted PBKDF2-HMAC-SHA256, the round count stored with each hash so it can be raised later; older hashes are upgraded the next time someone signs in.
+- **Sync.** Every field of a shared trip is a small register stamped by a hybrid logical clock; the newest stamp wins, so phones that have exchanged their changes hold identical trips whatever the order. Private data (Scout AI chat, other people's emails, flight tickets) is never sent. Details in `docs/SYNC.md`.
 
 ## 7. Feature priorities (MoSCoW)
 | Must | Should | Could | Won’t (this version) |
 |---|---|---|---|
-| Trips + invite codes, roles, itinerary, voting, budget & splits, chat, flights & time zones, reminders, offline storage, validation | AI assistant, currency converter, weather, documents vault, map, nearby radius & filters, printable planner, social sharing | Quiz, survey recommendations, phrasebook TTS, recap, packing suggestions, emergency screen, 6 languages, personalization (themes, interests, home layout), animations | Cloud sync server, real Google OAuth, payments |
+| Trips + invite codes, roles, itinerary, voting, budget & splits, chat, flights & time zones, reminders, offline storage, validation | AI assistant, currency converter, weather, documents vault, map, nearby radius & filters, printable planner, social sharing | Quiz, survey recommendations, phrasebook TTS, recap, packing suggestions, emergency screen, 6 languages, personalization (themes, interests, home layout), animations, **live sync across phones** through a self-hosted server, invite QR codes | A hosted cloud service, accounts on a server, real Google OAuth, payments |
 
 ## 8. Accessibility & UX rationale
 - Reference-matched visual language: cream canvas, forest-green primary, soft-green highlights, pill navigation — calm and readable outdoors.
@@ -111,7 +118,23 @@ Key decisions:
 - Errors appear inline under the field in red with a plain-language fix (“Codes look like ABC-1234”).
 - Destructive actions always confirm; toasts confirm every successful action.
 
-## 9. Test log (manual + automated browser run)
+## 9. Test log
+
+### 9a. Automated (`npm test`, runs in about 5 seconds)
+| Area | What the tests prove |
+|---|---|
+| Money (`src/utils/__tests__/money.test.ts`) | Cents never drift (even 0.1 + 0.2), splits add up to the total with the odd cents handed out fairly, settle-up leaves every balance at zero, never needs more than (people − 1) payments on random groups, and finds fewer payments than the simple largest-first method when a group splits into pairs |
+| Validation, time zones, passwords | Email/name/amount/date/invite/flight/IATA rules, daylight-saving edges, PBKDF2 against the RFC 7914 test vector, old hashes upgrade |
+| Store (`src/store/__tests__`) | Sign-up/sign-in/reset, trips, joining, itinerary and voting, budget, polls, packing, photos, docs, attaching files, clearing sample data |
+| Assistant | Local answers (budget, who owes who, currency, emergency numbers, places) and the Claude request: what is sent, the last 12 messages only, wrong key, refusal, empty answer, the 45-second limit |
+| Sync (`src/sync/__tests__`, `server/__tests__`) | Merge convergence on 150 random three-phone runs, sharing and joining, offline queue, restart, private data, files, the real server over real HTTP, time limits, address parsing |
+| Invites and QR | Link round trip for every address form, QR codes that a decoder reads back |
+| Home ranking, pretend friends, Reduce Motion | The "Picked for you" ranking, canned replies, the motion rule |
+
+### 9b. Automated browser tests (`npm run e2e`, see `e2e/README.md`)
+Seven scripts drive the web build in a phone-sized window: every main flow, the personalisation survey, the 360° views, Reduce Motion, a **sideways-overflow audit of every screen at 390 px, 320 px and with larger text**, and a **two-phone sync run** against the real server (share, join, chat, expenses, offline catch-up, restart, a photo, a receipt and a PDF).
+
+### 9c. Manual + earlier browser runs
 | Area | Checks |
 |---|---|
 | Auth | Empty-field errors, wrong password, sign-up validation & strength meter, reset-code flow, old password rejected after reset |
@@ -123,4 +146,5 @@ Key decisions:
 | Collaboration | Join with empty/unknown/valid code, add-member validation (name, email), polls (vote, close), checklist add + empty-task error |
 | Flights | Missing-field errors, unknown IATA rejected, flight saved, time-zone toggle |
 | Personalization | Survey requires ≥1 interest, nickname length check, theme/corner choice survives restart, sign-in kept across the theme reload, Explore sections hide/show, “Picked for you” ranking |
-| Platform | `tsc --noEmit` (strict) ✔, `expo lint` 0 problems ✔, `expo-doctor` 21/21 ✔, iOS + Android bundles compile ✔ |
+| Platform | `tsc --noEmit` (strict) ✔, ESLint 0 problems ✔, iOS and Android bundles compile ✔, `expo prebuild` produces the native projects with the local-network and camera settings ✔ |
+| Not run on a physical phone | On-device file upload/download, the camera QR scanner and "share as picture" (they are native-only; everything around them is covered above) |

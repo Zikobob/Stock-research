@@ -251,7 +251,7 @@ export async function askClaude(apiKey: string, question: string, history: ChatM
     if (!res.ok) throw new Error(`Claude ${res.status}`);
     const data = (await res.json()) as { stop_reason?: string; content?: { type: string; text?: string }[] };
     if (data.stop_reason === 'refusal') throw new Error('refused');
-    const text = (data.content ?? []).map((b) => (b.type === 'text' ? b.text ?? '' : '')).join('\n').trim();
+    const text = (data.content ?? []).flatMap((b) => (b.type === 'text' && b.text ? [b.text] : [])).join('\n').trim();
     if (!text) throw new Error('empty');
     return text;
   } finally {

@@ -1,98 +1,39 @@
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import { useEffect, useState } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { useState } from 'react';
+import { StyleSheet, View } from 'react-native';
 
 import { CurrencyPickerSheet } from '@/components/CurrencyPickerSheet';
+import { AccessibilityCard } from '@/components/settings/AccessibilityCard';
+import { AssistantCard } from '@/components/settings/AssistantCard';
+import { DataCard } from '@/components/settings/DataCard';
+import { DemoCard } from '@/components/settings/DemoCard';
+import { NotificationsCard } from '@/components/settings/NotificationsCard';
+import { ProfileCard } from '@/components/settings/ProfileCard';
 import { SyncSettingsCard } from '@/components/sync/SyncSettingsCard';
 import { Button } from '@/components/ui/Button';
-import { Avatar, Card, Chip, ListRow, ToggleRow } from '@/components/ui/bits';
-import { confirmAction, toast } from '@/components/ui/feedback';
-import { Input } from '@/components/ui/Input';
-import { Press, tap } from '@/components/ui/Press';
+import { Card, Chip, ListRow, ToggleRow } from '@/components/ui/bits';
+import { confirmAction } from '@/components/ui/feedback';
+import { Press } from '@/components/ui/Press';
 import { Header, Screen } from '@/components/ui/Screen';
 import { T } from '@/components/ui/T';
 import { currencyByCode } from '@/data/reference';
 import { LANGUAGES, useT } from '@/i18n';
-import { CLAUDE_MODEL } from '@/services/assistant';
-import { ensurePermission, sendTestReminder } from '@/services/notifications';
-import { getApiKey, looksLikeApiKey, setApiKey } from '@/services/secrets';
-import { pickImage } from '@/services/files';
-import { shareText } from '@/services/share';
 import { useOsReduceMotion } from '@/hooks/useReduceMotion';
-import { resetSync } from '@/sync/actions';
-import { useActiveTrip, useAppStore, useCurrentUser } from '@/store/useAppStore';
-import type { TextScale } from '@/store/types';
+import { useAppStore } from '@/store/useAppStore';
 import { appearance, colors, cornerStyles, radius, themes } from '@/theme';
-import { maxLen, validateName } from '@/utils/validation';
 
-const AVATARS = ['avatar-maya', 'avatar-diego', 'avatar-priya', 'avatar-sam', 'avatar-ana', 'avatar-noah'];
-
+/** Settings: how the app looks and behaves, your profile, sync, reminders, accessibility and your data. Each card is its own component. */
 export default function Settings() {
   const t = useT();
-  const user = useCurrentUser();
-  const trip = useActiveTrip();
   const settings = useAppStore((s) => s.settings);
   const update = useAppStore((s) => s.updateSettings);
-  const updateProfile = useAppStore((s) => s.updateProfile);
-  const reseed = useAppStore((s) => s.reseedDemo);
-  const timeline = useAppStore((s) => s.demoTimeline);
   const signOut = useAppStore((s) => s.signOut);
-  const resetEverything = useAppStore((s) => s.resetEverything);
-  const clearDemoData = useAppStore((s) => s.clearDemoData);
-  const ensureSeed = useAppStore((s) => s.ensureSeed);
   const personal = useAppStore((s) => s.personal);
   const osReduceMotion = useOsReduceMotion((s) => s.on);
   const updatePersonal = useAppStore((s) => s.updatePersonal);
-
-  const [name, setName] = useState(user?.name ?? '');
-  const [city, setCity] = useState(user?.homeCity ?? '');
-  const [errors, setErrors] = useState<Record<string, string | null>>({});
   const [curOpen, setCurOpen] = useState(false);
-  const [key, setKey] = useState('');
-  const [hasKey, setHasKey] = useState(false);
-  const [keyErr, setKeyErr] = useState<string | null>(null);
-
-  useEffect(() => {
-    getApiKey().then((k) => setHasKey(!!k));
-  }, []);
-
-  const saveProfile = () => {
-    const e = { name: validateName(name), city: maxLen(40, 'City')(city) };
-    setErrors(e);
-    if (e.name || e.city) return tap('warning');
-    updateProfile({ name: name.trim(), homeCity: city.trim() || undefined });
-    toast('Profile saved');
-  };
-
-  const pickAvatarPhoto = async () => {
-    try {
-      const f = await pickImage();
-      if (f) {
-        updateProfile({ avatar: f.uri });
-        toast('Profile photo updated');
-      }
-    } catch {
-      toast('Couldn’t open your photos', { tone: 'warn' });
-    }
-  };
-
-  const saveKey = async () => {
-    if (!looksLikeApiKey(key)) return setKeyErr('Anthropic keys start with “sk-ant-”. Check you copied the whole key.');
-    await setApiKey(key.trim());
-    setKey('');
-    setKeyErr(null);
-    setHasKey(true);
-    update({ aiMode: 'claude' });
-    toast('Key saved securely — Claude mode on');
-  };
-
-  const scales: { v: TextScale; l: string }[] = [
-    { v: 1, l: 'Default' },
-    { v: 1.12, l: 'Large' },
-    { v: 1.25, l: 'Extra large' },
-  ];
 
   return (
     <Screen header={<Header title={t('settings.title')} subtitle="Make TogetherWeGo yours" />}>
@@ -118,32 +59,7 @@ export default function Settings() {
 
       <SyncSettingsCard />
 
-      {/* Profile */}
-      <Card style={{ gap: 12 }}>
-        <T variant="title">Profile</T>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-          <Avatar name={user?.name ?? 'You'} src={user?.avatar} size={60} />
-          <View style={{ flex: 1, gap: 6 }}>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6 }}>
-              {AVATARS.map((a) => (
-                <Press key={a} onPress={() => updateProfile({ avatar: a })} accessibilityLabel="Choose this avatar" style={[styles.avatarOpt, user?.avatar === a && { borderColor: colors.primary }]}>
-                  <Avatar name="Avatar" src={a} size={36} />
-                </Press>
-              ))}
-            </ScrollView>
-            <View style={{ flexDirection: 'row', gap: 8 }}>
-              <Chip small icon="image-outline" label="Upload photo" onPress={pickAvatarPhoto} />
-              <Chip small icon="text-outline" label="Initials" onPress={() => updateProfile({ avatar: undefined })} />
-            </View>
-          </View>
-        </View>
-        <Input label="Name" value={name} onChangeText={setName} error={errors.name} icon="person-outline" />
-        <Input label="Home city" value={city} onChangeText={setCity} error={errors.city} icon="home-outline" placeholder="e.g. Middletown, DE" />
-        <T variant="caption" color={colors.textSecondary}>
-          Signed in as {user?.email} · {user?.provider === 'google' ? 'Google' : 'email & password'}
-        </T>
-        <Button label="Save profile" size="md" onPress={saveProfile} />
-      </Card>
+      <ProfileCard />
 
       {/* Language */}
       <Card style={{ gap: 10, marginTop: 14 }}>
@@ -161,170 +77,11 @@ export default function Settings() {
         <ToggleRow icon="globe-outline" label="Show itinerary times in trip time" sub="Off = convert to your phone’s time zone" value={settings.showTripTime} onChange={(v) => update({ showTripTime: v })} />
       </Card>
 
-      {/* Notifications */}
-      <Card style={{ marginTop: 14, gap: 6 }}>
-        <ToggleRow
-          icon="notifications-outline"
-          label={t('settings.notifications')}
-          sub="Live alerts before activities with the 🔔 on"
-          value={settings.notificationsEnabled}
-          onChange={async (v) => {
-            update({ notificationsEnabled: v });
-            if (v) {
-              const ok = await ensurePermission();
-              toast(ok ? 'Reminders on' : 'Allow notifications in your phone settings', { tone: ok ? 'ok' : 'warn' });
-            }
-          }}
-        />
-        <T variant="small" weight="semibold">
-          {t('settings.lead')}
-        </T>
-        <View style={styles.wrap}>
-          {[10, 30, 60, 120].map((m) => (
-            <Chip key={m} small label={m < 60 ? `${m} min` : `${m / 60} hr`} active={settings.reminderLeadMin === m} onPress={() => update({ reminderLeadMin: m })} />
-          ))}
-        </View>
-        <Button label="Send a test reminder" variant="soft" size="md" icon="alarm-outline" onPress={() => { sendTestReminder(5); toast('Arriving in 5 seconds…', { icon: 'alarm-outline' }); }} style={{ marginTop: 6 }} />
-      </Card>
-
-      {/* Accessibility */}
-      <Card style={{ marginTop: 14, gap: 8 }}>
-        <T variant="title">Accessibility</T>
-        <T variant="small" weight="semibold">
-          {t('settings.textSize')}
-        </T>
-        <View style={styles.wrap}>
-          {scales.map((s) => (
-            <Chip key={s.v} label={s.l} active={settings.textScale === s.v} onPress={() => update({ textScale: s.v })} />
-          ))}
-        </View>
-        <ToggleRow icon="phone-portrait-outline" label="Haptic feedback" value={settings.haptics} onChange={(v) => update({ haptics: v })} />
-        <T variant="caption" color={colors.textSecondary}>
-          Every button has a screen-reader label, colours meet WCAG AA contrast, and the app follows your phone’s font size too.
-        </T>
-      </Card>
-
-      {/* AI */}
-      <Card style={{ marginTop: 14, gap: 10 }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-          <Ionicons name="sparkles" size={18} color={colors.primary} />
-          <T variant="title">Trip Assistant</T>
-        </View>
-        <View style={styles.wrap}>
-          <Chip icon="cloud-offline-outline" label="Offline (built-in)" active={settings.aiMode === 'offline'} onPress={() => update({ aiMode: 'offline' })} />
-          <Chip
-            icon="sparkles-outline"
-            label="Claude AI"
-            active={settings.aiMode === 'claude'}
-            onPress={() => {
-              if (!hasKey) return toast('Add your Anthropic API key first', { tone: 'warn' });
-              update({ aiMode: 'claude' });
-            }}
-          />
-        </View>
-        <T variant="caption" color={colors.textSecondary}>
-          Offline mode answers from your trip data with no internet. Claude mode sends questions plus trip details to Anthropic’s {CLAUDE_MODEL} model using your own key, which is stored in the phone’s secure keychain.
-        </T>
-        {hasKey ? (
-          <View style={styles.keyRow}>
-            <Ionicons name="key" size={16} color={colors.primary} />
-            <T variant="small" style={{ flex: 1 }}>
-              API key saved securely
-            </T>
-            <Press
-              onPress={async () => {
-                await setApiKey(null);
-                setHasKey(false);
-                update({ aiMode: 'offline' });
-                toast('Key removed');
-              }}
-              hitSlop={8}>
-              <T variant="small" weight="semibold" color={colors.red}>
-                Remove
-              </T>
-            </Press>
-          </View>
-        ) : (
-          <>
-            <Input placeholder="sk-ant-…" value={key} onChangeText={(v) => { setKey(v); setKeyErr(null); }} secureToggle autoCapitalize="none" autoCorrect={false} error={keyErr} icon="key-outline" />
-            <Button label="Save key" size="md" variant="secondary" onPress={saveKey} disabled={!key} />
-          </>
-        )}
-      </Card>
-
-      {/* Demo */}
-      <Card style={{ marginTop: 14, gap: 10 }}>
-        <T variant="title">Demo timeline</T>
-        <T variant="caption" color={colors.textSecondary}>
-          Re-create the sample Amalfi Squad trip as upcoming, in progress or finished to show every stage from planning through completion.
-        </T>
-        <View style={styles.wrap}>
-          {(
-            [
-              ['upcoming', 'Starts in 3 days'],
-              ['active', 'Day 2 in progress'],
-              ['completed', 'Just finished'],
-            ] as const
-          ).map(([k, l]) => (
-            <Chip
-              key={k}
-              small
-              label={l}
-              active={timeline === k}
-              onPress={() =>
-                confirmAction('Reset the demo trip?', `“Amalfi Squad” will be rebuilt as “${l}”. Your other trips are untouched.`, () => {
-                  reseed(k);
-                  toast('Demo trip updated');
-                })
-              }
-            />
-          ))}
-        </View>
-      </Card>
-
-      <Card style={{ marginTop: 14 }}>
-        <ListRow icon="help-circle-outline" label="How to use TogetherWeGo" onPress={() => router.push('/help')} />
-        <ListRow icon="information-circle-outline" label="About, credits & sources" onPress={() => router.push('/about')} />
-        {trip ? (
-          <ListRow
-            icon="download-outline"
-            label="Export this trip"
-            sub="Share a JSON backup of the itinerary, budget and checklist"
-            onPress={() => {
-              const { messages, photos, docs, ...rest } = trip;
-              void messages;
-              void photos;
-              void docs;
-              shareText(JSON.stringify(rest, null, 1), `${trip.name} backup`);
-            }}
-          />
-        ) : null}
-        <ListRow
-          icon="leaf-outline"
-          label="Clear the sample trips"
-          sub="Start with a blank app. Your own trips and accounts stay"
-          onPress={() =>
-            confirmAction('Clear the sample trips?', 'Amalfi Squad and the other example trips are removed from this phone. Trips you made yourself are not touched.', () => {
-              clearDemoData();
-              toast('Sample trips cleared');
-            }, { destructive: true, confirmLabel: 'Clear' })
-          }
-        />
-        <ListRow
-          icon="refresh-circle-outline"
-          tint={colors.red}
-          label="Reset app data"
-          sub="Deletes all trips and accounts on this device"
-          onPress={() =>
-            confirmAction('Reset everything?', 'All trips, chats and accounts on this device will be erased and the demo data restored.', async () => {
-              await resetSync(); // also forget which trips were shared with friends
-              resetEverything();
-              await ensureSeed();
-              router.replace('/sign-in');
-            }, { destructive: true, confirmLabel: 'Reset' })
-          }
-        />
-      </Card>
+      <NotificationsCard />
+      <AccessibilityCard />
+      <AssistantCard />
+      <DemoCard />
+      <DataCard />
 
       <Button
         label={t('settings.signOut')}
@@ -351,6 +108,4 @@ const styles = StyleSheet.create({
   yours: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14, borderRadius: radius.lg, overflow: 'hidden', marginBottom: 14 },
   yoursEmoji: { width: 50, height: 50, borderRadius: 25, backgroundColor: 'rgba(255,255,255,0.25)', alignItems: 'center', justifyContent: 'center' },
   wrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  avatarOpt: { borderRadius: 22, borderWidth: 2, borderColor: 'transparent', padding: 1 },
-  keyRow: { flexDirection: 'row', alignItems: 'center', gap: 8, padding: 12, borderRadius: radius.md, backgroundColor: colors.primarySofter },
 });

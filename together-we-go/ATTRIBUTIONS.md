@@ -8,7 +8,7 @@ The project was scaffolded with `npx create-expo-app` (default template, MIT lic
 ## Libraries (all open source)
 | Package | Version | Licence |
 |---|---|---|
-| `expo` (SDK 57) and Expo modules: `expo-router`, `expo-notifications`, `expo-location`, `expo-image`, `expo-image-picker`, `expo-document-picker`, `expo-file-system`, `expo-print`, `expo-sharing`, `expo-speech`, `expo-crypto`, `expo-secure-store`, `expo-clipboard`, `expo-haptics`, `expo-linear-gradient`, `expo-linking`, `expo-localization`, `expo-asset`, `expo-font`, `expo-splash-screen`, `expo-status-bar`, `expo-system-ui`, `expo-constants` | 57.x | MIT |
+| `expo` (SDK 57) and Expo modules: `expo-router`, `expo-notifications`, `expo-location`, `expo-image`, `expo-image-picker`, `expo-document-picker`, `expo-file-system`, `expo-print`, `expo-sharing`, `expo-speech`, `expo-crypto`, `expo-secure-store`, `expo-camera` (scanning invite QR codes), `expo-build-properties`, `expo-clipboard`, `expo-haptics`, `expo-linear-gradient`, `expo-linking`, `expo-localization`, `expo-asset`, `expo-font`, `expo-splash-screen`, `expo-status-bar`, `expo-system-ui`, `expo-constants` | 57.x | MIT |
 | `react`, `react-dom` | 19.2.3 | MIT |
 | `react-native` | 0.86.3 | MIT |
 | `react-native-web` | 0.21.3 | MIT |
@@ -19,7 +19,13 @@ The project was scaffolded with `npx create-expo-app` (default template, MIT lic
 | `zustand` | 5.0.15 | MIT |
 | `immer` | 11.1.21 | MIT |
 | `@noble/hashes` (PBKDF2-SHA256 password hashing; audited, no dependencies) | 2.4.0 | MIT |
+| `qrcode-generator` (draws the invite QR code; Kazuhiko Arase) | 1.5.x | MIT |
+| `react-native-view-shot` (turns the recap story card into a picture to share) | 5.1.0 | MIT |
 | `jest`, `jest-expo`, `@types/jest` (unit tests, development only) | 29.x / 57.x | MIT |
+| `jsqr` (reads a QR code back, so the tests prove the codes can be scanned; development only) | 1.4.0 | Apache-2.0 |
+| `playwright-core` (browser tests, development only) | 1.x | Apache-2.0 |
+
+“QR Code” is a registered trademark of DENSO WAVE INCORPORATED. The sync server in `server/` uses only Node.js built-in modules.
 | `@expo/vector-icons` (Ionicons, Material Community Icons) | 15.1.1 | MIT |
 | `@expo-google-fonts/manrope` (Manrope by Mikhail Sharanda), `@expo-google-fonts/anton` (Anton by Vernon Adams) | 0.4.x | MIT (package) / SIL Open Font License 1.1 (fonts) |
 

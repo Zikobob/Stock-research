@@ -15,6 +15,7 @@ import { deviceFiles } from './fileio';
 import { newNodeId } from './hlc';
 import { notifyRemoteChange } from './notify';
 import { effectiveServerUrl, useSyncPrefs } from './prefs';
+import { secureRandom } from './secureRandom';
 import { useSyncStatus } from './status';
 import { asyncStorageMeta } from './storage';
 import { createHttpTransport, type SyncTransport } from './transport';
@@ -36,6 +37,7 @@ export function getEngine(): SyncEngine {
     store: storeAdapter,
     storage: asyncStorageMeta,
     getTransport: currentTransport,
+    random: secureRandom,
     onStatus: (status) => useSyncStatus.setState(status),
     onRemoteChange: (prev, next) => notifyRemoteChange(prev, next, useAppStore.getState().session?.userId),
   });
@@ -51,7 +53,7 @@ export function getBlobSync(): BlobSync {
     files: deviceFiles,
     cache: blobCache,
     attach: (tripId, list, itemId, blobId) => useAppStore.getState().attachBlob(tripId, list, itemId, blobId),
-    newId: newNodeId,
+    newId: () => newNodeId(secureRandom),
     onNotice: (message) => toast(message, { tone: 'warn', icon: 'alert-circle-outline' }),
     onPending: (pending) => useFileStatus.setState({ pending }),
   });

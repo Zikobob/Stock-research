@@ -41,3 +41,10 @@ example
 # generated native folders
 /ios
 /android
+
+# browser tests
+e2e/.dist/
+e2e/shots/
+
+# sync server data
+server/data/

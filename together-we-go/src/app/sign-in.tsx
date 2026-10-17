@@ -3,22 +3,23 @@ import { Link, router } from 'expo-router';
 import { useRef, useState } from 'react';
 import { StyleSheet, View, type TextInput } from 'react-native';
 
+import { GoogleSheet } from '@/components/auth/GoogleSheet';
+import { showLegal } from '@/components/auth/legal';
 import { Logo } from '@/components/Logo';
 import { Button } from '@/components/ui/Button';
 import { Divider } from '@/components/ui/bits';
-import { showDialog, toast } from '@/components/ui/feedback';
+import { toast } from '@/components/ui/feedback';
 import { Input } from '@/components/ui/Input';
 import { Float } from '@/components/ui/motion';
 import { Press, tap } from '@/components/ui/Press';
 import { Screen } from '@/components/ui/Screen';
-import { Sheet } from '@/components/ui/Sheet';
 import { T } from '@/components/ui/T';
 import { useT } from '@/i18n';
 import { copy } from '@/services/share';
 import { DEMO_EMAIL, DEMO_PASSWORD } from '@/store/seed';
 import { useAppStore } from '@/store/useAppStore';
 import { colors, radius } from '@/theme';
-import { validateEmail, validateName } from '@/utils/validation';
+import { validateEmail } from '@/utils/validation';
 
 export default function SignIn() {
   const t = useT();
@@ -192,11 +193,11 @@ export default function SignIn() {
 
       <T variant="caption" color={colors.textMuted} center style={{ marginTop: 18 }}>
         By continuing, you agree to our{' '}
-        <T variant="caption" weight="semibold" color={colors.textSecondary} onPress={() => legal('Terms of Service')}>
+        <T variant="caption" weight="semibold" color={colors.textSecondary} onPress={() => showLegal('Terms of Service')}>
           Terms of Service
         </T>{' '}
         and{' '}
-        <T variant="caption" weight="semibold" color={colors.textSecondary} onPress={() => legal('Privacy Policy')}>
+        <T variant="caption" weight="semibold" color={colors.textSecondary} onPress={() => showLegal('Privacy Policy')}>
           Privacy Policy
         </T>
       </T>
@@ -212,71 +213,6 @@ export default function SignIn() {
         }}
       />
     </Screen>
-  );
-}
-
-function legal(title: string) {
-  showDialog(
-    title,
-    title === 'Privacy Policy'
-      ? 'TogetherWeGo stores your trips on this device. Passwords are salted and hashed (PBKDF2); API keys go in the secure keychain. We never sell data. Location is only used when you tap a nearby/airport feature.'
-      : 'TogetherWeGo is a student project built for FBLA Mobile Application Development. Use it to plan trips with friends — be kind in chats and only upload documents you own.',
-    [{ label: 'Got it' }],
-    'shield-checkmark-outline',
-  );
-}
-
-/** Simulated Google account chooser — a production build would use OAuth via expo-auth-session. */
-function GoogleSheet({ visible, onClose, onPick }: { visible: boolean; onClose: () => void; onPick: (email: string, name: string) => void }) {
-  const [other, setOther] = useState(false);
-  const [mail, setMail] = useState('');
-  const [name, setName] = useState('');
-  const [errs, setErrs] = useState<{ mail?: string | null; name?: string | null }>({});
-  return (
-    <Sheet visible={visible} onClose={onClose} title="Choose an account" subtitle="to continue to TogetherWeGo">
-      <Press onPress={() => onPick(DEMO_EMAIL, 'Maya Chen')} style={styles.gAcct}>
-        <View style={[styles.gAvatar, { backgroundColor: colors.primary }]}>
-          <T variant="title" color={colors.white}>
-            M
-          </T>
-        </View>
-        <View style={{ flex: 1 }}>
-          <T variant="bodySm" weight="semibold">
-            Maya Chen
-          </T>
-          <T variant="caption" color={colors.textSecondary}>
-            {DEMO_EMAIL}
-          </T>
-        </View>
-        <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />
-      </Press>
-      {other ? (
-        <View style={{ gap: 12 }}>
-          <Input label="Name" value={name} onChangeText={setName} error={errs.name} autoCapitalize="words" icon="person-outline" />
-          <Input label="Google email" value={mail} onChangeText={setMail} error={errs.mail} autoCapitalize="none" keyboardType="email-address" icon="mail-outline" />
-          <Button
-            label="Continue"
-            onPress={() => {
-              const e = { mail: validateEmail(mail), name: validateName(name) };
-              setErrs(e);
-              if (!e.mail && !e.name) onPick(mail, name.trim());
-            }}
-          />
-        </View>
-      ) : (
-        <Press onPress={() => setOther(true)} style={styles.gAcct}>
-          <View style={[styles.gAvatar, { backgroundColor: colors.bgAlt }]}>
-            <Ionicons name="person-add-outline" size={18} color={colors.textSecondary} />
-          </View>
-          <T variant="bodySm" weight="medium">
-            Use another account
-          </T>
-        </Press>
-      )}
-      <T variant="caption" color={colors.textMuted}>
-        Demo sign-in: in a store build this opens Google’s secure OAuth screen.
-      </T>
-    </Sheet>
   );
 }
 
@@ -302,6 +238,4 @@ const styles = StyleSheet.create({
   demo: { marginTop: 22, padding: 14, borderRadius: radius.md, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border },
   demoRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 4 },
   copyBtn: { width: 26, height: 26, borderRadius: 8, backgroundColor: colors.primarySofter, alignItems: 'center', justifyContent: 'center' },
-  gAcct: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 12, borderRadius: radius.md, borderWidth: 1, borderColor: colors.border },
-  gAvatar: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
 });

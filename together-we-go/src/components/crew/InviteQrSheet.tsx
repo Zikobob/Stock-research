@@ -5,7 +5,7 @@ import { Sheet } from '@/components/ui/Sheet';
 import { T } from '@/components/ui/T';
 import { inviteLink } from '@/services/share';
 import type { Trip } from '@/store/types';
-import { serverForInvites } from '@/sync/prefs';
+import { parseInviteUrl } from '@/sync/invite';
 import { colors, radius } from '@/theme';
 
 /** The invite as a QR code: a friend points their phone camera at it and the app opens on the join screen. */
@@ -25,7 +25,7 @@ export function InviteQrSheet({ visible, onClose, trip }: { visible: boolean; on
         <T variant="small" color={colors.textSecondary} center>
           Friends point their phone camera here, or open TogetherWeGo → Join a trip → Scan, or type the code.
         </T>
-        {serverForInvites() ? (
+        {parseInviteUrl(link).server ? (
           <T variant="caption" color={colors.textMuted} center>
             It also carries your sync server’s address, so their phone connects by itself.
           </T>

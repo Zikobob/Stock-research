@@ -24,7 +24,9 @@ const STACK = [
   'Zustand + Immer — state; AsyncStorage — offline persistence',
   '@noble/hashes (PBKDF2 password hashing), expo-crypto (random salts), expo-secure-store (API key)',
   'expo-notifications, expo-location, expo-image-picker, expo-document-picker',
-  'expo-print, expo-sharing, expo-speech, expo-file-system, react-native-maps',
+  'expo-print, expo-sharing, expo-speech, expo-file-system, expo-camera, react-native-maps',
+  'qrcode-generator (invite QR codes, MIT), react-native-view-shot (share the recap as a picture)',
+  'A small Node sync server in server/ (no dependencies) keeps friends’ phones in step; Jest + Playwright for tests',
 ];
 
 export default function About() {

@@ -15,6 +15,8 @@ import type { IconName } from '@/components/ui/bits';
 import { photos, type PhotoKey } from '@/data/images';
 import { buildInviteUrl, inviteText } from '@/sync/invite';
 import { serverForInvites } from '@/sync/prefs';
+import { useSyncStatus } from '@/sync/status';
+import { useAppStore } from '@/store/useAppStore';
 
 export type SocialTarget = 'whatsapp' | 'x' | 'facebook' | 'messenger' | 'telegram' | 'instagram' | 'sms' | 'email';
 
@@ -29,9 +31,15 @@ export const socialTargets: { key: SocialTarget; label: string; icon: IconName; 
   { key: 'email', label: 'Email', icon: 'mail-outline', color: '#5F645A' },
 ];
 
-/** The link that opens TogetherWeGo on the join screen with the code (and the sync server, if there is one) filled in. */
+/** The sync server only goes into an invite when that trip is actually shared across phones. */
+function serverFor(code: string): string | null {
+  const trip = useAppStore.getState().trips.find((t) => t.inviteCode === code);
+  return trip && useSyncStatus.getState().shared.includes(trip.id) ? serverForInvites() : null;
+}
+
+/** The link that opens TogetherWeGo on the join screen with the code (and the sync server, if the trip is shared) filled in. */
 export function inviteLink(code: string): string {
-  return buildInviteUrl(Linking.createURL('/join'), code, serverForInvites());
+  return buildInviteUrl(Linking.createURL('/join'), code, serverFor(code));
 }
 
 export function inviteMessage(tripName: string, code: string): string {
