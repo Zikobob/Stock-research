@@ -37,13 +37,19 @@ export const useAppStore = create<AppStore>()(
     })),
     {
       name: 'togetherwego-v1',
-      version: 2,
+      version: 3,
       // v2: "Amalfi Squad" replaced the Tokyo trip as the main demo — re-seed the demo trips once, keep the user's own.
+      // v3: a calmer Home — the "Nearby radius" block starts switched off. Only people who never changed the Home sections get it switched off.
       migrate: (persisted, version) => {
-        const old = persisted as Partial<AppStore>;
-        if (version >= 2) return old as AppStore;
-        const demoIds = DEMO_TRIP_IDS;
-        return { ...old, seeded: false, activeTripId: null, trips: (old.trips ?? []).filter((t) => !demoIds.includes(t.id)) } as AppStore;
+        let old = persisted as Partial<AppStore>;
+        if (version < 2) {
+          old = { ...old, seeded: false, activeTripId: null, trips: (old.trips ?? []).filter((t) => !DEMO_TRIP_IDS.includes(t.id)) };
+        }
+        const sections = old.personal?.sections;
+        if (version < 3 && old.personal && sections && Object.values(sections).every(Boolean)) {
+          old = { ...old, personal: { ...old.personal, sections: { ...sections, nearby: false } } };
+        }
+        return old as AppStore;
       },
       // New settings added in later versions fall back to their defaults instead of vanishing.
       merge: (persisted, current) => {

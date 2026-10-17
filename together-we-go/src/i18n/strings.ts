@@ -78,7 +78,7 @@ const en = {
   'itin.perPerson': '/person',
 
   'add.title': 'Add Activity',
-  'add.subtitle': 'Fill in the details for your new activity.',
+  'add.subtitle': 'Search for a place, then pick a day and time.',
   'add.type': 'Activity Type',
   'add.time': 'Time',
   'add.name': 'Activity Name',
@@ -91,7 +91,7 @@ const en = {
   'add.notesPh': 'Any notes for the group…',
   'add.vote': 'Put it to a group vote',
   'add.remind': 'Remind everyone before it starts',
-  'add.submit': 'Add to Itinerary',
+  'add.submit': 'Add to the plan',
   'add.save': 'Save changes',
 
   'budget.kicker': 'Group spending',

@@ -25,10 +25,13 @@ exports.nestedControls = (p) =>
     return [...new Set(out)];
   });
 
-/** `beforeSignIn(page)` runs on the sign-in screen, before the demo account is used. */
-exports.start = async ({ beforeSignIn } = {}) => {
+/**
+ * `beforeSignIn(page)` runs on the sign-in screen, before the demo account is used.
+ * `context` adds browser settings, for example a pretend location: `{ geolocation: { latitude, longitude }, permissions: ['geolocation'] }`.
+ */
+exports.start = async ({ beforeSignIn, context } = {}) => {
   const b = await exports.launch();
-  const ctx = await b.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true });
+  const ctx = await b.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true, ...context });
   const p = await ctx.newPage();
   const errors = [];
   // a join that tries the (not running) sync server on :8787 and falls back to this phone logs one harmless "connection refused"

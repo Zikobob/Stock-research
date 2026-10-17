@@ -18,6 +18,7 @@ const tab = (p, n) => p.getByRole('tab', { name: n, exact: true }).click().then(
   await tab(p, 'Plan');
   check('plan lists confirmed dinner', await vis(p.getByText('Dinner at Da Vincenzo')));
   check('plan hides voting items', !(await vis(p.getByText('Limoncello tasting'), 600)));
+  await p.getByLabel('Show filters').click(); await p.waitForTimeout(300); // the kind and length filters start folded away
   await p.getByRole('button', { name: /Food$/ }).first().click().catch(() => {}); await p.waitForTimeout(400);
   check('category filter hides hike', !(await vis(p.getByText('Path of the Gods hike'), 600)));
   await p.getByRole('button', { name: 'All', exact: true }).first().click(); await p.waitForTimeout(300);
@@ -37,9 +38,8 @@ const tab = (p, n) => p.getByRole('tab', { name: n, exact: true }).click().then(
   // add activity validation
   await p.getByLabel('Add activity').first().click(); await p.waitForTimeout(800);
   await p.getByTestId('add-activity-submit').click(); await p.waitForTimeout(400);
-  check('add-activity validation errors', await vis(p.getByText(/required|enter|name/i)));
+  check('add-activity validation errors', await vis(p.getByText(/Enter a place/)));
   await p.getByTestId('activity-name').fill('Gelato run');
-  await p.getByTestId('activity-location').fill('Positano centre');
   await p.getByTestId('add-activity-submit').click(); await p.waitForTimeout(1000);
   check('activity added', await vis(p.getByText('Gelato run')));
   await p.getByLabel('Delete Gelato run').click(); await p.waitForTimeout(500);

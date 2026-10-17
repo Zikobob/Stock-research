@@ -46,7 +46,7 @@ Host the `dist/` folder anywhere that serves static files. On an iPhone, *Share 
 The sync server speaks plain HTTP on your own network. The build settings allow that (`app.json`: Android `usesCleartextTraffic`, iOS `NSAllowsLocalNetworking`), and the first time the app talks to the server iOS asks for local-network access. An installed copy cannot guess the server's address the way Expo Go does, so either:
 
 * open an invite link or scan an invite QR code that carries the address, or
-* type the address once in *Settings → Sync across phones* (the server prints it when it starts).
+* type the address once in *Settings → Advanced → Sync across phones* (the server prints it when it starts).
 
 ## Windows tips
 

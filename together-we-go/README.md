@@ -11,7 +11,9 @@ TogetherWeGo helps a group of friends or family plan, budget and enjoy a shared 
 <img src="docs/screenshots/06-vote.jpg" width="170" alt="Vote tab with Lock in"/>
 <img src="docs/screenshots/07-budget.jpg" width="170" alt="Budget with who owes who"/>
 <img src="docs/screenshots/08-chat-scout-ai.jpg" width="170" alt="Chat: Crew and Scout AI"/>
-<img src="docs/screenshots/09-more.jpg" width="170" alt="More menu"/>
+<img src="docs/screenshots/09-more.jpg" width="170" alt="More: one grid of big buttons"/>
+<img src="docs/screenshots/25-add-activity-search.jpg" width="170" alt="Add an activity: type a place and see matches with how far each is from you"/>
+<img src="docs/screenshots/26-settings.jpg" width="170" alt="Settings: the basics up front, technical switches under Advanced"/>
 <img src="docs/screenshots/19-360-day.jpg" width="170" alt="360° view of Paris by day"/>
 <img src="docs/screenshots/20-360-night.jpg" width="170" alt="360° view of Paris at night with the lights on"/>
 <img src="docs/screenshots/15-make-it-yours.jpg" width="170" alt="Make it yours: pick a colour theme"/>
@@ -98,16 +100,17 @@ Other scripts: `npm test` (unit tests), `npm run e2e` (browser tests, see [`e2e/
 | | Currency converter (live rates, cached offline) + **home ↔ local currency view** | Budget tab · Currency |
 | | Expenses in any currency, split between chosen members, **settle-up with fewest payments** | Budget tab |
 | | Daily spending planner + “budget finds” within budget & radius | Budget tab |
-| | Printable planner (print or save as PDF) | Plan → printer button · More → Printable Planner |
+| | Printable planner (print or save as PDF) | Plan → printer button |
 | **Organization** | Offline document vault (PDFs, photos, notes) | More → Offline Docs |
 | | Weather (7-day forecast, best outdoor day, packing tips) | Weather |
-| | Choose your own radius → popular places nearby | Home · More → Explore Nearby |
+| | Choose your own radius → popular places nearby | More → Explore Nearby (also an optional block on Home) |
 | | Photo dump with likes, captions, per-day filter, share to socials | Photo dump |
-| | Activity filters (adventure, sightseeing, food…) **and** time filters (under 1 h, 1–2 h, 2–4 h, half day, full day) | Plan · Nearby |
+| | Activity filters (adventure, sightseeing, food…) **and** time filters (under 1 h, 1–2 h, 2–4 h, half day, full day) | Plan → Filter · Nearby |
+| | **Search for a place** while adding an activity: matches appear as you type, each with how far it is from you (saved places work offline; the rest comes from OpenStreetMap) | Plan → + |
 | **Other** | Interactive travel quiz with timer, streak bonus and group leaderboard | Travel quiz |
 | | 6 languages: English, Español, Français, 日本語, हिन्दी, 中文 | Settings → Language |
 | | Bucket list with inspiration | Bucket list |
-| | Tracks location → nearest airport, distance, drive time, directions | Nearest airport |
+| | Tracks location → nearest airport, distance, drive time, directions | Emergency → Nearest airport |
 | | Recommendation survey → ranked destinations with photography | For you |
 | | Offline map | Trip map → Offline |
 | **Trip management** | Multiple trips, switch / create / edit / leave / delete, planning → active → completed | My trips |
@@ -128,7 +131,8 @@ Other scripts: `npm test` (unit tests), `npm run e2e` (browser tests, see [`e2e/
 - **Emergency & safety** — local police/ambulance numbers (tap to call), share live location, hospital & embassy finder.
 - **Phrasebook** with **text-to-speech** pronunciation (Japanese, French, Spanish, Italian, Korean, Thai, Portuguese).
 - **Smart packing list** — suggestions from the destination and the forecast (e.g. “IC card (Suica)”, umbrella when rain is likely).
-- **Demo timeline** switch to show the whole trip lifecycle live.
+- **Demo timeline** switch to show the whole trip lifecycle live (Settings → Advanced).
+- **Kept simple** — forms ask for the few things that matter (adding an activity is: where, which day, what time) and fold the rest under *More options*; More is one grid of big buttons; Settings keeps the technical switches under *Advanced*.
 - **Social media integration** — direct share into WhatsApp, Instagram, X, Facebook, Messenger, Telegram, Messages, Email + the native share sheet; photos and the **recap story card share as pictures**; invites are a code, a link and a **QR code** that a friend can scan from inside the app (or with their camera), and the link carries the sync server so their phone connects by itself. See *Honest limitations* for what needs developer accounts.
 - Accessibility: screen-reader labels on every control, adjustable text size, haptics toggle, high-contrast palette, and the phone's **Reduce Motion** setting is respected (no animations, no auto-rotating 360° view).
 

@@ -1,3 +1,5 @@
+import type { ActivityType } from '@/store/types';
+
 import { destinationById } from './destinations';
 
 export type PlaceCategory =
@@ -8,6 +10,17 @@ export type PlaceCategory =
   | 'nightlife'
   | 'shopping'
   | 'relax';
+
+/** How a place category shows up in the itinerary (relaxing counts as sightseeing). */
+export const placeToActivityType: Record<PlaceCategory, ActivityType> = {
+  food: 'food',
+  sightseeing: 'sightseeing',
+  adventure: 'adventure',
+  culture: 'culture',
+  nightlife: 'nightlife',
+  shopping: 'shopping',
+  relax: 'sightseeing',
+};
 
 export interface Place {
   id: string;

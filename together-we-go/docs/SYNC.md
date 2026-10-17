@@ -12,7 +12,7 @@ Friends can each plan on their own phone and see the same trip: chat, votes, the
 
    It prints addresses such as `http://192.168.1.20:8787`. On Windows, click **Allow access** (private networks) when the firewall asks.
 
-2. Start the app as usual (`npx expo start`). While developing, phones **find the server by themselves** (they use the same computer address that Expo Go used). If a phone cannot, enter the address in **Settings → Sync across phones** and tap *Test connection*.
+2. Start the app as usual (`npx expo start`). While developing, phones **find the server by themselves** (they use the same computer address that Expo Go used). If a phone cannot, enter the address in **Settings → Advanced → Sync across phones** and tap *Test connection*.
 
 3. Phone A: **More → Crew & roles → Share this trip across phones**.
 4. Phone B: **Join a trip**, type the invite code (or scan the QR code from *Crew & roles → QR code*; the QR code and invite link carry the server's address once the trip is shared, and the phone asks before using it). The trip appears with its chat, plan and photos, and the badge says **Live · 2 phones**.

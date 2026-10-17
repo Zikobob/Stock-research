@@ -28,6 +28,7 @@ const go = async (p, r) => { await p.goto(BASE + '/' + r, { waitUntil: 'networki
   check('home headline is fully visible with Reduce Motion on', headlineOpacity === '1' || headlineOpacity === 'n/a', headlineOpacity);
   check('home content shows', await vis(calm.getByText(/to go|Living|Tomorrow/)));
   await go(calm, 'settings');
+  await calm.getByLabel('Advanced settings').click(); await calm.waitForTimeout(300);
   check('settings says why animations are off', await vis(calm.getByText(/Reduce Motion setting is on/)));
   await go(calm, 'panorama?city=paris');
   check('360 view starts paused', await vis(calm.getByLabel('Auto rotate').getByText('Paused')));
@@ -45,6 +46,7 @@ const go = async (p, r) => { await p.goto(BASE + '/' + r, { waitUntil: 'networki
   // ---- reduce motion OFF: the same screens animate
   const lively = await open(b, 'no-preference');
   await go(lively, 'settings');
+  await lively.getByLabel('Advanced settings').click(); await lively.waitForTimeout(300);
   check('settings offers animations normally', await vis(lively.getByText(/Flying plane, floating cards/)));
   await go(lively, 'panorama?city=paris');
   check('360 view auto-rotates by default', await vis(lively.getByLabel('Auto rotate').getByText('Auto')));

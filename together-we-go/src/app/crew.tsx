@@ -6,7 +6,6 @@ import { StyleSheet, View } from 'react-native';
 import { ShareSheet } from '@/components/ShareSheet';
 import { AddMemberSheet } from '@/components/crew/AddMemberSheet';
 import { ChecklistSection } from '@/components/crew/ChecklistSection';
-import { DocsSection } from '@/components/crew/DocsSection';
 import { InviteCard } from '@/components/crew/InviteCard';
 import { MembersSection } from '@/components/crew/MembersSection';
 import { NewPollSheet } from '@/components/crew/NewPollSheet';
@@ -81,7 +80,6 @@ function Hub() {
       <MembersSection trip={trip} userId={userId} onPick={setRoleFor} onAdd={() => setAddOpen(true)} />
       <PollsSection trip={trip} userId={userId} owner={owner} onNew={() => setPollOpen(true)} />
       <ChecklistSection trip={trip} onAssign={setAssignTaskId} />
-      <DocsSection trip={trip} />
 
       <ShareSheet visible={shareOpen} onClose={() => setShareOpen(false)} title="Invite your group" message={inviteMessage(trip.name, trip.inviteCode)} preview={inviteMessage(trip.name, trip.inviteCode)} />
 

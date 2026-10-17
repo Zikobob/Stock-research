@@ -1,5 +1,7 @@
 // Visits every screen at two phone widths and reports anything that sticks out sideways (the "page scrolls horizontally" bug).
-const { BASE, start, ROUTES: routes } = require('./lib');
+const { BASE, start, ROUTES: all } = require('./lib');
+// E2E_ONLY=settings,profile checks just those screens (handy while working on one)
+const routes = process.env.E2E_ONLY ? all.filter((r) => process.env.E2E_ONLY.split(',').includes(r)) : all;
 const passes = [{ w: 390, scale: 1 }, { w: 320, scale: 1 }, { w: 360, scale: 1.25 }]; // the last one is the "larger text" setting
 const SKIP = new Set(['panorama']); // the 360° scene is meant to be wider than the screen
 

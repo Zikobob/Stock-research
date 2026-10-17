@@ -36,6 +36,7 @@ The project was scaffolded with `npx create-expo-app` (default template, MIT lic
 | Exchange rates | [ExchangeRate-API open endpoint](https://www.exchangerate-api.com/docs/free) (`open.er-api.com`) | Free with attribution; cached for 6 h |
 | Maps (phone) | Apple Maps (iOS) / Google Maps (Android) via react-native-maps | Platform map terms |
 | Maps (web preview) | [OpenStreetMap](https://www.openstreetmap.org/copyright) embed | © OpenStreetMap contributors, ODbL |
+| Place search ("Where do you want to go?") | [Photon](https://photon.komoot.io) by komoot, searching [OpenStreetMap](https://www.openstreetmap.org/copyright) data | Free, no key; © OpenStreetMap contributors, ODbL. Only the words typed and a map point rounded to about 1 km are sent; the distances are worked out on the phone |
 | Airport coordinates & codes | Public IATA codes and coordinates (compiled by hand, 100+ airports) | Factual data |
 | Emergency numbers | Official tourism / government pages, e.g. [JNTO emergency numbers](https://www.jnto.go.jp/safety-tips/eng/emergency-numbers.html) | Factual data |
 | Destination & place facts | Summarised in our own words from public tourism information | Original text |

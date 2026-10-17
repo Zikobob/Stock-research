@@ -1,4 +1,3 @@
-import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
@@ -14,7 +13,7 @@ import { colors, radius, shadow } from '@/theme';
 
 import { pickedForYou } from './picks';
 
-/** "Picked for you" cards ranked by the survey answers, or the invitation to take the survey. */
+/** "Picked for you" cards ranked by the survey answers. Nothing is shown until the survey is done (Settings and the bottom of Home lead to it). */
 export function PicksSection({ personal }: { personal: Personal }) {
   const picks = pickedForYou(personal);
   return (
@@ -43,22 +42,6 @@ export function PicksSection({ personal }: { personal: Personal }) {
           ))}
         </ScrollView>
       </FadeIn>
-    ) : !personal.done ? (
-      <Press onPress={() => router.push('/personalize')} style={styles.cta} accessibilityLabel="Make TogetherWeGo yours — take the 60-second survey">
-        <LinearGradient colors={[colors.accent, '#F59E0B']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFill} />
-        <View style={styles.ctaEmoji}>
-          <T style={{ fontSize: 24, lineHeight: 30 }}>🎨</T>
-        </View>
-        <View style={{ flex: 1 }}>
-          <T variant="title" weight="extrabold" color={colors.onAccent}>
-            Make it yours
-          </T>
-          <T variant="caption" color={colors.onAccent}>
-            60-sec survey · colours, interests & your home screen
-          </T>
-        </View>
-        <Ionicons name="arrow-forward-circle" size={28} color={colors.onAccent} />
-      </Press>
     ) : null
   );
 }
@@ -66,6 +49,4 @@ export function PicksSection({ personal }: { personal: Personal }) {
 const styles = StyleSheet.create({
   pick: { width: 156, height: 196, borderRadius: radius.xl, overflow: 'hidden', ...shadow },
   match: { position: 'absolute', top: 10, left: 10, backgroundColor: colors.accent, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 999 },
-  cta: { marginTop: 22, flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14, borderRadius: radius.xl, overflow: 'hidden', ...shadow },
-  ctaEmoji: { width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(255,255,255,0.4)', alignItems: 'center', justifyContent: 'center' },
 });

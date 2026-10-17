@@ -63,7 +63,7 @@ flowchart LR
     Z[(Zustand + Immer store)] --> P[(AsyncStorage<br/>offline persistence)]
   end
   subgraph Svc[Services — src/services]
-    W[weather] & C[currency] & N[notifications] & AI[assistant] & F[files] & PR[print] & SH[share] & L[location] & SE[secrets]
+    W[weather] & C[currency] & N[notifications] & AI[assistant] & F[files] & PR[print] & SH[share] & L[location] & SE[secrets] & PS[place search]
   end
   subgraph Sync[Sync — src/sync + server]
     E[Sync engine<br/>diff · merge · outbox] --> SV[(Sync server<br/>Node, runs on your computer)]
@@ -75,6 +75,7 @@ flowchart LR
   W --> OM[(Open-Meteo)]
   C --> ER[(ExchangeRate API)]
   AI -. optional .-> CL[(Claude API)]
+  PS -. optional .-> PH[(Photon / OpenStreetMap)]
   SE --> KC[(Keychain / Keystore)]
 ```
 
@@ -117,6 +118,8 @@ Key decisions:
 - Personalization: 6 colour themes including a dark mode, adjustable card shapes and an *Animations* switch for people sensitive to motion.
 - Errors appear inline under the field in red with a plain-language fix (“Codes look like ABC-1234”).
 - Destructive actions always confirm; toasts confirm every successful action.
+- **Kept simple.** Each form asks for the few things that matter and folds the rest under *More options* (adding an activity: where, which day, what time). The kind of activity and of expense is guessed from the words typed. *More* is one grid of big buttons, *Settings* keeps the technical switches under *Advanced*, and the Plan's kind and length filters open from one *Filter* button.
+- **Place search privacy.** Typing in *Where do you want to go?* sends the words (and a map point rounded to about 1 km, around the trip or the phone when it is at the trip) to Photon, a free OpenStreetMap search. Nothing else is sent, there is no account, and the distances are worked out on the phone. With no connection the trip's saved places still match.
 
 ## 9. Test log
 
@@ -128,6 +131,8 @@ Key decisions:
 | Store (`src/store/__tests__`) | Sign-up/sign-in/reset, trips, joining, itinerary and voting, budget, polls, packing, photos, docs, attaching files, clearing sample data |
 | Assistant | Local answers (budget, who owes who, currency, emergency numbers, places) and the Claude request: what is sent, the last 12 messages only, wrong key, refusal, empty answer, the 45-second limit |
 | Sync (`src/sync/__tests__`, `server/__tests__`) | Merge convergence on 150 random three-phone runs, sharing and joining, offline queue, restart, private data, files, the real server over real HTTP, time limits, address parsing |
+| Place search and guesses (`src/services/__tests__/placeSearch.test.ts`) | Saved places match by name and area, Photon answers become places (streets and bus stops dropped), the search looks around the trip first and anywhere if nothing is near, rounded point and box in the request, caching, time limit, cancel, merging without duplicates, activity and expense type guessed from words |
+| 360° view on the phone's native animation driver (`src/components/panorama/__tests__`) | The screen does not crash when day/night and position share a view with looping lights (it did, on a real phone, before this test) |
 | Invites and QR | Link round trip for every address form, QR codes that a decoder reads back |
 | Home ranking, pretend friends, Reduce Motion | The "Picked for you" ranking, canned replies, the motion rule |
 

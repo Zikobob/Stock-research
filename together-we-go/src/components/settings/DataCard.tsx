@@ -7,7 +7,7 @@ import { resetSync } from '@/sync/actions';
 import { useActiveTrip, useAppStore } from '@/store/useAppStore';
 import { colors } from '@/theme';
 
-/** Help, about, export, clearing the sample trips and resetting the app. */
+/** Export, clearing the sample trips and resetting the app. */
 export function DataCard() {
   const trip = useActiveTrip();
   const resetEverything = useAppStore((s) => s.resetEverything);
@@ -16,8 +16,6 @@ export function DataCard() {
 
   return (
     <Card style={{ marginTop: 14 }}>
-      <ListRow icon="help-circle-outline" label="How to use TogetherWeGo" onPress={() => router.push('/help')} />
-      <ListRow icon="information-circle-outline" label="About, credits & sources" onPress={() => router.push('/about')} />
       {trip ? (
         <ListRow
           icon="download-outline"

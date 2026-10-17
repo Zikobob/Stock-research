@@ -7,11 +7,13 @@ import { Button } from '@/components/ui/Button';
 import { Chip, ToggleRow } from '@/components/ui/bits';
 import { toast } from '@/components/ui/feedback';
 import { Input } from '@/components/ui/Input';
-import { tap } from '@/components/ui/Press';
+import { Press, tap } from '@/components/ui/Press';
 import { Sheet } from '@/components/ui/Sheet';
 import { T } from '@/components/ui/T';
+import { destinationById } from '@/data/destinations';
 import { useT } from '@/i18n';
 import { ensurePermission } from '@/services/notifications';
+import { guessType, type PlaceHit } from '@/services/placeSearch';
 import { useAppStore } from '@/store/useAppStore';
 import type { Activity, ActivityType, Trip } from '@/store/types';
 import { colors } from '@/theme';
@@ -20,6 +22,7 @@ import { dayLabel, time12, tripDays, weekdayShort } from '@/utils/time';
 import { maxLen, parseAmount, required, validateAmount, firstError } from '@/utils/validation';
 
 import { activityTypes } from './meta';
+import { PlaceSearch } from './PlaceSearch';
 
 export interface ActivityDraft {
   title?: string;
@@ -50,10 +53,14 @@ export function AddActivitySheet({ visible, onClose, trip, date, editing, draft 
   const update = useAppStore((s) => s.updateActivity);
   const userId = useAppStore((s) => s.session?.userId ?? '');
   const [type, setType] = useState<ActivityType>('sightseeing');
+  // Until the person picks a type themselves, it follows the place they chose or the words they typed.
+  const [typeTouched, setTypeTouched] = useState(false);
   const [day, setDay] = useState(date);
   const [time, setTime] = useState('10:00');
   const [title, setTitle] = useState('');
+  const [picked, setPicked] = useState<PlaceHit | null>(null);
   const [location, setLocation] = useState('');
+  const [more, setMore] = useState(false);
   const [duration, setDuration] = useState(90);
   const [cost, setCost] = useState('');
   const [notes, setNotes] = useState('');
@@ -73,17 +80,37 @@ export function AddActivitySheet({ visible, onClose, trip, date, editing, draft 
   function resetForm() {
     const src = editing ?? draft ?? {};
     setType(src.type ?? 'sightseeing');
+    setTypeTouched(!!src.type);
     setDay(editing?.date ?? date);
     setTime(editing?.time ?? '10:00');
     setTitle(src.title ?? '');
     setLocation(src.location ?? '');
+    setPicked(src.lat !== undefined && src.lng !== undefined ? { id: src.placeId ?? 'saved', name: src.title ?? '', detail: src.location ?? '', lat: src.lat, lng: src.lng, type: src.type ?? 'sightseeing', source: 'saved', placeId: src.placeId } : null);
     setDuration(src.durationMin ?? 90);
     setCost(src.costPerPerson ? String(src.costPerPerson) : '');
     setNotes(src.notes ?? '');
     setVote(editing ? editing.status === 'voting' : false);
     setRemind(editing ? editing.reminder : true);
+    setMore(!!editing);
     setErrors({});
   }
+
+  const pick = (h: PlaceHit) => {
+    tap();
+    setPicked(h);
+    setTitle(h.name);
+    setLocation(h.detail);
+    if (!typeTouched) setType(h.type);
+    if (h.durationMin) setDuration(DURATIONS.reduce((a, b) => (Math.abs(b - h.durationMin!) < Math.abs(a - h.durationMin!) ? b : a)));
+    if (h.costPerPerson !== undefined) setCost(h.costPerPerson ? String(h.costPerPerson) : '');
+    setErrors((e) => ({ ...e, title: null }));
+  };
+
+  const typePlace = (text: string) => {
+    setTitle(text);
+    if (picked && text !== picked.name) setPicked(null);
+    if (!typeTouched) setType(guessType(text));
+  };
 
   const days = tripDays(trip.startDate, trip.endDate);
 
@@ -102,18 +129,21 @@ export function AddActivitySheet({ visible, onClose, trip, date, editing, draft 
 
   const submit = async () => {
     const e = {
-      title: firstError(title, required('an activity name'), maxLen(60, 'Activity name')),
-      location: firstError(location, required('a location'), maxLen(60, 'Location')),
+      title: firstError(title, required('a place'), maxLen(60, 'The place')),
+      location: maxLen(60, 'The address')(location),
       cost: cost.trim() ? validateAmount(cost, { min: 0, max: 10000 }) : null,
       notes: maxLen(280, 'Notes')(notes),
     };
     setErrors(e);
-    if (Object.values(e).some(Boolean)) return tap('warning');
+    if (Object.values(e).some(Boolean)) {
+      if (e.location || e.cost || e.notes) setMore(true); // the problem is in a field that is folded away
+      return tap('warning');
+    }
     const payload = {
       date: day,
       time,
       title: title.trim(),
-      location: location.trim(),
+      location: location.trim() || picked?.detail || destinationById(trip.destinationId)?.city || '',
       type,
       durationMin: duration,
       costPerPerson: cost.trim() ? parseAmount(cost) ?? 0 : 0,
@@ -121,12 +151,13 @@ export function AddActivitySheet({ visible, onClose, trip, date, editing, draft 
       status: vote ? ('voting' as const) : editing && editing.status !== 'voting' ? editing.status : ('confirmed' as const),
       reminder: remind,
     };
+    const where = { lat: picked?.lat, lng: picked?.lng, placeId: picked?.placeId };
     if (remind) ensurePermission().catch(() => {});
     if (editing) {
-      update(trip.id, editing.id, payload);
+      update(trip.id, editing.id, { ...payload, ...where });
       toast('Activity updated');
     } else {
-      add(trip.id, { ...payload, assigned: [userId], lat: draft?.lat, lng: draft?.lng, placeId: draft?.placeId });
+      add(trip.id, { ...payload, assigned: [userId], ...where });
       toast(`Added to ${dayLabel(day)}${vote ? ' — group vote started' : ''}`);
     }
     tap('success');
@@ -140,16 +171,19 @@ export function AddActivitySheet({ visible, onClose, trip, date, editing, draft 
       title={editing ? 'Edit Activity' : t('add.title')}
       subtitle={t('add.subtitle')}
       footer={<Button label={editing ? t('add.save') : t('add.submit')} onPress={submit} testID="add-activity-submit" />}>
-      <View style={{ gap: 8 }}>
-        <T variant="small" weight="semibold">
-          {t('add.type')}
-        </T>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
-          {activityTypes.map((a) => (
-            <Chip key={a.key} label={a.label} icon={a.icon} active={type === a.key} onPress={() => setType(a.key)} />
-          ))}
-        </ScrollView>
-      </View>
+      <PlaceSearch
+        trip={trip}
+        visible={visible}
+        value={title}
+        onChangeText={typePlace}
+        picked={picked}
+        onPick={pick}
+        onClear={() => {
+          setTitle('');
+          setPicked(null);
+        }}
+        error={errors.title}
+      />
 
       <View style={{ gap: 8 }}>
         <T variant="small" weight="semibold">
@@ -169,9 +203,6 @@ export function AddActivitySheet({ visible, onClose, trip, date, editing, draft 
         onPressField={() => setTimeOpen(true)}
         right={<Ionicons name="pencil" size={15} color={colors.textMuted} />}
       />
-
-      <Input label={t('add.name')} placeholder={t('add.namePh')} value={title} onChangeText={setTitle} error={errors.title} maxLength={70} testID="activity-name" />
-      <Input label={t('add.location')} placeholder={t('add.locationPh')} icon="location-sharp" value={location} onChangeText={setLocation} error={errors.location} maxLength={70} testID="activity-location" />
 
       <View style={{ gap: 8 }}>
         <T variant="small" weight="semibold">
@@ -193,13 +224,42 @@ export function AddActivitySheet({ visible, onClose, trip, date, editing, draft 
         </View>
       ) : null}
 
-      <Input label={t('add.cost')} placeholder="0 = free" icon="cash-outline" value={cost} onChangeText={setCost} keyboardType="decimal-pad" error={errors.cost} />
-      <Input label={t('add.notes')} placeholder={t('add.notesPh')} value={notes} onChangeText={setNotes} multiline error={errors.notes} maxLength={300} />
+      <ToggleRow icon="people-outline" label={t('add.vote')} sub="Everyone gets a vote; majority confirms it" value={vote} onChange={setVote} />
 
-      <View>
-        <ToggleRow icon="people-outline" label={t('add.vote')} sub="Everyone gets a vote; majority confirms it" value={vote} onChange={setVote} />
-        <ToggleRow icon="notifications-outline" label={t('add.remind')} value={remind} onChange={setRemind} />
-      </View>
+      <Press onPress={() => setMore((m) => !m)} style={styles.moreBtn} accessibilityLabel="More options" accessibilityState={{ expanded: more }}>
+        <T variant="small" weight="semibold" color={colors.textSecondary}>
+          {more ? 'Fewer options' : 'More options'}
+        </T>
+        <Ionicons name={more ? 'chevron-up' : 'chevron-down'} size={16} color={colors.textSecondary} />
+      </Press>
+
+      {more ? (
+        <>
+          <View style={{ gap: 8 }}>
+            <T variant="small" weight="semibold">
+              {t('add.type')}
+            </T>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
+              {activityTypes.map((a) => (
+                <Chip
+                  key={a.key}
+                  label={a.label}
+                  icon={a.icon}
+                  active={type === a.key}
+                  onPress={() => {
+                    setType(a.key);
+                    setTypeTouched(true);
+                  }}
+                />
+              ))}
+            </ScrollView>
+          </View>
+          <Input label="Address (optional)" placeholder="Street or area" icon="location-sharp" value={location} onChangeText={setLocation} error={errors.location} maxLength={70} testID="activity-location" />
+          <Input label={t('add.cost')} placeholder="0 = free" icon="cash-outline" value={cost} onChangeText={setCost} keyboardType="decimal-pad" error={errors.cost} />
+          <Input label={t('add.notes')} placeholder={t('add.notesPh')} value={notes} onChangeText={setNotes} multiline error={errors.notes} maxLength={300} />
+          <ToggleRow icon="notifications-outline" label={t('add.remind')} value={remind} onChange={setRemind} />
+        </>
+      ) : null}
 
       <TimePickerSheet visible={timeOpen} value={time} onClose={() => setTimeOpen(false)} onChange={setTime} />
     </Sheet>
@@ -209,4 +269,5 @@ export function AddActivitySheet({ visible, onClose, trip, date, editing, draft 
 const styles = StyleSheet.create({
   wrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   warn: { flexDirection: 'row', gap: 8, alignItems: 'center', backgroundColor: colors.orangeSoft, padding: 10, borderRadius: 10 },
+  moreBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 8 },
 });

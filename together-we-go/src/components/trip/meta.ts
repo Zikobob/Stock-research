@@ -22,16 +22,7 @@ export const statusMeta: Record<ActivityStatus, { tone: 'green' | 'orange' | 'bl
   pending: { tone: 'blue', key: 'itin.pending', dot: colors.blue },
 };
 
-/** Map place categories (Nearby) onto itinerary activity types. */
-export const placeToActivityType: Record<PlaceCategory, ActivityType> = {
-  food: 'food',
-  sightseeing: 'sightseeing',
-  adventure: 'adventure',
-  culture: 'culture',
-  nightlife: 'nightlife',
-  shopping: 'shopping',
-  relax: 'sightseeing',
-};
+export { placeToActivityType } from '@/data/places';
 
 export const placeCategoryIcon: Record<PlaceCategory, IconName> = {
   food: 'restaurant-outline',

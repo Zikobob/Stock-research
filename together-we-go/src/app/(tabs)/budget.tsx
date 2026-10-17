@@ -12,6 +12,7 @@ import { SpendSummary } from '@/components/budget/SpendSummary';
 import { styles } from '@/components/budget/styles';
 import { CurrencyConverter } from '@/components/CurrencyConverter';
 import { NoTrip } from '@/components/trip/NoTrip';
+import { Fold } from '@/components/ui/Fold';
 import { Card } from '@/components/ui/bits';
 import { Press } from '@/components/ui/Press';
 import { Screen } from '@/components/ui/Screen';
@@ -89,15 +90,18 @@ function BudgetInner() {
       <SpendSummary byCat={byCat} spent={spent} budget={trip.budget} remaining={trip.budget - spent} per={spent / Math.max(1, trip.members.length)} daysLeft={daysLeft} fmt={fmt} />
       <BalancesCard trip={trip} userId={userId} fmt={fmt} onSettle={() => setSettleOpen(true)} />
 
-      <T variant="headline" accessibilityRole="header" style={styles.section}>
-        Converter
-      </T>
-      <Card style={styles.card}>
-        <CurrencyConverter from={conv[0]} to={conv[1]} onChange={(a, b) => setConv([a, b])} />
-      </Card>
-
-      <DailyPlanner trip={trip} />
       <ExpensesSection trip={trip} fmt={fmt} onOpen={setDetail} />
+
+      <Fold title="More tools" icon="calculator-outline" label="More budget tools" summary="Currency converter and daily spending planner">
+        <T variant="headline" accessibilityRole="header" style={styles.section}>
+          Converter
+        </T>
+        <Card style={styles.card}>
+          <CurrencyConverter from={conv[0]} to={conv[1]} onChange={(a, b) => setConv([a, b])} />
+        </Card>
+
+        <DailyPlanner trip={trip} />
+      </Fold>
 
       <AddExpenseSheet visible={addOpen} onClose={() => setAddOpen(false)} trip={trip} userId={userId} />
       <ExpenseDetailSheet key={detail?.id ?? 'none'} detail={detail} onClose={() => setDetail(null)} trip={trip} fmt={fmt} />

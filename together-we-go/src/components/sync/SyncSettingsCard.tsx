@@ -37,7 +37,7 @@ export function SyncSettingsCard() {
   };
 
   return (
-    <Card style={{ gap: 10 }}>
+    <Card style={{ gap: 10, marginTop: 14 }}>
       <T variant="title">Sync across phones</T>
       <T variant="small" color={colors.textSecondary}>
         To plan together on different phones: on the computer that runs the app, start the sync server with <T variant="small" weight="bold">npm run server</T>, then make sure every phone has its address.

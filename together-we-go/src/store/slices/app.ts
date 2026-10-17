@@ -27,7 +27,7 @@ export const defaultPersonal: Personal = {
   interests: [],
   travelStyle: 'balanced',
   budgetStyle: 'mid',
-  sections: { glance: true, budget: true, upnext: true, quick: true, forYou: true, nearby: true, discover: true },
+  sections: { glance: true, budget: true, upnext: true, quick: true, forYou: true, nearby: false, discover: true },
   motion: true,
 };
 

@@ -60,6 +60,7 @@ const go = async (p, r) => { await p.goto(BASE + '/' + r, { waitUntil: 'networki
   await p.getByRole('button', { name: /English/ }).click().catch(() => {}); await p.waitForTimeout(600);
   // ---- Demo timeline: in progress -> Today card
   await go(p, 'settings');
+  await p.getByLabel('Advanced settings').click(); await p.waitForTimeout(400); // the demo timeline is folded under Advanced
   await p.mouse.move(195, 500); await p.mouse.wheel(0, 1500); await p.waitForTimeout(500);
   await p.getByRole('button', { name: /in progress/i }).first().click().catch(() => {}); await p.waitForTimeout(500);
   await p.getByRole('button', { name: /Rebuild|Reset|Confirm|Apply/ }).last().click().catch(() => {}); await p.waitForTimeout(800);

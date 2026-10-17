@@ -13,6 +13,7 @@ import { NotificationsCard } from '@/components/settings/NotificationsCard';
 import { ProfileCard } from '@/components/settings/ProfileCard';
 import { SyncSettingsCard } from '@/components/sync/SyncSettingsCard';
 import { Button } from '@/components/ui/Button';
+import { Fold } from '@/components/ui/Fold';
 import { Card, Chip, ListRow, ToggleRow } from '@/components/ui/bits';
 import { confirmAction } from '@/components/ui/feedback';
 import { Press } from '@/components/ui/Press';
@@ -53,12 +54,6 @@ export default function Settings() {
         </View>
         <Ionicons name="chevron-forward" size={20} color={colors.white} />
       </Press>
-      <Card style={{ marginBottom: 14 }}>
-        <ToggleRow icon="sparkles-outline" label="Animations" sub={osReduceMotion ? 'Off for now: your phone’s Reduce Motion setting is on' : 'Flying plane, floating cards and smooth entrances'} value={personal.motion && !osReduceMotion} onChange={(v) => updatePersonal({ motion: v })} />
-      </Card>
-
-      <SyncSettingsCard />
-
       <ProfileCard />
 
       {/* Language */}
@@ -71,17 +66,27 @@ export default function Settings() {
         </View>
       </Card>
 
-      {/* Currency & time */}
-      <Card style={{ marginTop: 14 }}>
-        <ListRow icon="cash-outline" label={t('settings.currency')} sub={`${settings.homeCurrency} · ${currencyByCode(settings.homeCurrency)?.name ?? ''}`} onPress={() => setCurOpen(true)} />
-        <ToggleRow icon="globe-outline" label="Show itinerary times in trip time" sub="Off = convert to your phone’s time zone" value={settings.showTripTime} onChange={(v) => update({ showTripTime: v })} />
-      </Card>
-
       <NotificationsCard />
       <AccessibilityCard />
-      <AssistantCard />
-      <DemoCard />
-      <DataCard />
+
+      <Card style={{ marginTop: 14 }}>
+        <ListRow icon="help-circle-outline" label="How to use TogetherWeGo" onPress={() => router.push('/help')} />
+        <ListRow icon="information-circle-outline" label="About, credits & sources" onPress={() => router.push('/about')} />
+      </Card>
+
+      <Fold title="Advanced" icon="options-outline" label="Advanced settings" summary="Animations, home currency, sync between phones, Claude AI, sample trips, reset">
+        <Card style={{ marginTop: 14 }}>
+          <ToggleRow icon="sparkles-outline" label="Animations" sub={osReduceMotion ? 'Off for now: your phone’s Reduce Motion setting is on' : 'Flying plane, floating cards and smooth entrances'} value={personal.motion && !osReduceMotion} onChange={(v) => updatePersonal({ motion: v })} />
+        </Card>
+        <Card style={{ marginTop: 14 }}>
+          <ListRow icon="cash-outline" label={t('settings.currency')} sub={`${settings.homeCurrency} · ${currencyByCode(settings.homeCurrency)?.name ?? ''}`} onPress={() => setCurOpen(true)} />
+          <ToggleRow icon="globe-outline" label="Show itinerary times in trip time" sub="Off = convert to your phone’s time zone" value={settings.showTripTime} onChange={(v) => update({ showTripTime: v })} />
+        </Card>
+        <SyncSettingsCard />
+        <AssistantCard />
+        <DemoCard />
+        <DataCard />
+      </Fold>
 
       <Button
         label={t('settings.signOut')}

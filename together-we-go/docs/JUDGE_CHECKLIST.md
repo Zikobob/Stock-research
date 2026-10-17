@@ -4,7 +4,7 @@ The sample trip is tidy on purpose. These checks use the app the way a real pers
 
 ## Start from nothing
 - [ ] **Create a new account** (Sign Up) with your own name. You land in a short survey, then an empty Home that says *Plan your first group trip*. There is no sample data.
-- [ ] With the demo account: *Settings → Clear the sample trips*. The app is empty again. *Reset app data* brings the sample trips back.
+- [ ] With the demo account: *Settings → Advanced → Clear the sample trips*. The app is empty again. *Reset app data* brings the sample trips back.
 - [ ] **Create a trip** from scratch (any city, dates, budget). Add an activity, a poll, an expense, a task, a flight.
 
 ## Type the wrong thing
@@ -13,10 +13,11 @@ The sample trip is tidy on purpose. These checks use the app the way a real pers
 - [ ] Join a trip with `ZZZ-9999`, `abc`, an empty code: refused. Join a trip you are already in: refused.
 - [ ] Add a flight with an unknown airport (`XXX`), identical from/to airports, or arrival before departure: refused.
 - [ ] Add an activity that overlaps another: you get a warning.
+- [ ] Add an activity with nothing typed: *Enter a place*. Type `museum` or `pizza` in **Where do you want to go?**: matches appear below the box, each with how far it is from you. Pick one and its address, kind, length and price fill in; or tap *Use “…”* to add your own words.
 - [ ] Type a name with an accent or apostrophe (`Zoë`, `O’Brien`): accepted.
 
 ## Break the connection
-- [ ] Turn on **airplane mode**. Plan, vote, add expenses, open documents and the offline map, ask Scout. Weather and rates show saved data and say so.
+- [ ] Turn on **airplane mode**. Plan, vote, add expenses, open documents and the offline map, ask Scout. Weather and rates show saved data and say so. The place search still matches the trip's saved places and says *No connection, so only saved places are shown*.
 - [ ] With sync on (see below) make a change offline, then turn the connection back on: it reaches the other phone. The badge says *Offline · N waiting* and then *Live*.
 
 ## Two phones

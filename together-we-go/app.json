@@ -49,7 +49,7 @@
       [
         "expo-location",
         {
-          "locationWhenInUsePermission": "TogetherWeGo uses your location to show places nearby, the closest airport and to share your location in an emergency."
+          "locationWhenInUsePermission": "TogetherWeGo uses your location to show how far places are from you, places nearby, the closest airport and to share your location in an emergency."
         }
       ],
       [

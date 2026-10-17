@@ -5,7 +5,6 @@ import { T } from '@/components/ui/T';
 import { useT } from '@/i18n';
 import { useAppStore } from '@/store/useAppStore';
 import type { TextScale } from '@/store/types';
-import { colors } from '@/theme';
 
 const SCALES: { v: TextScale; l: string }[] = [
   { v: 1, l: 'Default' },
@@ -31,9 +30,6 @@ export function AccessibilityCard() {
         ))}
       </View>
       <ToggleRow icon="phone-portrait-outline" label="Haptic feedback" value={settings.haptics} onChange={(v) => update({ haptics: v })} />
-      <T variant="caption" color={colors.textSecondary}>
-        Every button has a screen-reader label, colours meet WCAG AA contrast, and the app follows your phone’s font size too.
-      </T>
     </Card>
   );
 }

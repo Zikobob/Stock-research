@@ -49,6 +49,10 @@ function PlanInner() {
   const [day, setDay] = useState<'all' | string>('all');
   const [cat, setCat] = useState<'all' | ActivityType>('all');
   const [len, setLen] = useState<LengthFilter>('any');
+  // The kind and length filters stay folded away until asked for (or while one is on, so it is never a hidden reason for an empty list).
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const filtering = cat !== 'all' || len !== 'any';
+  const showFilters = filtersOpen || filtering;
   const [addOpen, setAddOpen] = useState(false);
   const [editing, setEditing] = useState<Activity | null>(null);
   const [assigning, setAssigning] = useState<Activity | null>(null);
@@ -111,22 +115,32 @@ function PlanInner() {
           <Chip key={d} label={`Day ${i + 1} · ${dayLabel(d)}`} active={selectedDay === d} onPress={() => setDay(d)} />
         ))}
       </ScrollView>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips} style={styles.chipScroll}>
-        {activityFilters.map((f) => (
-          <Chip key={f.key} small label={f.key === 'all' ? t(f.labelKey) : `${typeEmoji[f.key]} ${t(f.labelKey)}`} active={cat === f.key} onPress={() => setCat(f.key)} />
-        ))}
-      </ScrollView>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips} style={styles.chipScroll}>
-        {LENGTH_FILTERS.map((f) => (
-          <Chip key={f.key} small icon={f.key === 'any' ? undefined : 'timer-outline'} label={t(f.labelKey)} active={len === f.key} onPress={() => setLen(f.key)} />
-        ))}
-      </ScrollView>
+      {showFilters ? (
+        <>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips} style={styles.chipScroll}>
+            {activityFilters.map((f) => (
+              <Chip key={f.key} small label={f.key === 'all' ? t(f.labelKey) : `${typeEmoji[f.key]} ${t(f.labelKey)}`} active={cat === f.key} onPress={() => setCat(f.key)} />
+            ))}
+          </ScrollView>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips} style={styles.chipScroll}>
+            {LENGTH_FILTERS.map((f) => (
+              <Chip key={f.key} small icon={f.key === 'any' ? undefined : 'timer-outline'} label={t(f.labelKey)} active={len === f.key} onPress={() => setLen(f.key)} />
+            ))}
+          </ScrollView>
+        </>
+      ) : null}
 
       <View style={styles.tzRow}>
         <Ionicons name="globe-outline" size={13} color={colors.textMuted} />
-        <T variant="caption" color={colors.textMuted}>
+        <T variant="caption" color={colors.textMuted} style={{ flex: 1 }}>
           Times are in {dest?.city ?? 'local'} time ({tzAbbrev(tz)}, {utcOffsetLabel(tz)}){days.includes(today) ? ' · today is on the trip' : ''}
         </T>
+        <Press onPress={() => (filtering ? (setCat('all'), setLen('any'), setFiltersOpen(false)) : setFiltersOpen((o) => !o))} hitSlop={8} style={styles.filterBtn} accessibilityLabel={filtering ? 'Clear filters' : showFilters ? 'Hide filters' : 'Show filters'}>
+          <Ionicons name={filtering ? 'close-circle' : 'options-outline'} size={14} color={colors.textSecondary} />
+          <T variant="caption" weight="semibold" color={colors.textSecondary}>
+            {filtering ? 'Clear' : 'Filter'}
+          </T>
+        </Press>
       </View>
 
       <View style={{ marginTop: 10 }}>
@@ -178,5 +192,6 @@ const styles = StyleSheet.create({
   chipScroll: { marginHorizontal: -20, marginTop: 12, flexGrow: 0 },
   chips: { gap: 8, paddingHorizontal: 20 },
   tzRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 14 },
+  filterBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingLeft: 8 },
   addRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 12, marginTop: 4 },
 });

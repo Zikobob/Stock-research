@@ -9,7 +9,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { headingOf, K, layout, PanoramaScene, posForHeading } from '@/components/panorama/Scene';
 import { timeOfDayAt } from '@/components/SkylineHero';
 import { toast } from '@/components/ui/feedback';
-import { useMotion } from '@/components/ui/motion';
+import { nativeDriver, useMotion } from '@/components/ui/motion';
 import { Press, tap } from '@/components/ui/Press';
 import { T } from '@/components/ui/T';
 import { useNow } from '@/hooks/useTrip';
@@ -62,9 +62,10 @@ export default function PanoramaScreen() {
     return () => pos.removeListener(id);
   }, [pos]);
 
-  // Day ↔ night cross-fade.
+  // Day ↔ night cross-fade. `night` and `pos` are mixed with the scene's looping lights (which run on the phone's native driver),
+  // and one value cannot be driven both ways: a JS-driven animation on it crashes ("moved to native earlier"). Use `nativeDriver` for both.
   useEffect(() => {
-    const anim = Animated.timing(night, { toValue: mode === 'night' ? 1 : 0, duration: motion ? 1200 : 0, easing: Easing.inOut(Easing.cubic), useNativeDriver: false });
+    const anim = Animated.timing(night, { toValue: mode === 'night' ? 1 : 0, duration: motion ? 1200 : 0, easing: Easing.inOut(Easing.cubic), useNativeDriver: nativeDriver });
     anim.start();
     return () => anim.stop();
   }, [mode, night, motion]);
@@ -97,7 +98,7 @@ export default function PanoramaScreen() {
       return;
     }
     busyRef.current = true;
-    Animated.timing(pos, { toValue: posRef.current + delta, duration: 800, easing: Easing.out(Easing.cubic), useNativeDriver: false }).start(() => {
+    Animated.timing(pos, { toValue: posRef.current + delta, duration: 800, easing: Easing.out(Easing.cubic), useNativeDriver: nativeDriver }).start(() => {
       busyRef.current = false;
     });
   };
@@ -189,8 +190,7 @@ export default function PanoramaScreen() {
             accessibilityHint="Long press to follow local time">
             <Ionicons name={mode === 'night' ? 'moon' : 'sunny'} size={15} color={mode === 'night' ? '#FFE9A8' : '#FFFFFF'} />
             <T variant="micro" weight="bold" color={colors.white}>
-              {mode === 'night' ? 'Night · lights on' : 'Day'}
-              {forced ? '' : ' · live'}
+              {mode === 'night' ? 'Night' : 'Day'}
             </T>
           </Press>
         </View>

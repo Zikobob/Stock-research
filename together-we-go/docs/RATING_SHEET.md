@@ -54,7 +54,7 @@ The FBLA 2026-27 *Mobile Application Development* rating sheet has 16 scored lin
 - [ ] No food or animals. Topic stays "Together We Go: Group Trip Planner".
 - [ ] Do not talk to the judges during the 3-minute set-up.
 - [ ] Every teammate presents a part.
-- [ ] Venue wifi may fail: use *Settings → Demo timeline*, airplane-mode offline demo, and the screenshots in `docs/screenshots/` as a backup.
+- [ ] Venue wifi may fail: use *Settings → Advanced → Demo timeline*, airplane-mode offline demo, and the screenshots in `docs/screenshots/` as a backup.
 
 ## Honest weak spots (so you are not surprised in Q&A)
 

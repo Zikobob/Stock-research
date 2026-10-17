@@ -16,6 +16,7 @@ npm run e2e -- twophones overflow      # only some scripts
 | `verify2.js` | Crew roles, polls and checklist, flights and validation, packing, recap, language switch, trip phases, joining a trip |
 | `verify3.js` | Sign-up, the personalisation survey, themes, the first-run tour |
 | `verify4.js` | The 360° city views: spin, day and night, landmarks, city picker |
+| `places.js` | The "Where do you want to go?" box: matches appear as you type, each with how far it is from you; pick one, type your own, no connection, location not shared |
 | `motion.js` | The phone's *Reduce Motion* setting: nothing hidden, nothing moving, Settings says why |
 | `overflow.js` | **Every screen** at 390 px, 320 px and with larger text: nothing may stick out sideways |
 | `nesting.js` | **Every screen**: no button may sit inside another button (React's *"`<button>` cannot contain a nested `<button>`"* warning) |

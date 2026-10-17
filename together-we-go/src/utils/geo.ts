@@ -29,7 +29,7 @@ export function compassPoint(deg: number): string {
 export function kmLabel(km: number): string {
   if (km < 1) return `${Math.round(km * 1000)} m`;
   if (km < 10) return `${km.toFixed(1)} km`;
-  return `${Math.round(km)} km`;
+  return `${Math.round(km).toLocaleString('en-US')} km`;
 }
 
 /** Rough door-to-door estimate for city driving / airport transfer. */

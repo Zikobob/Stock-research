@@ -13,7 +13,7 @@ const dist = path.join(__dirname, '.dist');
 const port = Number(process.env.E2E_PORT) || 8081;
 const args = process.argv.slice(2);
 const wanted = args.filter((a) => !a.startsWith('--'));
-const ALL = ['verify', 'verify2', 'verify3', 'verify4', 'motion', 'overflow', 'nesting', 'twophones'];
+const ALL = ['verify', 'verify2', 'verify3', 'verify4', 'places', 'motion', 'overflow', 'nesting', 'twophones'];
 const LIMIT_MS = { overflow: 600000, twophones: 400000 }; // anything else gets 5 minutes
 
 function run(script) {

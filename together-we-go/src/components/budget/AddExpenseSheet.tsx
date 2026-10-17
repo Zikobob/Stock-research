@@ -20,6 +20,7 @@ import { totalSpent, useAppStore } from '@/store/useAppStore';
 import { colors } from '@/theme';
 import { money } from '@/utils/format';
 import { todayInTz } from '@/utils/time';
+import { guessExpenseCategory } from '@/utils/guess';
 import { firstError, maxLen, parseAmount, required, validateAmount } from '@/utils/validation';
 
 import { styles } from './styles';
@@ -35,12 +36,18 @@ export function AddExpenseSheet({ visible, onClose, trip, userId }: { visible: b
   const [title, setTitle] = useState('');
   const [amount, setAmount] = useState('');
   const [entryCur, setEntryCur] = useState<'USD' | string>('USD');
-  const [cat, setCat] = useState<ExpenseCategory>('Food');
+  const [cat, setCat] = useState<ExpenseCategory>('Other');
+  // Until the person picks a category, it follows the words they typed ("Taxi" is Transport).
+  const [catTouched, setCatTouched] = useState(false);
+  const [more, setMore] = useState(false);
   const [paidBy, setPaidBy] = useState(userId);
   const [split, setSplit] = useState<string[]>(trip.members.map((m) => m.id));
   const [receipt, setReceipt] = useState<string | null>(null);
   const [attaching, setAttaching] = useState(false);
   const [errors, setErrors] = useState<Record<string, string | null>>({});
+
+  const payer = paidBy === userId ? 'you' : (trip.members.find((m) => m.id === paidBy)?.name.split(' ')[0] ?? 'someone');
+  const everyone = split.length === trip.members.length;
 
   const attach = async (camera: boolean) => {
     setAttaching(true);
@@ -69,7 +76,10 @@ export function AddExpenseSheet({ visible, onClose, trip, userId }: { visible: b
       split: split.length ? null : 'Pick at least one person to split with',
     };
     setErrors(e);
-    if (Object.values(e).some(Boolean)) return tap('warning');
+    if (Object.values(e).some(Boolean)) {
+      if (e.split) setMore(true);
+      return tap('warning');
+    }
     const n = parseAmount(amount)!;
     const usd = entryCur === 'USD' ? n : convert(n, entryCur, 'USD', rates);
     const spent = totalSpent(trip);
@@ -88,6 +98,9 @@ export function AddExpenseSheet({ visible, onClose, trip, userId }: { visible: b
     setTitle('');
     setAmount('');
     setReceipt(null);
+    setCat('Other');
+    setCatTouched(false);
+    setMore(false);
     onClose();
     if (spent + usd > trip.budget && spent <= trip.budget) toast('Heads up: this puts the group over budget', { tone: 'warn' });
   };
@@ -99,7 +112,17 @@ export function AddExpenseSheet({ visible, onClose, trip, userId }: { visible: b
       title={t('budget.addExpense')}
       footer={<Button label={t('budget.add')} icon="add" onPress={submit} testID="add-expense" />}>
       <View style={{ gap: 12 }}>
-        <Input placeholder={t('budget.whatFor')} value={title} onChangeText={setTitle} error={errors.title} maxLength={45} testID="expense-title" />
+        <Input
+          placeholder={t('budget.whatFor')}
+          value={title}
+          onChangeText={(text) => {
+            setTitle(text);
+            if (!catTouched) setCat(guessExpenseCategory(text));
+          }}
+          error={errors.title}
+          maxLength={45}
+          testID="expense-title"
+        />
         <View style={{ flexDirection: 'row', gap: 8 }}>
           <Input placeholder="100" value={amount} onChangeText={setAmount} keyboardType="decimal-pad" error={errors.amount} containerStyle={{ flex: 1 }} icon="cash-outline" testID="expense-amount" />
           <View style={styles.curToggle}>
@@ -117,45 +140,67 @@ export function AddExpenseSheet({ visible, onClose, trip, userId }: { visible: b
             ≈ {money(convert(parseAmount(amount)!, entryCur, 'USD', rates), 'USD', { decimals: true })} — saved in USD so the group can compare
           </T>
         ) : null}
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6 }}>
-          {expenseCategories.map((c) => (
-            <Chip key={c.key} small label={c.key} icon={c.icon} active={cat === c.key} onPress={() => setCat(c.key)} />
-          ))}
-        </ScrollView>
-        <T variant="caption" weight="semibold" color={colors.textSecondary}>
-          Paid by
-        </T>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6 }}>
-          {trip.members.map((m) => (
-            <Chip key={m.id} small label={m.name.split(' ')[0]} image={m.avatar} active={paidBy === m.id} onPress={() => setPaidBy(m.id)} />
-          ))}
-        </ScrollView>
-        <View style={styles.rowBetween}>
-          <T variant="caption" weight="semibold" color={colors.textSecondary}>
-            Split between ({split.length})
+        <Press onPress={() => setMore((m) => !m)} style={styles.rowBetween} accessibilityLabel="Change who paid, the split or the category" accessibilityState={{ expanded: more }}>
+          <T variant="small" color={colors.textSecondary} style={{ flex: 1 }}>
+            Paid by {payer} · split {everyone ? 'with everyone' : split.length === 1 && split[0] === userId ? 'just for you' : `between ${split.length}`} · {cat}
           </T>
-          <Press onPress={() => setSplit(split.length === trip.members.length ? [userId] : trip.members.map((m) => m.id))} hitSlop={8}>
-            <T variant="caption" weight="bold">
-              {split.length === trip.members.length ? 'Just me' : 'Everyone'}
+          <T variant="small" weight="bold">
+            {more ? 'Done' : 'Change'}
+          </T>
+        </Press>
+        {more ? (
+          <View style={{ gap: 12 }}>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6 }}>
+              {expenseCategories.map((c) => (
+                <Chip
+                  key={c.key}
+                  small
+                  label={c.key}
+                  icon={c.icon}
+                  active={cat === c.key}
+                  onPress={() => {
+                    setCat(c.key);
+                    setCatTouched(true);
+                  }}
+                />
+              ))}
+            </ScrollView>
+            <T variant="caption" weight="semibold" color={colors.textSecondary}>
+              Paid by
             </T>
-          </Press>
-        </View>
-        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
-          {trip.members.map((m) => (
-            <Chip
-              key={m.id}
-              small
-              label={m.name.split(' ')[0]}
-              icon={split.includes(m.id) ? 'checkmark' : undefined}
-              active={split.includes(m.id)}
-              onPress={() => setSplit((s) => (s.includes(m.id) ? s.filter((x) => x !== m.id) : [...s, m.id]))}
-            />
-          ))}
-        </View>
-        {errors.split ? (
-          <T variant="caption" color={colors.red}>
-            {errors.split}
-          </T>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6 }}>
+              {trip.members.map((m) => (
+                <Chip key={m.id} small label={m.name.split(' ')[0]} image={m.avatar} active={paidBy === m.id} onPress={() => setPaidBy(m.id)} />
+              ))}
+            </ScrollView>
+            <View style={styles.rowBetween}>
+              <T variant="caption" weight="semibold" color={colors.textSecondary}>
+                Split between ({split.length})
+              </T>
+              <Press onPress={() => setSplit(split.length === trip.members.length ? [userId] : trip.members.map((m) => m.id))} hitSlop={8}>
+                <T variant="caption" weight="bold">
+                  {split.length === trip.members.length ? 'Just me' : 'Everyone'}
+                </T>
+              </Press>
+            </View>
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
+              {trip.members.map((m) => (
+                <Chip
+                  key={m.id}
+                  small
+                  label={m.name.split(' ')[0]}
+                  icon={split.includes(m.id) ? 'checkmark' : undefined}
+                  active={split.includes(m.id)}
+                  onPress={() => setSplit((s) => (s.includes(m.id) ? s.filter((x) => x !== m.id) : [...s, m.id]))}
+                />
+              ))}
+            </View>
+            {errors.split ? (
+              <T variant="caption" color={colors.red}>
+                {errors.split}
+              </T>
+            ) : null}
+          </View>
         ) : null}
         <View style={styles.receiptRow}>
           <Button label="Attach receipt" icon="camera-outline" variant="soft" size="md" loading={attaching} onPress={() => attach(false)} style={{ flex: 1 }} />
