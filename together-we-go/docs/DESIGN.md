@@ -1,99 +1,114 @@
 # TogetherWeGo design system
 
-**The idea: quiet base, loud moments.** The frame of the app is calm: a neutral canvas, black text, black buttons, one condensed headline face. Colour, motion and celebration are saved for the moments that matter: the hero, the countdown, a vote locking in, a quiz win, the last step of "Make it yours". When everything is loud nothing is, so each screen gets at most one loud thing.
+**The idea: a boarding pass printed on paper.** The app looks like the things you carry on a trip: tickets, stamps, a departures board, a passport. A warm paper page, black ink for every word and outline, one flat accent colour used like a highlighter, and a hard "plate" of ink under the things you can press. Nothing glows, blurs or fades. That restraint is what makes it look designed instead of generated.
 
-This page is the reference for anyone changing the look. The colours live in `src/theme/palettes.ts` (plain data, unit-tested), the other tokens in `src/theme/index.ts`, the building blocks in `src/components/ui/`.
+The second idea is **quiet base, loud moments**: the frame is calm, and colour, motion and celebration are kept for the moments that matter (the countdown, a vote locking in, a quiz win). Each screen has at most one loud thing.
+
+The colours live in `src/theme/palettes.ts` (plain data, unit-tested), the other tokens in `src/theme/index.ts`, the building blocks in `src/components/ui/`.
 
 ## 1. Look
 
 ### Colour: a theme (accent) and a mode (light, dark, or follow the phone)
 
-| Part | Light | Dark |
+| Part | Light (paper) | Dark (night flight) |
 |---|---|---|
-| Page | `#FFFFFF` | `#121212` (never pure black) |
-| Card, then sheet | white, white | `#1E1E1E`, then `#2A2A2A`: height is shown by a **lighter surface**, not a shadow |
-| Text, then secondary, then muted | `#0A0A0A`, `#4A4A4A`, `#6B6B6B` | `#F5F5F5`, `#BDBDBD`, `#A0A0A0` |
-| Primary action (every main button) | black | white |
+| Page | `#F4EFE4` | `#121212` |
+| Card | `#FFFDF8` | `#1E1C19` |
+| Sheet | `#FFFDF8` | `#2A2722` (height = a lighter surface) |
+| Ink: text, every outline, main buttons | `#16130E` | `#F1EADC` (cream) |
+| Secondary, muted text | `#4D463A`, `#6B6353` | `#C4BCAA`, `#A39B89` |
+| Plate (the hard shadow) | ink | the accent |
 
-Every theme adds **one** vivid accent and a soft gradient wash for the top of a page:
+Six themes, each adding **one flat accent** (used as a fill, never as a gradient):
 
-| Theme | Accent (light, dark) | Wash |
+| Theme | Light | Dark |
 |---|---|---|
-| Amalfi 🍋 (default) | lemon `#FBC91B`, `#F2CC4A` | pale lemon |
-| Sunset 🌅 | `#FF5A36`, `#FF8A6B` | peach to pink |
-| Lagoon 🌊 | `#00B3A4`, `#4FD1C5` | mint |
-| Rose 🌸 | `#F2427F`, `#FF8DB3` | blossom |
-| Midnight 🌙 | `#7A5CFF`, `#B69CFF` (soft violet) | violet; picking it switches to dark |
-| Classic ⚪ | black or white | none |
+| Limoncello (default) | `#FFD23F` | `#F6CF4D` |
+| Tomato | `#FF5B37` | `#FF8461` |
+| Lagoon | `#25CDB8` | `#4FD8C8` |
+| Bubblegum | `#FF8DB8` | `#FF9EC4` |
+| Grape (picking it switches to dark) | `#A394FF` | `#B7A9FF` |
+| Ink | black | cream |
 
 Rules:
 
-* The accent is for **fills, rings, the countdown, the active tab bar and celebrations**. As text use `accentText`, which is the accent darkened (or lightened) until it passes 4.5:1.
-* Gradients are a **background wash only**, never on a button.
-* **Green, amber and red mean a state** (under, near or over budget; going, maybe, can't go; delete). They are never decoration.
-* The dark mode desaturates every accent.
+* The accent is a **highlighter**: selected chips, the tab sticker, the plate under the main button in the light mode, the one stamp that matters, a bar that fills. Text on it is ink (`onAccent`). As text on paper use `accentText`, the accent darkened until it passes 4.5:1.
+* **No gradients** (a scrim on a photo, so type stays readable, is the only exception) and **no soft or blurred shadows**.
+* **Green, amber and red mean a state** (under budget, near, over; going, maybe, can't go; delete) and are never decoration. A state also gets an icon or a word, never colour alone.
+* **No emoji as decoration.** Icons are Ionicons line icons. Emoji appear only where a person typed them (a nickname, a message).
 * Every text pair is checked by `src/theme/__tests__/palettes.test.ts`: body text reaches 4.5:1 (WCAG AA) on every surface in all 6 themes in both modes.
-* The person picks the theme and mode in *Make it yours* or *Settings*. `System` is the default and follows the phone when the app opens.
 
-### Type: three tiers (`T` in `src/components/ui/T.tsx`)
+### Type: three voices (`T` in `src/components/ui/T.tsx`)
 
-| Tier | Variants | Use |
+| Voice | Font | Variants | Use |
+|---|---|---|---|
+| **Serif** | Fraunces, heavy | `display` 40, `headline` 26 | Page titles and section titles. Sentence case. Never for paragraphs, never below 26 px. |
+| **Mono** | Space Mono bold | `hero` 72, `numeral` 34, `numeralSm` 22, `kicker` 11 (caps) | Every number that matters (days, money, times, scores) and the small caps labels (DAY 02 / 05, POSITANO, WHO PAID). The print on a ticket. |
+| **Grotesk** | Space Grotesk | `h1` 26, `h2` 21, `h3` 18, `title` 16, `body` 16, `bodySm` 15, `small` 14, `caption` 12.5, `micro` 11 | Everything you read. |
+
+### Shape, depth and space
+
+* **Outline:** every card, button, input and chip has a 2 px ink outline (`line`). Dividers *inside* a card are 1 px (`hair`). Section titles sit over a 2 px rule (`Rule`).
+* **Radius:** 10 for buttons and inputs, 12 for cards and images, 16 for sheets and dialogs, 8 for chips and tags. Round shapes are only for avatars, dots and the notches of a ticket. *Corner style* in Settings scales them.
+* **Plate:** pressable things and the one standing card per screen have a solid plate 4 px right and down (`Plate`, `PlatePress`). Pressing slides the face onto the plate. Flat cards have no plate.
+* **Space:** a 4-point scale (`space`). The gap **between** blocks (`space.section`, 32) is always bigger than the gap **inside** one (8 to 16).
+* **Touch:** everything you tap is at least 44 x 44 points (`touch.min`) in its real size. Buttons are 44, 48 or 56 high.
+
+### Motifs (use these, do not invent new ones)
+
+| Motif | Component | Where |
 |---|---|---|
-| **Display**: Anton, condensed, uppercase, tight tracking (-0.03em) | `hero` 96, `display` 44, `headline` 28, `numeral` 40, `numeralSm` 28 | The big countdown, page titles, section titles, and **numbers that matter** (days, money, scores). Never below 26 px, never for paragraphs. |
-| **Heading**: Manrope bold | `h1` 28, `h2` 22, `h3` 20 | Card and sheet titles |
-| **Body and UI**: Manrope 400 to 700 | `title` 16, `body` 16, `bodySm` 15, `small` 14, `caption` 12.5, `kicker` 11.5, `micro` 11 | Everything else |
-
-### Shape, space and depth
-
-* **Radius:** 8 for buttons and inputs (`radius.button`), 12 for cards and images (`radius.card`), 16 for sheets and dialogs (`radius.modal`), fully round for pills, chips and tab selectors. *Corner style* in Settings scales them.
-* **Space:** a 4-point scale (`space`). The gap **between** blocks on a page (`space.section`, 32) is always bigger than any gap **inside** one block.
-* **Shadows** only on cards and floating things, and only in the light mode.
-* **Touch:** everything you tap is at least 44 x 44 points (`touch.min`). `Press` adds an invisible hit area to anything smaller. Buttons are 44, 48 or 56 high.
+| **Ticket** with a perforated stub and punched edges | `Ticket` | The trip on Home, Up next, flights, the invitation, the recap |
+| **Stamp**: a short word in mono caps in an outline, slightly crooked | `Stamp` | Every status: GOING, LOCKED IN, SETTLED, OVER BUDGET, NEW BEST. It can slam in (`slam`). |
+| **Departures board** digits that flip | `SplitFlap` | The countdown (days to go) |
+| **Plate** under a button or card | `Plate`, `PlatePress` | Buttons, the floating add button, the standing card |
+| **Rule** (solid) and **Perforation** (dashed) | `Rule`, `Perforation` | Under titles, between a ticket's halves |
+| **Sticker** (accent block with an outline) | tab bar, `Fab`, chosen `Chip` | The thing that is selected or main |
 
 ### Motion (`src/components/ui/motion.tsx`)
 
-* Press: squeeze to 96% and spring back with a little overshoot (`Press`). Small things take 150 to 250 ms, sheets 340 ms (`timing`).
-* Headlines slide up word by word, 50 ms apart (`StaggerText`); a countdown's digits roll when they change (`RollingNumber`); photo heroes zoom slowly (Ken Burns, 1.0 to 1.08) and drift against the scroll (parallax).
-* **Everything that moves is gated.** It stops when the person turns *Animations* off in Settings or the phone's *Reduce Motion* is on (`useMotion`). Replace movement with a fade, never remove the content.
-* **Celebrations are rare and chosen:** a quiz win, an activity or poll locking in, a settled budget, "1 day to go", the end of *Make it yours*. `celebrate()` ticks the haptic and throws confetti according to the *Effects* setting (Chill: none, Lively: some, Max: lots).
-* **Loading** shows a `Skeleton` the size of the real thing. **Empty** screens are invitations (`EmptyState`): a big playful picture, a display-type prompt, one button.
+* Pressing a plated thing slides it onto its plate (70 ms) and springs back; anything else squeezes to 96%. Small things take 150 to 250 ms, sheets 340 ms.
+* Headlines slide up word by word (`StaggerText`); the countdown flips (`SplitFlap`); the photo hero zooms slowly and drifts against the scroll.
+* **Everything that moves is gated** by `useMotion()`: it stops when *Animations* is off or the phone's *Reduce Motion* is on. Replace movement with a fade, never remove content.
+* **Celebrations are rare and chosen** (`celebrate()`): a quiz win, an activity or poll locking in, a settled budget, "1 day to go", the end of *Make it yours*. The haptic always ticks; confetti follows the *Effects* setting (Chill none, Lively some, Max lots).
+* **Loading** shows a `Skeleton` the size of the real thing. **Empty** screens are invitations (`EmptyState`): a line icon in a dashed ring, a serif prompt, one button.
 
 ## 2. Structure
 
-* **Five tabs:** Home, Plan, Budget, Chat, More. Home is first and More last, the two ends that are easiest to find. The accent bar on the tab bar slides to where you are.
-* **Home**, top to bottom, in the order of the chosen layout (*Planner*, *Money* or *Party*; any block can be hidden or moved in Settings): hero with the countdown (3 DAYS TO GO, then DAY 2 OF 5, then a recap), Up next, Weather, Group budget, Your crew, Play (today's trivia, the crew-points podium, something to vote on), then Picked for you and Discover.
-* **Make it yours** is short: Welcome, Look (theme and mode), Interests, Home layout, Vibe (effects and a trivia reminder), then a reveal. One question per screen, every step can be skipped, and every answer changes the app you can see. Everything is editable later in Settings, and Settings has *Make it yours again*.
-* **One main action per screen** in the thumb zone: a black round **+** button at the bottom right (`Fab`) or a sticky button at the bottom of a sheet.
+* **Five tabs:** Home, Plan, Budget, Chat, More. Home first and More last, the ends that are easiest to find. A sticker slides to where you are.
+* **Home**, in the order of the chosen layout (*Planner*, *Money* or *Party*; any block can be hidden or moved in Settings): the boarding pass (photo, days to go, crew, invite code), Up next, Weather, Group budget, Your crew, Play (today's trivia, the crew-points podium, something to vote on), then Picked for you and Discover.
+* **Make it yours** is short: Welcome, Look (theme and mode), Interests, Home layout, Vibe (effects and a trivia reminder), then a reveal. One question per screen, every step skippable, every answer changes the app you can see, all editable later in Settings, with *Make it yours again*.
+* **One main action per screen** in the thumb zone: the accent **+** button at the bottom right (`Fab`) or a black button at the bottom of a sheet.
 
 ## 3. The Laws of UX, and how the app uses them
 
 | Law | In plain words | What the app does |
 |---|---|---|
-| **Hick's law** | More choices, slower decisions | Five tabs; More is 4 groups of big tiles; settings are split into a few cards with the rest under *Advanced*; Add activity asks for a place first and hides the rest under *More options*; Home shows the blocks you chose. |
-| **Fitts's law** | Big, close targets are easy | Every tap target is at least 44 pt (`Press` grows small ones); the main action sits in the thumb zone; buttons are 44 to 56 high; destructive buttons are never next to the main one. |
-| **Jakob's law** | People expect what other apps do | Bottom tabs, a back chevron, pull to refresh, bottom sheets, a share sheet, standard switches and a keyboard that does not cover the field. |
-| **Miller's law** and **chunking** | Short lists are easier to remember | Lists are grouped under headings (Your trip, Around town, Just for fun, The app); the crew strip shows 5 faces and "+3"; sheets group fields in 3 to 5. |
-| **Law of proximity** and **common region** | Things that belong together sit together | Space between blocks (32) is always bigger than inside one (8 to 16); each idea sits in its own card. |
-| **Law of similarity** | Things that look alike behave alike | One button style per kind of action; chips always choose; pills are labels; icons are one family. |
-| **Law of Prägnanz** | People read the simplest shape | Flat cards, one border style, one radius per kind of object, no gradients on controls. |
-| **Von Restorff effect** | The odd one out gets remembered | The accent and the one black button are the only loud things on a screen, so they are the ones you notice. |
-| **Aesthetic-usability effect** | Beautiful feels easier | A systematic type scale, a calm palette, a real photo hero and smooth motion. |
-| **Doherty threshold** | Answer within 400 ms | Optimistic updates, skeletons the size of the real thing, saved places shown at once while the web results load, 150 to 250 ms transitions. |
-| **Goal-gradient** and **Zeigarnik effect** | Progress pulls you to finish | The step bar in *Make it yours*, the budget bar, the packing and checklist progress, "3 days to go". |
-| **Peak-end rule** | People remember the high point and the end | Confetti at the moments that matter and a "Building your trip HQ" reveal at the end of the survey; the trip recap is a shareable card. |
-| **Serial position effect** | The first and last items stick | Home first and More last in the tab bar; the main action first in a list of actions; the invite button is in the first row of the crew block. |
-| **Tesler's law** | Someone has to deal with the complexity: the app, not the user | Categories are guessed from the words, the distance to a place is worked out for you, currencies are converted, time zones are shown for you. |
-| **Postel's law** | Be liberal in what you accept | "the museum" finds "Museum"; dates and times are checked kindly; one-tap suggestions fill forms. |
-| **Mental model** and **paradox of the active user** | People start using it at once and do not read manuals | A short tour and tooltips instead of a manual; a demo account; nothing needs reading before it can be used. |
-| **Cognitive load** and **selective attention** | Less to take in at once | Progressive disclosure (*More options*, *Advanced*, *Filter*), one question per screen, calm base colours so the few bright things are seen. |
+| **Hick's law** | More choices, slower decisions | Five tabs; More is 4 groups of big tiles; settings are a few cards with the rest under *Advanced*; Add activity asks for a place first and hides the rest under *More options*; Home shows the blocks you chose. |
+| **Fitts's law** | Big, close targets are easy | Every tap target is at least 44 pt (`e2e/targets.js` checks every screen); the main action sits in the thumb zone; destructive buttons are never next to the main one. |
+| **Jakob's law** | People expect what other apps do | Bottom tabs, a back arrow, pull to refresh, bottom sheets, a share sheet, standard switches, a keyboard that does not cover the field. |
+| **Miller's law**, **chunking** | Short lists are easier to hold | Lists are grouped under headings; the crew shows 4 faces and "+3"; sheets group fields in 3 to 5. |
+| **Proximity**, **common region** | Things that belong together sit together | 32 between blocks, 8 to 16 inside; each idea sits in its own outlined card. |
+| **Similarity** | Things that look alike behave alike | One button style per kind of action; chips always choose; stamps are always labels; one icon family. |
+| **Prägnanz** | People read the simplest shape | Flat paper, one outline weight, three radii, no gradients, no shadows. |
+| **Von Restorff effect** | The odd one out is remembered | The accent and the one black button are the only loud things on a screen, so they are what you notice. |
+| **Aesthetic-usability effect** | Beautiful feels easier | One idea (a boarding pass), applied everywhere, with real photos and a systematic type scale. |
+| **Doherty threshold** | Answer within 400 ms | Optimistic updates, skeletons, saved places shown at once while web results load, 70 to 250 ms transitions. |
+| **Goal-gradient**, **Zeigarnik** | Progress pulls you to finish | The step bar in *Make it yours*, the budget bar, packing and checklist progress, a countdown. |
+| **Peak-end rule** | The high point and the end are remembered | Confetti and a stamp slam at the moments that matter, a "Building your trip HQ" reveal at the end of the survey, a trip recap you can share. |
+| **Serial position effect** | First and last items stick | Home first and More last in the tab bar; the main action first in a list of actions. |
+| **Tesler's law** | The app, not the user, absorbs complexity | Categories are guessed from the words, distances are worked out for you, currencies are converted, time zones are shown for you. |
+| **Postel's law** | Be liberal in what you accept | "the museum" finds "Museum"; dates and times are checked kindly; half-typed forms are kept (`useDraft`). |
+| **Mental model**, **paradox of the active user** | People start using it at once | A demo account, a short tour instead of a manual, familiar words. |
+| **Cognitive load**, **selective attention** | Less to take in at once | Progressive disclosure (*More options*, *Advanced*, *Filter*), one question per screen, a calm base so the few bright things are seen. |
 | **Choice overload** | Too many options freeze people | Presets first (three Home layouts, six themes), custom second. |
 
 ## 4. Accessibility
 
-* **Contrast:** unit-tested (see above). **Text size:** the Settings switch scales text; the display tier grows less so layouts hold. **Reduce Motion** is respected; nothing is hidden when motion stops.
-* **Targets:** at least 44 pt; `e2e/targets.js` fails if a visible control is smaller than 44 x 44.
-* **Screen readers:** every control has a name; the headline is one heading; the countdown reads as a sentence; decorative art is hidden.
-* **Colour is never the only signal:** states also have an icon or a word.
+* **Contrast:** unit-tested. **Text size:** the Settings switch scales text; the serif and mono voices grow less so layouts hold. **Reduce Motion** is respected and nothing is hidden when motion stops.
+* **Targets:** at least 44 pt; `e2e/targets.js` fails on anything smaller.
+* **Screen readers:** every control has a name; the countdown reads as a sentence; decorative marks are hidden.
+* **Colour is never the only signal.**
 
 ## 5. Checking the design
 
@@ -103,4 +118,4 @@ npm run e2e                      # every screen at 3 sizes, no nested buttons, t
 node e2e/shoot.js --modes=light,dark --themes=amalfi,midnight --routes=explore,itinerary   # pictures to look at
 ```
 
-When you add a screen: use `Screen` and `Header`, the `T` variants and the tokens (no loose hex colours or font sizes), one `Fab` or one primary `Button`, an `EmptyState`, a `Skeleton` for anything that loads, `celebrate()` only for a real achievement, and look at it in the light and the dark mode.
+**Before adding or changing a screen:** use `Screen` and `Header`, the `T` variants and the tokens (no loose hex colours or font sizes), one `Fab` or one primary `Button`, `Stamp` for statuses, an `EmptyState`, a `Skeleton` for anything that loads, `celebrate()` only for a real achievement, no emoji, no gradient, no soft shadow. Then look at it in the light and the dark mode.
