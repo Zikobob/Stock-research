@@ -1,81 +1,41 @@
-import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { View } from 'react-native';
 
-import { FadeIn } from '@/components/ui/motion';
-import { Press } from '@/components/ui/Press';
-import { T } from '@/components/ui/T';
+import { celebrate } from '@/components/ui/Confetti';
+import { TRIVIA_REMINDER } from '@/data/personal';
 import type { Personal } from '@/store/types';
-import { themes, type CornerStyle, type ThemeKey } from '@/theme';
 
+import { EFFECT_OPTIONS } from '../options';
 import type { Pal } from '../palette';
-import { paletteOf } from '../palette';
-import { styles } from '../styles';
-import { MiniPreview, StepTitle } from '../parts';
+import { OptionRow, StepHeading, SwitchRow, Tx, type SetPersonal } from '../parts';
 
-export function StepVibe({ pal, p, theme, setTheme, corners, shownName }: { pal: Pal; p: Personal; theme: ThemeKey; setTheme: (k: ThemeKey) => void; corners: CornerStyle; shownName: string }) {
+/** Step 5: how big the celebrations are (tap to try one) and the daily trivia reminder. */
+export function StepVibe({ pal, p, set, onTrivia }: { pal: Pal; p: Personal; set: SetPersonal; onTrivia: (on: boolean) => void }) {
   return (
-    <View>
-      <StepTitle pal={pal} kicker="Pick your vibe" title="Which colours feel like you?" sub="The whole app re-paints itself — buttons, cards, the animated home banner, everything." />
-      <View style={styles.grid}>
-        {(Object.keys(themes) as ThemeKey[]).map((k, i) => {
-          const tp = paletteOf(k);
-          const on = theme === k;
-          return (
-            <FadeIn key={k} delay={i * 60} from="scale" style={{ width: '48%' }}>
-              <Press
-                onPress={() => setTheme(k)}
-                accessibilityRole="radio"
-                accessibilityState={{ checked: on }}
-                accessibilityLabel={`${themes[k].name} theme`}
-                style={[
-                  styles.themeCard,
-                  {
-                    backgroundColor: tp.bg,
-                    borderColor: on ? pal.primary : pal.border,
-                    borderWidth: on ? 2.5 : 1,
-                  },
-                ]}>
-                <LinearGradient colors={[tp.heroA, tp.heroB, tp.heroC]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.themeHero}>
-                  <T style={{ fontSize: 22 }}>{themes[k].emoji}</T>
-                  <View style={[styles.themeSun, { backgroundColor: tp.accent }]} />
-                </LinearGradient>
-                <View style={{ padding: 10, gap: 6 }}>
-                  <View
-                    style={{
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                    }}>
-                    <T variant="title" weight="bold" color={tp.text}>
-                      {themes[k].name}
-                    </T>
-                    {on ? <Ionicons name="checkmark-circle" size={20} color={pal.primary} /> : null}
-                  </View>
-                  <T variant="caption" color={tp.textSecondary} numberOfLines={1}>
-                    {themes[k].vibe}
-                  </T>
-                  <View style={{ flexDirection: 'row', gap: 5 }}>
-                    {[tp.primary, tp.primarySoft, tp.accent, tp.card].map((c, j) => (
-                      <View
-                        key={j}
-                        style={[
-                          styles.swatch,
-                          {
-                            backgroundColor: c,
-                            borderColor: tp.border,
-                          },
-                        ]}
-                      />
-                    ))}
-                  </View>
-                </View>
-              </Press>
-            </FadeIn>
-          );
-        })}
+    <View style={{ gap: 20 }}>
+      <StepHeading pal={pal} title="Set the vibe" sub="How big should celebrations be? Tap one to try it." />
+      <View accessibilityRole="radiogroup" accessibilityLabel="Effects" style={{ gap: 10 }}>
+        {EFFECT_OPTIONS.map((o) => (
+          <OptionRow
+            key={o.key}
+            pal={pal}
+            on={p.effects === o.key}
+            emoji={o.emoji}
+            label={o.label}
+            sub={o.sub}
+            onPress={() => {
+              set({ effects: o.key });
+              // a preview of this setting (it is not saved until the end); Chill has no confetti, so it says so
+              celebrate(o.key === 'chill' ? 'Chill: a calm tick, no confetti' : undefined, o.key);
+            }}
+          />
+        ))}
       </View>
-      <MiniPreview pal={pal} corners={corners} name={shownName} emoji={p.emoji} />
+      <View style={{ gap: 8 }}>
+        <SwitchRow pal={pal} icon="notifications-outline" label="Daily trivia reminder" sub={`One question a day at ${TRIVIA_REMINDER.timeLabel}. Keep your streak going.`} value={p.triviaReminder} onChange={onTrivia} />
+        <Tx pal={pal} tone="muted" variant="caption">
+          Off by default. You can change both in Settings.
+        </Tx>
+      </View>
     </View>
   );
 }

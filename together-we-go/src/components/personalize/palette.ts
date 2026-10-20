@@ -1,8 +1,6 @@
-import { baseColors, themes, type ThemeKey } from '@/theme';
+import { paletteOf, type Colors } from '@/theme';
 
-/** Colours of a palette (merged over Forest) — used for the live previews. */
-export function paletteOf(k: ThemeKey) {
-  return { ...baseColors, ...themes[k].palette };
-}
+/** The colours the survey draws itself with: those of the theme and mode being picked, not of the look the app has now. */
+export type Pal = Colors;
 
-export type Pal = ReturnType<typeof paletteOf>;
+export { paletteOf };

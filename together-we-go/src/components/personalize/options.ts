@@ -1,57 +1,45 @@
 import type { IconName } from '@/components/ui/bits';
-import type { HomeSection, Personal } from '@/store/types';
+import type { Effects, HomeSection } from '@/store/types';
+import type { ModePref } from '@/theme/palettes';
 
+/** Faces to pick from next to the nickname. */
 export const EMOJIS = ['✈️', '🌴', '🏔️', '🍜', '📸', '🎒', '🌸', '🏄', '🚂', '🗺️', '🌙', '🦋'];
 
-export const SECTIONS: { key: HomeSection; label: string; sub: string; icon: IconName }[] = [
-  { key: 'glance', label: 'Weather & local time', sub: 'Two quick tiles under the hero', icon: 'partly-sunny-outline' },
-  { key: 'budget', label: 'Group budget', sub: 'Spent so far with a progress bar', icon: 'wallet-outline' },
-  { key: 'upnext', label: 'Up next & today', sub: 'Countdown and today’s checklist', icon: 'alarm-outline' },
-  { key: 'quick', label: 'Quick tiles', sub: 'Vote, flights, docs and photos', icon: 'grid-outline' },
-  { key: 'forYou', label: 'Picked for you', sub: 'Destinations matching your interests', icon: 'sparkles-outline' },
-  { key: 'nearby', label: 'Nearby radius', sub: 'Places around your trip', icon: 'navigate-outline' },
-  { key: 'discover', label: 'Discover destinations', sub: 'Photo cards to dream about', icon: 'images-outline' },
+/** The numbered steps. The page after them is the summary with the build button. */
+export const STEPS = ['Welcome', 'Look', 'Interests', 'Layout', 'Vibe'] as const;
+export const STEP = { welcome: 0, look: 1, interests: 2, layout: 3, vibe: 4, summary: STEPS.length } as const;
+
+export const MODES: { key: ModePref; label: string; icon: IconName }[] = [
+  { key: 'light', label: 'Light', icon: 'sunny-outline' },
+  { key: 'dark', label: 'Dark', icon: 'moon-outline' },
+  { key: 'system', label: 'System', icon: 'phone-portrait-outline' },
 ];
 
-export const PACE: {
-  key: Personal['travelStyle'];
-  label: string;
-  emoji: string;
-  sub: string;
-}[] = [
-  {
-    key: 'chill',
-    label: 'Chill',
-    emoji: '🧘',
-    sub: '2–3 things a day, long lunches',
-  },
-  {
-    key: 'balanced',
-    label: 'Balanced',
-    emoji: '⚖️',
-    sub: 'A plan, with room to wander',
-  },
-  {
-    key: 'packed',
-    label: 'Packed',
-    emoji: '⚡',
-    sub: 'See everything, sleep later',
-  },
-];
-export const BUDGET: {
-  key: Personal['budgetStyle'];
-  label: string;
-  emoji: string;
-  sub: string;
-}[] = [
-  { key: 'saver', label: 'Saver', emoji: '🪙', sub: 'Street food & hostels' },
-  { key: 'mid', label: 'Mid-range', emoji: '💳', sub: 'Comfy, not crazy' },
-  {
-    key: 'treat',
-    label: 'Treat yo self',
-    emoji: '💎',
-    sub: 'Splurge on the good stuff',
-  },
+export const EFFECT_OPTIONS: { key: Effects; label: string; emoji: string; sub: string }[] = [
+  { key: 'chill', label: 'Chill', emoji: '😌', sub: 'No confetti, just a calm tick' },
+  { key: 'lively', label: 'Lively', emoji: '🎉', sub: 'A little confetti when it counts' },
+  { key: 'max', label: 'Max', emoji: '🪩', sub: 'Full party. Confetti everywhere' },
 ];
 
-export const STEPS = ['Hello', 'Vibe', 'Interests', 'Style', 'Home', 'You', 'Done'] as const;
+export const EFFECT_LABEL: Record<Effects, string> = { chill: 'Chill', lively: 'Lively', max: 'Max' };
+
+/** What the little Home drawings say (the real names are in HOME_BLOCKS). */
+export const BLOCK_SHORT: Record<HomeSection, string> = {
+  upnext: 'Up next',
+  weather: 'Weather',
+  budget: 'Budget',
+  crew: 'Crew',
+  play: 'Play',
+  forYou: 'For you',
+  nearby: 'Nearby',
+  discover: 'Discover',
+};
+
+/** The lines of the "Building your trip HQ" moment, in order. */
+export const BUILD_LINES = ['Picking your colours', 'Arranging Home', 'Tuning the confetti'] as const;
+
+export const BUDGET_OPTIONS: { key: 'saver' | 'mid' | 'treat'; label: string }[] = [
+  { key: 'saver', label: 'Saver' },
+  { key: 'mid', label: 'Mid-range' },
+  { key: 'treat', label: 'Treat yo self' },
+];

@@ -1,4 +1,5 @@
 import { destinations } from '@/data/destinations';
+import { layoutAnswers } from '@/data/layouts';
 import type { Personal } from '@/store/types';
 
 import { pickedForYou } from '../picks';
@@ -10,7 +11,9 @@ const personal = (over: Partial<Personal>): Personal => ({
   interests: [],
   travelStyle: 'balanced',
   budgetStyle: 'mid',
-  sections: { glance: true, budget: true, upnext: true, quick: true, forYou: true, nearby: true, discover: true },
+  ...layoutAnswers('planner'),
+  effects: 'lively',
+  triviaReminder: false,
   motion: true,
   ...over,
 });
