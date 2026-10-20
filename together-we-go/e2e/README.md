@@ -8,6 +8,7 @@ npx playwright-core install chromium   # once: downloads a browser (or set E2E_C
 npm run e2e                            # builds the web app, serves it, runs everything
 npm run e2e -- --no-build              # reuse the last build
 npm run e2e -- twophones overflow      # only some scripts
+E2E_DIST=/tmp/mybuild E2E_PORT=8130 npm run e2e -- verify   # build into your own folder and port (to work next to someone else)
 ```
 
 | Script | What it checks |

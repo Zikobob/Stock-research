@@ -9,7 +9,8 @@ const path = require('path');
 const { serve } = require('./serve');
 
 const root = path.join(__dirname, '..');
-const dist = path.join(__dirname, '.dist');
+// E2E_DIST and E2E_PORT let several people (or agents) build and test side by side without sharing a folder or a port
+const dist = process.env.E2E_DIST ? path.resolve(process.env.E2E_DIST) : path.join(__dirname, '.dist');
 const port = Number(process.env.E2E_PORT) || 8081;
 const args = process.argv.slice(2);
 const wanted = args.filter((a) => !a.startsWith('--'));

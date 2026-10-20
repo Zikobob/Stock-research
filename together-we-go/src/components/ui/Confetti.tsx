@@ -8,6 +8,7 @@ import { Animated, Easing, StyleSheet, View, useWindowDimensions } from 'react-n
 import { create } from 'zustand';
 
 import { effectiveMotion, useOsReduceMotion } from '@/hooks/useReduceMotion';
+import type { Effects } from '@/store/types';
 import { useAppStore } from '@/store/useAppStore';
 import { colors } from '@/theme';
 
@@ -65,11 +66,12 @@ const useBurst = create<{ burst: Burst | null }>(() => ({ burst: null }));
 /**
  * Celebrates. Always ticks the haptic; throws confetti unless Effects is Chill or animations are off.
  * If `message` is given it is shown as a toast too, so a calm setting still gets a clear "well done".
+ * `level` shows a preview of an Effects setting that has not been saved yet.
  */
-export function celebrate(message?: string) {
+export function celebrate(message?: string, level?: Effects) {
   tap('success');
   const { personal } = useAppStore.getState();
-  const count = PIECES[personal.effects] ?? PIECES.lively;
+  const count = PIECES[level ?? personal.effects] ?? PIECES.lively;
   const canMove = effectiveMotion(personal.motion, useOsReduceMotion.getState().on);
   if (count > 0 && canMove) useBurst.setState({ burst: { id: Date.now(), count } });
   if (message) toast(message, { icon: 'sparkles' });
