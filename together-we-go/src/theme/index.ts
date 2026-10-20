@@ -1,247 +1,24 @@
 /**
  * TogetherWeGo design tokens.
- * The default "Forest" palette is sampled from the reference design: warm cream
- * canvas, deep forest green for primary actions, soft sage for highlights.
  *
- * Users can pick another palette and corner style in "Make it yours"
- * (src/app/personalize.tsx). Styles are created once when each module loads,
- * so the saved choice is read synchronously here — before any screen module
- * evaluates — and applied by mutating these token objects in place. Changing
- * the theme then reloads the app (see applyAppearance).
+ * "Quiet base, loud moments": a calm neutral canvas (white, or #121212 in the dark mode), black
+ * primary actions, condensed display type, and ONE vivid accent per theme that appears only where it
+ * matters. The colours themselves live in ./palettes (pure data, unit-tested for contrast).
+ *
+ * The person picks a theme (accent) and a mode (light, dark, or follow the phone) in "Make it yours" or
+ * Settings. Styles are created once when each module loads, so the saved choice is read synchronously
+ * here, before any screen module evaluates, and the token objects below are final. Changing the look
+ * then reloads the app (see applyAppearance).
  */
 import { File, Paths } from 'expo-file-system';
-import { DevSettings, Platform } from 'react-native';
+import { Appearance as OsAppearance, DevSettings, Platform } from 'react-native';
 
-export const colors = {
-  bg: '#F4F4EE',
-  bgAlt: '#EEF0E7',
-  card: '#FFFFFF',
-  cardMuted: '#F7F8F3',
-  border: '#E7E9DF',
-  borderStrong: '#D5D9CC',
+import { LEGACY_THEMES, THEME_KEYS, buildPalette, categoryPalette, resolveMode, themes, type Colors, type Mode, type ModePref, type ThemeKey } from './palettes';
 
-  primary: '#1F4D25',
-  primaryDark: '#163A1B',
-  primaryPressed: '#173E1C',
-  primarySoft: '#DCEFD3',
-  primarySofter: '#EAF5E4',
-  primaryLine: '#C3DFB6',
-  navActive: '#CFE6C4',
+export { THEME_KEYS, buildPalette, resolveMode, themes };
+export type { Colors, Mode, ModePref, ThemeKey };
 
-  /** Pop colour for highlights, badges and the animated hero. */
-  accent: '#F2B33D',
-  accentSoft: '#FDF3DC',
-  heroA: '#1F4D25',
-  heroB: '#2F7A3A',
-  heroC: '#8CC97A',
-
-  text: '#1A1C17',
-  textSecondary: '#5F645A',
-  textMuted: '#959A8E',
-  onPrimary: '#FFFFFF',
-  /** Text on the yellow accent. */
-  onAccent: '#111111',
-  /** Money coming back / good news. */
-  positive: '#1E9E57',
-
-  orange: '#E8833A',
-  orangeSoft: '#FDEBDD',
-  blue: '#3D7DD8',
-  blueSoft: '#E3ECFB',
-  yellow: '#F2B33D',
-  yellowSoft: '#FDF3DC',
-  red: '#D64545',
-  redSoft: '#FBE4E4',
-  purple: '#7C5CD6',
-  purpleSoft: '#EEE8FB',
-  teal: '#2A9D8F',
-  tealSoft: '#DDF3F0',
-  star: '#F5B301',
-
-  overlay: 'rgba(16, 24, 14, 0.45)',
-  white: '#FFFFFF',
-  black: '#000000',
-};
-
-type Palette = Partial<typeof colors>;
-export type ThemeKey = 'amalfi' | 'forest' | 'ocean' | 'sunset' | 'lavender' | 'sakura' | 'midnight';
 export type CornerStyle = 'rounded' | 'bubbly' | 'sharp';
-
-/** Every palette the user can choose from in "Make it yours". */
-export const themes: Record<
-  ThemeKey,
-  {
-    name: string;
-    emoji: string;
-    vibe: string;
-    dark?: boolean;
-    palette: Palette;
-  }
-> = {
-  amalfi: {
-    name: 'Amalfi',
-    emoji: '🍋',
-    vibe: 'Bold black, sunny yellow',
-    palette: {
-      bg: '#F1F2F4', bgAlt: '#E8E9ED', cardMuted: '#F5F6F8', border: '#E6E7EC', borderStrong: '#D2D4DB',
-      primary: '#0B0B0D', primaryDark: '#000000', primaryPressed: '#1B1B1F', primarySoft: '#E9EAEE', primarySofter: '#F3F4F6', primaryLine: '#D5D7DE', navActive: 'rgba(0,0,0,0)',
-      accent: '#FBC91B', accentSoft: '#FEF3C7', heroA: '#0B0B0D', heroB: '#0B0B0D', heroC: '#FBC91B',
-      text: '#0D0D10', textSecondary: '#666973', textMuted: '#9A9DA8',
-      blue: '#1E73E8', blueSoft: '#E1EDFD',
-    },
-  },
-  forest: {
-    name: 'Forest',
-    emoji: '🌲',
-    vibe: 'Calm, earthy, classic',
-    palette: {},
-  },
-  ocean: {
-    name: 'Ocean',
-    emoji: '🌊',
-    vibe: 'Fresh blues & sea breeze',
-    palette: {
-      bg: '#F1F6FA',
-      bgAlt: '#E6EFF6',
-      cardMuted: '#F5F9FC',
-      border: '#DFE8EF',
-      borderStrong: '#C9D7E3',
-      primary: '#0F4C81',
-      primaryDark: '#0A3A63',
-      primaryPressed: '#0C406D',
-      primarySoft: '#D5E6F5',
-      primarySofter: '#E8F1FA',
-      primaryLine: '#B3D0EA',
-      navActive: '#CFE2F4',
-      accent: '#FF8A5B',
-      accentSoft: '#FFE9DF',
-      heroA: '#0A3A63',
-      heroB: '#1F78B4',
-      heroC: '#5CC8D6',
-      text: '#14202B',
-      textSecondary: '#566573',
-      textMuted: '#8F9CA8',
-    },
-  },
-  sunset: {
-    name: 'Sunset',
-    emoji: '🌅',
-    vibe: 'Warm oranges & golden hour',
-    palette: {
-      bg: '#FFF6EE',
-      bgAlt: '#FCEBDD',
-      cardMuted: '#FFF9F4',
-      border: '#F3E2D3',
-      borderStrong: '#E8CDB6',
-      primary: '#C2410C',
-      primaryDark: '#9A3412',
-      primaryPressed: '#A8390B',
-      primarySoft: '#FDDCC6',
-      primarySofter: '#FFEDE1',
-      primaryLine: '#F8C3A0',
-      navActive: '#FCD6BD',
-      accent: '#7C3AED',
-      accentSoft: '#EDE4FD',
-      heroA: '#9A3412',
-      heroB: '#EA580C',
-      heroC: '#FBBF24',
-      text: '#2A1A12',
-      textSecondary: '#6E5A4E',
-      textMuted: '#A8968A',
-    },
-  },
-  lavender: {
-    name: 'Lavender',
-    emoji: '💜',
-    vibe: 'Dreamy purples & soft pastels',
-    palette: {
-      bg: '#F7F4FC',
-      bgAlt: '#EEE9F8',
-      cardMuted: '#FAF8FD',
-      border: '#E7E1F2',
-      borderStrong: '#D3C9E8',
-      primary: '#5B3FA8',
-      primaryDark: '#462F85',
-      primaryPressed: '#4E3693',
-      primarySoft: '#E4DBF7',
-      primarySofter: '#F0EBFB',
-      primaryLine: '#CDBDF0',
-      navActive: '#DED2F6',
-      accent: '#EC4899',
-      accentSoft: '#FCE4F1',
-      heroA: '#462F85',
-      heroB: '#7C5CD6',
-      heroC: '#F0A6CA',
-      text: '#1E1A2B',
-      textSecondary: '#625B73',
-      textMuted: '#9A94A8',
-    },
-  },
-  sakura: {
-    name: 'Sakura',
-    emoji: '🌸',
-    vibe: 'Cherry-blossom pink & cream',
-    palette: {
-      bg: '#FFF5F7',
-      bgAlt: '#FCE9EE',
-      cardMuted: '#FFF9FA',
-      border: '#F5DFE5',
-      borderStrong: '#EBC8D2',
-      primary: '#B83268',
-      primaryDark: '#912451',
-      primaryPressed: '#A12A5B',
-      primarySoft: '#FAD7E4',
-      primarySofter: '#FDEAF1',
-      primaryLine: '#F2B6CC',
-      navActive: '#F8D0DF',
-      accent: '#14B8A6',
-      accentSoft: '#D9F6F2',
-      heroA: '#912451',
-      heroB: '#D94F86',
-      heroC: '#FFB4C8',
-      text: '#2B1820',
-      textSecondary: '#735A64',
-      textMuted: '#A8939B',
-    },
-  },
-  midnight: {
-    name: 'Midnight',
-    emoji: '🌙',
-    vibe: 'Dark mode with neon green',
-    dark: true,
-    palette: {
-      bg: '#0E1513',
-      bgAlt: '#16201D',
-      card: '#18221F',
-      cardMuted: '#1C2724',
-      border: '#26332F',
-      borderStrong: '#34443F',
-      primary: '#2FAE66',
-      primaryDark: '#238A50',
-      primaryPressed: '#28995A',
-      primarySoft: '#1E3A2C',
-      primarySofter: '#1A2E25',
-      primaryLine: '#2D5240',
-      navActive: '#21402F',
-      accent: '#F5C451',
-      accentSoft: '#3A3220',
-      heroA: '#0B2E1E',
-      heroB: '#16603C',
-      heroC: '#2FAE66',
-      text: '#ECF2EE',
-      textSecondary: '#A9B8B1',
-      textMuted: '#74857E',
-      orangeSoft: '#3B2A1C',
-      blueSoft: '#1C2A3D',
-      yellowSoft: '#3A3220',
-      redSoft: '#3D1F21',
-      purpleSoft: '#2A2340',
-      tealSoft: '#173431',
-      overlay: 'rgba(0, 0, 0, 0.6)',
-      positive: '#4ADE80', onAccent: '#111111',
-    },
-  },
-};
 
 export const cornerStyles: Record<CornerStyle, { name: string; scale: number }> = {
   rounded: { name: 'Rounded', scale: 1 },
@@ -252,13 +29,38 @@ export const cornerStyles: Record<CornerStyle, { name: string; scale: number }> 
 export interface Appearance {
   theme: ThemeKey;
   corners: CornerStyle;
+  /** Light, dark, or follow the phone each time the app opens. */
+  mode: ModePref;
 }
 
 const PREFS_KEY = 'togetherwego-appearance';
-const DEFAULT_APPEARANCE: Appearance = { theme: 'amalfi', corners: 'rounded' };
+const DEFAULT_APPEARANCE: Appearance = { theme: 'amalfi', corners: 'rounded', mode: 'system' };
 
 function prefsFile() {
   return new File(Paths.document, 'appearance.json');
+}
+
+const isMode = (m: unknown): m is ModePref => m === 'system' || m === 'light' || m === 'dark';
+
+/** Turns whatever was saved (including looks from earlier versions of the app) into a valid look. */
+export function parseAppearance(raw: string | null): Appearance {
+  try {
+    const parsed = raw ? (JSON.parse(raw) as { theme?: string; corners?: string; mode?: unknown }) : {};
+    let theme: ThemeKey = DEFAULT_APPEARANCE.theme;
+    let mode: ModePref = isMode(parsed.mode) ? parsed.mode : DEFAULT_APPEARANCE.mode;
+    if (parsed.theme && (THEME_KEYS as string[]).includes(parsed.theme)) {
+      theme = parsed.theme as ThemeKey;
+      // the old Midnight was a dark theme, before light and dark became a separate choice
+      if (parsed.theme === 'midnight' && !isMode(parsed.mode)) mode = 'dark';
+    } else if (parsed.theme && parsed.theme in LEGACY_THEMES) {
+      const legacy = LEGACY_THEMES[parsed.theme];
+      theme = legacy.theme;
+      if (!isMode(parsed.mode) && legacy.mode) mode = legacy.mode;
+    }
+    return { theme, corners: parsed.corners && parsed.corners in cornerStyles ? (parsed.corners as CornerStyle) : DEFAULT_APPEARANCE.corners, mode };
+  } catch {
+    return DEFAULT_APPEARANCE;
+  }
 }
 
 function readAppearance(): Appearance {
@@ -269,11 +71,7 @@ function readAppearance(): Appearance {
       const f = prefsFile();
       raw = f.exists ? f.textSync() : null;
     }
-    const parsed = raw ? (JSON.parse(raw) as Partial<Appearance>) : {};
-    return {
-      theme: parsed.theme && parsed.theme in themes ? parsed.theme : DEFAULT_APPEARANCE.theme,
-      corners: parsed.corners && parsed.corners in cornerStyles ? parsed.corners : DEFAULT_APPEARANCE.corners,
-    };
+    return parseAppearance(raw);
   } catch {
     return DEFAULT_APPEARANCE;
   }
@@ -289,21 +87,32 @@ function writeAppearance(a: Appearance) {
   }
 }
 
-/** The appearance the app is currently drawn with (fixed until the next reload). */
-export const appearance: Appearance = readAppearance();
-export const isDark = !!themes[appearance.theme].dark;
-/** The untouched Forest tokens (for previews of other palettes). */
-export const baseColors = { ...colors };
-Object.assign(colors, themes[appearance.theme].palette);
+const systemIsDark = () => {
+  try {
+    return OsAppearance.getColorScheme() === 'dark';
+  } catch {
+    return false;
+  }
+};
 
-/** Saves a new look and restarts the UI so every screen picks it up. */
-export function applyAppearance(next: Appearance): boolean {
-  writeAppearance(next);
-  if (next.theme === appearance.theme && next.corners === appearance.corners) return true;
+/** The look the app is currently drawn with (fixed until the next reload). */
+export const appearance: Appearance = readAppearance();
+/** `appearance.mode` with "follow the phone" worked out. */
+export const resolvedMode: Mode = resolveMode(appearance.mode, systemIsDark());
+export const isDark = resolvedMode === 'dark';
+
+/** Every colour, for the chosen theme and mode. */
+export const colors: Colors = buildPalette(appearance.theme, resolvedMode);
+
+/** The colours of any theme and mode (for previews of a look that is not applied yet). */
+export const paletteOf = (theme: ThemeKey, mode: ModePref): Colors => buildPalette(theme, resolveMode(mode, systemIsDark()));
+
+/** Restarts the UI so every screen is drawn again with the current look. */
+export function reloadForLook(): boolean {
   try {
     if (Platform.OS === 'web') {
       const home = (globalThis as { __TWG_HOME?: string }).__TWG_HOME;
-      // Restart from the app's front door (not the survey page we're on).
+      // Restart from the app's front door (not the page we're on).
       window.location.replace(home ?? `${window.location.origin}/`);
     } else DevSettings.reload('Applying your new look');
     return true;
@@ -312,28 +121,35 @@ export function applyAppearance(next: Appearance): boolean {
   }
 }
 
-/** Category colours used by the spending breakdown and expense dots. */
-export const categoryColors: Record<string, string> = {
-  Flights: '#6C4CE0',
-  Stays: colors.text,
-  Food: '#FBC91B',
-  Activities: '#E8833A',
-  Transport: '#1E73E8',
-  Shopping: '#D94F86',
-  Other: '#9A9DA8',
-};
+/** Saves a new look and restarts the UI so every screen picks it up. Returns false if the restart did not work. */
+export function applyAppearance(next: Appearance): boolean {
+  writeAppearance(next);
+  const same = next.theme === appearance.theme && next.corners === appearance.corners && resolveMode(next.mode, systemIsDark()) === resolvedMode;
+  return same ? true : reloadForLook();
+}
+
+/** Category colours used by the spending breakdown and expense dots (data colours, so they stay distinct). */
+export const categoryColors: Record<string, string> = categoryPalette(resolvedMode);
 
 const cornerScale = cornerStyles[appearance.corners].scale;
 const r = (n: number) => Math.round(n * cornerScale);
+/**
+ * Corner radii. `button`, `card` and `modal` are the three the design uses: 8 for buttons and inputs, 12 for
+ * cards and images, 16 for sheets and dialogs; pills are fully round. The older names map onto them.
+ */
 export const radius = {
+  button: r(8),
+  card: r(12),
+  modal: r(16),
   xs: r(8),
   sm: r(12),
-  md: r(16),
-  lg: r(20),
-  xl: r(24),
+  md: r(12),
+  lg: r(12),
+  xl: r(16),
   pill: 999,
 };
 
+/** A 4-point spacing scale. `section` is the gap between blocks on a page, bigger than any gap inside one (law of proximity). */
 export const space = {
   xxs: 2,
   xs: 4,
@@ -343,7 +159,15 @@ export const space = {
   xl: 20,
   xxl: 24,
   xxxl: 32,
+  gutter: 20,
+  section: 32,
 } as const;
+
+/** Smallest size of anything you tap, in points (Apple's guideline; Fitts's law). */
+export const touch = { min: 44 } as const;
+
+/** How long things take (ms): small elements 150 to 250, sheets 300 to 400. */
+export const timing = { fast: 160, base: 240, sheet: 340, slow: 480, stagger: 50 } as const;
 
 export const fonts = {
   regular: 'Manrope_400Regular',
@@ -351,31 +175,28 @@ export const fonts = {
   semibold: 'Manrope_600SemiBold',
   bold: 'Manrope_700Bold',
   extrabold: 'Manrope_800ExtraBold',
-  /** Tall condensed headline face (THE PLAN, BUDGET…). */
+  /** Tall condensed face for headlines and big numbers (THE PLAN, 3 DAYS TO GO). */
   display: 'Anton_400Regular',
 } as const;
 
-export const shadow = Platform.select({
-  web: { boxShadow: '0px 6px 18px rgba(30, 50, 20, 0.07)' },
-  default: {
-    shadowColor: '#1E3214',
-    shadowOpacity: 0.07,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 6 },
-    elevation: 2,
-  },
-}) as object;
+/** Shadows are for cards and floating things only. The dark mode shows height with a lighter surface instead. */
+export const shadow = (
+  isDark
+    ? {}
+    : Platform.select({
+        web: { boxShadow: '0px 1px 2px rgba(10, 10, 10, 0.05), 0px 8px 22px rgba(10, 10, 10, 0.06)' },
+        default: { shadowColor: '#0A0A0A', shadowOpacity: 0.07, shadowRadius: 14, shadowOffset: { width: 0, height: 6 }, elevation: 2 },
+      })
+) as object;
 
-export const shadowStrong = Platform.select({
-  web: { boxShadow: '0px 10px 28px rgba(20, 45, 15, 0.18)' },
-  default: {
-    shadowColor: '#14280F',
-    shadowOpacity: 0.18,
-    shadowRadius: 18,
-    shadowOffset: { width: 0, height: 10 },
-    elevation: 6,
-  },
-}) as object;
+export const shadowStrong = (
+  isDark
+    ? {}
+    : Platform.select({
+        web: { boxShadow: '0px 4px 8px rgba(10, 10, 10, 0.08), 0px 16px 36px rgba(10, 10, 10, 0.16)' },
+        default: { shadowColor: '#0A0A0A', shadowOpacity: 0.18, shadowRadius: 20, shadowOffset: { width: 0, height: 10 }, elevation: 6 },
+      })
+) as object;
 
 /** Width of the app column on tablets / web so layouts stay phone-shaped. */
 export const MAX_WIDTH = 520;

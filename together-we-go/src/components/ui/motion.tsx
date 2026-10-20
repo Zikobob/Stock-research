@@ -18,6 +18,23 @@ export function useMotion() {
   return effectiveMotion(wanted, osReduce);
 }
 
+/**
+ * A scroll position to build parallax from: pass `onScroll` to an `Animated.ScrollView` and use `y` in transforms.
+ * `y` is only ever driven by the scroll view, so it can safely feed native-driver transforms.
+ */
+export function useScrollY() {
+  const [state] = useState(() => {
+    const y = new Animated.Value(0);
+    return { y, onScroll: Animated.event([{ nativeEvent: { contentOffset: { y } } }], { useNativeDriver: nativeDriver }) };
+  });
+  return state;
+}
+
+/** How much celebration the person wants: chill (none), lively (a little confetti) or max. */
+export function useEffects() {
+  return useAppStore((s) => s.personal.effects);
+}
+
 /** Fades + slides its children in once, after `delay` ms. Use for staggered entrances. */
 export function FadeIn({
   children,

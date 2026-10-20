@@ -13,7 +13,7 @@ export function Segmented<K extends string>({ options, value, onChange }: { opti
         const on = o.key === value;
         return (
           <Press key={o.key} onPress={() => onChange(o.key)} style={[styles.item, on && styles.on]} accessibilityRole="tab" accessibilityState={{ selected: on }} accessibilityLabel={o.label} scaleTo={0.98}>
-            <T variant="small" weight={on ? 'bold' : 'semibold'} color={on ? colors.text : colors.textSecondary}>
+            <T variant="small" weight="bold" color={on ? colors.onPrimary : colors.textSecondary}>
               {o.label}
             </T>
           </Press>
@@ -25,6 +25,6 @@ export function Segmented<K extends string>({ options, value, onChange }: { opti
 
 const styles = StyleSheet.create({
   track: { flexDirection: 'row', backgroundColor: colors.bgAlt, borderRadius: 999, padding: 4 },
-  item: { flex: 1, height: 38, alignItems: 'center', justifyContent: 'center', borderRadius: 999, flexDirection: 'row', gap: 6 },
-  on: { backgroundColor: colors.card, boxShadow: '0px 1px 4px rgba(0,0,0,0.12)' } as object,
+  item: { flex: 1, height: 44, alignItems: 'center', justifyContent: 'center', borderRadius: 999, flexDirection: 'row', gap: 6 },
+  on: { backgroundColor: colors.primary },
 });

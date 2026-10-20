@@ -7,6 +7,7 @@ import { useEffect } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { ReminderService } from '@/components/ReminderService';
+import { ConfettiHost } from '@/components/ui/Confetti';
 import { DialogHost, ToastHost, toast } from '@/components/ui/feedback';
 import { useWatchOsReduceMotion } from '@/hooks/useReduceMotion';
 import { initNotifications } from '@/services/notifications';
@@ -91,6 +92,7 @@ export default function RootLayout() {
         </Stack.Protected>
       </Stack>
       {signedIn ? <ReminderService /> : null}
+      <ConfettiHost />
       <ToastHost />
       <DialogHost />
     </SafeAreaProvider>

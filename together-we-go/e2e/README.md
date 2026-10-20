@@ -20,6 +20,8 @@ npm run e2e -- twophones overflow      # only some scripts
 | `motion.js` | The phone's *Reduce Motion* setting: nothing hidden, nothing moving, Settings says why |
 | `overflow.js` | **Every screen** at 390 px, 320 px and with larger text: nothing may stick out sideways |
 | `nesting.js` | **Every screen**: no button may sit inside another button (React's *"`<button>` cannot contain a nested `<button>`"* warning) |
+| `targets.js` | **Every screen**: every control you tap is at least 44 x 44 points (Fitts's law) |
+| `shoot.js` | Not a test: takes pictures of screens in any theme and in light or dark, so the design can be looked at |
 | `twophones.js` | Two phones and the real sync server: share, join from a QR code, chat, expenses, offline catch-up, restart, photo, receipt and PDF |
 
 Each script prints `PASS`/`FAIL` lines and `errors:` (browser console errors). `run.js` adds them up and exits with a non-zero code if anything failed.

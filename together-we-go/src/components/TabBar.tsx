@@ -23,7 +23,7 @@ const TABS: Record<string, { label: string; icon: IconName; active: IconName }> 
   profile: { label: 'nav.profile', icon: 'grid-outline', active: 'grid' },
 };
 
-/** Bottom navigation matching the reference: soft-green pill behind the active tab. */
+/** Five tabs, Home first and More last (the ends of a row are the easiest to find). One accent bar slides to the tab you are on. */
 export function TabBar({ state, navigation }: BottomTabBarProps) {
   const t = useT();
   const insets = useSafeAreaInsets();
@@ -37,29 +37,29 @@ export function TabBar({ state, navigation }: BottomTabBarProps) {
   const [slide] = useState(() => new Animated.Value(activeSlot));
   const [pop] = useState(() => new Animated.Value(1));
 
-  // The highlight pill glides to the selected tab and the new icon does a little bounce.
+  // The accent bar glides to the selected tab and the new icon does a little bounce.
   useEffect(() => {
     if (!motion) {
       slide.setValue(activeSlot);
       return;
     }
     Animated.spring(slide, { toValue: activeSlot, useNativeDriver: nativeDriver, friction: 8, tension: 90 }).start();
-    pop.setValue(0.7);
+    pop.setValue(0.78);
     Animated.spring(pop, { toValue: 1, useNativeDriver: nativeDriver, friction: 4, tension: 160 }).start();
   }, [activeSlot, motion, slide, pop]);
 
   const slotW = innerW > 0 ? (innerW - 16) / Math.max(1, visible.length) : 0;
-  const pillW = Math.min(76, slotW - 4);
+  const barW = 30;
 
   return (
-    <View style={[styles.bar, { paddingBottom: Math.max(insets.bottom, 10) }]}>
+    <View style={[styles.bar, { paddingBottom: Math.max(insets.bottom, 8) }]}>
       <View style={styles.inner} onLayout={(e) => setInnerW(e.nativeEvent.layout.width)}>
         {slotW > 0 ? (
           <Animated.View
             pointerEvents="none"
             style={[
               styles.indicator,
-              { width: pillW, left: 8 + (slotW - pillW) / 2, transform: [{ translateX: slide.interpolate({ inputRange: [0, Math.max(1, visible.length - 1)], outputRange: [0, slotW * Math.max(1, visible.length - 1)] }) }] },
+              { width: barW, left: 8 + (slotW - barW) / 2, transform: [{ translateX: slide.interpolate({ inputRange: [0, Math.max(1, visible.length - 1)], outputRange: [0, slotW * Math.max(1, visible.length - 1)] }) }] },
             ]}
           />
         ) : null}
@@ -80,15 +80,13 @@ export function TabBar({ state, navigation }: BottomTabBarProps) {
               accessibilityLabel={t(cfg.label)}
               style={styles.item}
               scaleTo={0.92}>
-              <View style={[styles.pill, focused && slotW === 0 && styles.pillActive]}>
-                <Animated.View style={focused ? { transform: [{ scale: pop }] } : undefined}>
-                  <Ionicons name={focused ? cfg.active : cfg.icon} size={21} color={focused ? colors.primary : colors.textMuted} />
-                  {route.name === 'chat' && unreadChat > 0 && !focused ? <View style={styles.dot} /> : null}
-                </Animated.View>
-                <T variant="micro" weight={focused ? 'semibold' : 'medium'} color={focused ? colors.primary : colors.textMuted} numberOfLines={1} style={{ fontSize: 10.5 }}>
-                  {t(cfg.label)}
-                </T>
-              </View>
+              <Animated.View style={focused ? { transform: [{ scale: pop }] } : undefined}>
+                <Ionicons name={focused ? cfg.active : cfg.icon} size={24} color={focused ? colors.text : colors.textMuted} />
+                {route.name === 'chat' && unreadChat > 0 && !focused ? <View style={styles.dot} /> : null}
+              </Animated.View>
+              <T variant="micro" weight={focused ? 'bold' : 'semibold'} color={focused ? colors.text : colors.textMuted} numberOfLines={1} style={{ fontSize: 11 }}>
+                {t(cfg.label)}
+              </T>
             </Press>
           );
         })}
@@ -99,10 +97,8 @@ export function TabBar({ state, navigation }: BottomTabBarProps) {
 
 const styles = StyleSheet.create({
   bar: { backgroundColor: colors.card, borderTopWidth: 1, borderTopColor: colors.border, alignItems: 'center' },
-  inner: { flexDirection: 'row', width: '100%', maxWidth: MAX_WIDTH, paddingHorizontal: 8, paddingTop: 8 },
-  item: { flex: 1, alignItems: 'center' },
-  pill: { alignItems: 'center', justifyContent: 'center', gap: 2, paddingHorizontal: 10, minWidth: 58, height: 50, borderRadius: 25 },
-  pillActive: { backgroundColor: colors.navActive },
-  indicator: { position: 'absolute', top: 8, height: 50, borderRadius: 25, backgroundColor: colors.navActive },
-  dot: { position: 'absolute', top: -1, right: -3, width: 8, height: 8, borderRadius: 4, backgroundColor: colors.red, borderWidth: 1.5, borderColor: colors.card },
+  inner: { flexDirection: 'row', width: '100%', maxWidth: MAX_WIDTH, paddingHorizontal: 8, paddingTop: 6 },
+  item: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 3, height: 54 },
+  indicator: { position: 'absolute', top: -1, height: 3, borderBottomLeftRadius: 3, borderBottomRightRadius: 3, backgroundColor: colors.accent },
+  dot: { position: 'absolute', top: -1, right: -4, width: 9, height: 9, borderRadius: 5, backgroundColor: colors.red, borderWidth: 1.5, borderColor: colors.card },
 });

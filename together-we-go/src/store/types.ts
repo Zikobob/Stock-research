@@ -215,8 +215,14 @@ export interface Settings {
   haptics: boolean;
 }
 
-/** Home-screen blocks the user can show or hide in "Make it yours". */
-export type HomeSection = 'glance' | 'budget' | 'upnext' | 'quick' | 'forYou' | 'nearby' | 'discover';
+/** Home-screen blocks the person can show, hide and put in their own order. */
+export type HomeSection = 'upnext' | 'weather' | 'budget' | 'crew' | 'play' | 'forYou' | 'nearby' | 'discover';
+
+/** A ready-made Home order (Planner, Money, Party), or 'custom' once the person has changed it by hand. */
+export type HomeLayout = 'planner' | 'money' | 'party' | 'custom';
+
+/** How much celebration there is: Chill = none, Lively = a little confetti, Max = a lot. */
+export type Effects = 'chill' | 'lively' | 'max';
 
 /** Answers from the "Make it yours" personalization survey. */
 export interface Personal {
@@ -227,6 +233,12 @@ export interface Personal {
   travelStyle: 'chill' | 'balanced' | 'packed';
   budgetStyle: 'saver' | 'mid' | 'treat';
   sections: Record<HomeSection, boolean>;
+  /** Top-to-bottom order of every Home block (hidden ones too, so they come back where they were). */
+  order: HomeSection[];
+  layout: HomeLayout;
+  effects: Effects;
+  /** A daily nudge to play today's trivia question. */
+  triviaReminder: boolean;
   motion: boolean;
   /** True once the first-run guided tour has been seen. */
   toured?: boolean;

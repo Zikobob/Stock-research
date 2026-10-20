@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { MAX_WIDTH, colors, radius } from '@/theme';
+import { MAX_WIDTH, colors, radius, timing } from '@/theme';
 
 import { T } from './T';
 
@@ -40,9 +40,9 @@ export function Sheet({ visible, onClose, title, subtitle, children, footer, max
 
   useEffect(() => {
     if (visible) {
-      Animated.timing(anim, { toValue: 1, duration: 260, easing: Easing.out(Easing.cubic), useNativeDriver: Platform.OS !== 'web' }).start();
+      Animated.timing(anim, { toValue: 1, duration: timing.sheet, easing: Easing.out(Easing.cubic), useNativeDriver: Platform.OS !== 'web' }).start();
     } else if (mounted) {
-      Animated.timing(anim, { toValue: 0, duration: 200, easing: Easing.in(Easing.cubic), useNativeDriver: Platform.OS !== 'web' }).start(() =>
+      Animated.timing(anim, { toValue: 0, duration: timing.base, easing: Easing.in(Easing.cubic), useNativeDriver: Platform.OS !== 'web' }).start(() =>
         setMounted(false),
       );
     }
@@ -98,13 +98,16 @@ const styles = StyleSheet.create({
   sheet: {
     width: '100%',
     maxWidth: MAX_WIDTH,
-    backgroundColor: colors.card,
-    borderTopLeftRadius: radius.xl + 4,
-    borderTopRightRadius: radius.xl + 4,
+    backgroundColor: colors.raised,
+    borderTopLeftRadius: radius.modal,
+    borderTopRightRadius: radius.modal,
+    borderWidth: 1,
+    borderBottomWidth: 0,
+    borderColor: colors.border,
   },
   handle: {
     alignSelf: 'center',
-    width: 42,
+    width: 44,
     height: 5,
     borderRadius: 3,
     backgroundColor: colors.borderStrong,

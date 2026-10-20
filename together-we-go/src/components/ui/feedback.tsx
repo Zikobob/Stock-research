@@ -8,7 +8,8 @@ import { Animated, Modal, Platform, Pressable, StyleSheet, View } from 'react-na
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { create } from 'zustand';
 
-import { colors, radius, shadowStrong } from '@/theme';
+import { colors, isDark, radius, shadowStrong } from '@/theme';
+import { readableOn } from '@/utils/contrast';
 
 import { Button } from './Button';
 import type { IconName } from './bits';
@@ -49,7 +50,9 @@ export function ToastHost() {
   }, [t, anim, hide]);
 
   if (!t) return null;
-  const bg = t.tone === 'warn' ? '#3A1F1F' : colors.primaryDark;
+  // The toast is the opposite of the page (black on white, white on the dark mode), so it stands out; a warning is red.
+  const bg = t.tone === 'warn' ? colors.red : colors.primary;
+  const fg = t.tone === 'warn' ? readableOn(colors.red) : colors.onPrimary;
   return (
     <Animated.View
       pointerEvents="box-none"
@@ -58,8 +61,8 @@ export function ToastHost() {
         { top: insets.top + 10, opacity: anim, transform: [{ translateY: anim.interpolate({ inputRange: [0, 1], outputRange: [-30, 0] }) }] },
       ]}>
       <Pressable onPress={hide} style={[styles.toast, { backgroundColor: bg }]} accessibilityLiveRegion="polite" accessibilityRole="alert">
-        <Ionicons name={t.icon} size={18} color={t.tone === 'warn' ? '#FFB4B4' : '#BFE5AE'} />
-        <T variant="small" weight="medium" color={colors.white} style={{ flex: 1 }}>
+        <Ionicons name={t.icon} size={20} color={t.tone === 'warn' ? fg : isDark ? colors.accentText : colors.accent} />
+        <T variant="small" weight="semibold" color={fg} style={{ flex: 1 }}>
           {t.text}
         </T>
       </Pressable>
@@ -116,7 +119,7 @@ export function DialogHost() {
         <View style={styles.dialog} accessibilityViewIsModal accessibilityRole="alert">
           {d.icon ? (
             <View style={styles.dialogIcon}>
-              <Ionicons name={d.icon} size={24} color={colors.primary} />
+              <Ionicons name={d.icon} size={26} color={colors.accentText} />
             </View>
           ) : null}
           <T variant="h3" center>
@@ -154,8 +157,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 10,
     paddingHorizontal: 16,
-    paddingVertical: 13,
-    borderRadius: radius.md,
+    paddingVertical: 14,
+    minHeight: 52,
+    borderRadius: radius.card,
     maxWidth: 480,
     width: '100%',
     ...shadowStrong,
@@ -164,17 +168,19 @@ const styles = StyleSheet.create({
   dialog: {
     width: '100%',
     maxWidth: 360,
-    backgroundColor: colors.card,
-    borderRadius: radius.xl,
+    backgroundColor: colors.raised,
+    borderRadius: radius.modal,
+    borderWidth: 1,
+    borderColor: colors.border,
     padding: 22,
     alignItems: 'center',
     ...shadowStrong,
   },
   dialogIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: colors.primarySofter,
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: colors.accentSoft,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 10,

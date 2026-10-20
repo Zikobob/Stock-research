@@ -31,7 +31,7 @@ export const Input = forwardRef<TextInput, InputProps>(function Input(
   const [hidden, setHidden] = useState(true);
   const scale = useAppStore((s) => s.settings.textScale);
   const hasValue = !!rest.value;
-  const borderColor = error ? colors.red : focused ? colors.primary : colors.border;
+  const borderColor = error ? colors.red : focused ? colors.text : colors.border;
 
   const field = (
     <View
@@ -69,7 +69,7 @@ export const Input = forwardRef<TextInput, InputProps>(function Input(
           }}
           style={[
             styles.input,
-            { fontSize: 15 * scale },
+            { fontSize: 16 * scale },
             multiline && { minHeight: 64, textAlignVertical: 'top' },
             Platform.OS === 'web' && ({ outlineStyle: 'none' } as object),
             style,
@@ -114,17 +114,17 @@ export const Input = forwardRef<TextInput, InputProps>(function Input(
 
 const styles = StyleSheet.create({
   field: {
-    minHeight: 50,
-    borderRadius: radius.md,
-    borderWidth: 1.2,
-    backgroundColor: colors.cardMuted,
+    minHeight: 52,
+    borderRadius: radius.button,
+    borderWidth: 1.5,
+    backgroundColor: colors.bgAlt,
     paddingHorizontal: 14,
     flexDirection: 'row',
     alignItems: 'center',
   },
   multiline: { alignItems: 'flex-start', paddingVertical: 12 },
-  focused: { backgroundColor: colors.white },
-  errored: { backgroundColor: '#FFF8F8' },
+  focused: { backgroundColor: colors.card },
+  errored: { backgroundColor: colors.redSoft },
   input: {
     fontFamily: fonts.regular,
     color: colors.text,

@@ -5,14 +5,16 @@ import type { ComponentProps, ReactNode } from 'react';
 import { StyleSheet, Switch, View, type StyleProp, type ViewStyle } from 'react-native';
 
 import { imageSource } from '@/data/images';
-import { colors, isDark, radius, shadow } from '@/theme';
+import { colors, radius, shadow } from '@/theme';
 import { initials } from '@/utils/format';
 
+import { Float } from './motion';
 import { Press } from './Press';
 import { T } from './T';
 
 export type IconName = ComponentProps<typeof Ionicons>['name'];
 
+/** A card: flat surface, 12 px corners, a hairline border and (light mode only) a soft shadow. */
 export function Card({ children, style, padded = true, onPress, accessibilityLabel }: { children: ReactNode; style?: StyleProp<ViewStyle>; padded?: boolean; onPress?: () => void; accessibilityLabel?: string }) {
   const s = [styles.card, padded && { padding: 16 }, style];
   if (onPress)
@@ -24,6 +26,7 @@ export function Card({ children, style, padded = true, onPress, accessibilityLab
   return <View style={s}>{children}</View>;
 }
 
+/** Pill for choosing: filled black (white in the dark mode) when selected. */
 export function Chip({
   label,
   active,
@@ -43,8 +46,8 @@ export function Chip({
   tone?: 'soft';
   style?: StyleProp<ViewStyle>;
 }) {
-  const bg = active ? colors.primary : tone === 'soft' ? colors.primarySofter : colors.card;
-  const fg = active ? colors.white : colors.text;
+  const bg = active ? colors.primary : tone === 'soft' ? colors.bgAlt : colors.card;
+  const fg = active ? colors.onPrimary : colors.text;
   return (
     <Press
       onPress={onPress}
@@ -59,38 +62,41 @@ export function Chip({
         style,
       ]}>
       {image ? <Image source={imageSource(image)} style={styles.chipImg} contentFit="cover" /> : null}
-      {icon ? <Ionicons name={icon} size={small ? 13 : 15} color={fg} /> : null}
-      <T variant={small ? 'caption' : 'small'} weight={active ? 'semibold' : 'medium'} color={fg} numberOfLines={1}>
+      {icon ? <Ionicons name={icon} size={small ? 14 : 16} color={fg} /> : null}
+      <T variant={small ? 'caption' : 'small'} weight={active ? 'bold' : 'semibold'} color={fg} numberOfLines={1}>
         {label}
       </T>
     </Press>
   );
 }
 
-export function Avatar({ name, src, size = 34, ring }: { name: string; src?: string; size?: number; ring?: string }) {
-  const palette = ['#DCEFD3', '#FDEBDD', '#E3ECFB', '#EEE8FB', '#FDF3DC', '#DDF3F0'];
-  const bg = palette[(name.charCodeAt(0) + name.length) % palette.length];
+/** A person: initials on a quiet tint (the picture, if they have one, takes over). */
+export function Avatar({ name, src, size = 34, ring, dot }: { name: string; src?: string; size?: number; ring?: string; /** A small status dot, for example green for "here now". */ dot?: string }) {
+  const tints = [colors.bgAlt, colors.accentSoft, colors.primarySoft, colors.cardMuted];
+  const bg = tints[(name.charCodeAt(0) + name.length) % tints.length];
   return (
-    <View
-      accessibilityLabel={name}
-      style={{
-        width: size,
-        height: size,
-        borderRadius: size / 2,
-        backgroundColor: bg,
-        alignItems: 'center',
-        justifyContent: 'center',
-        overflow: 'hidden',
-        borderWidth: ring ? 2 : 0,
-        borderColor: ring,
-      }}>
-      {src ? (
-        <Image source={imageSource(src)} style={{ width: '100%', height: '100%' }} contentFit="cover" />
-      ) : (
-        <T variant={size > 40 ? 'title' : 'micro'} weight="bold" color={isDark ? '#1F4D25' : colors.primary} style={size <= 28 ? { fontSize: 9.5 } : null}>
-          {initials(name)}
-        </T>
-      )}
+    <View accessibilityLabel={name} style={{ width: size, height: size }}>
+      <View
+        style={{
+          width: size,
+          height: size,
+          borderRadius: size / 2,
+          backgroundColor: bg,
+          alignItems: 'center',
+          justifyContent: 'center',
+          overflow: 'hidden',
+          borderWidth: ring ? 2 : 0,
+          borderColor: ring,
+        }}>
+        {src ? (
+          <Image source={imageSource(src)} style={{ width: '100%', height: '100%' }} contentFit="cover" />
+        ) : (
+          <T variant={size > 40 ? 'title' : 'micro'} weight="bold" color={colors.text} style={size <= 28 ? { fontSize: 10 } : null}>
+            {initials(name)}
+          </T>
+        )}
+      </View>
+      {dot ? <View style={[styles.avatarDot, { backgroundColor: dot, width: Math.max(8, size * 0.28), height: Math.max(8, size * 0.28), borderRadius: size }]} /> : null}
     </View>
   );
 }
@@ -102,7 +108,7 @@ export function AvatarStack({ people, max = 3, size = 28 }: { people: { name: st
     <View style={{ flexDirection: 'row', alignItems: 'center' }}>
       {shown.map((p, i) => (
         <View key={`${p.name}${i}`} style={{ marginLeft: i === 0 ? 0 : -size * 0.32 }}>
-          <Avatar name={p.name} src={p.avatar} size={size} ring={colors.white} />
+          <Avatar name={p.name} src={p.avatar} size={size} ring={colors.card} />
         </View>
       ))}
       {extra > 0 && (
@@ -112,13 +118,13 @@ export function AvatarStack({ people, max = 3, size = 28 }: { people: { name: st
             width: size,
             height: size,
             borderRadius: size / 2,
-            backgroundColor: colors.primarySoft,
+            backgroundColor: colors.primary,
             borderWidth: 2,
-            borderColor: colors.white,
+            borderColor: colors.card,
             alignItems: 'center',
             justifyContent: 'center',
           }}>
-          <T variant="micro" weight="bold" color={colors.primary}>
+          <T variant="micro" weight="bold" color={colors.onPrimary}>
             +{extra}
           </T>
         </View>
@@ -127,7 +133,8 @@ export function AvatarStack({ people, max = 3, size = 28 }: { people: { name: st
   );
 }
 
-export function ProgressBar({ value, color = colors.primary, track = colors.border, height = 6 }: { value: number; color?: string; track?: string; height?: number }) {
+/** A thin bar. Pass a state colour (`colors.positive`, `colors.warn`, `colors.red`) only when it means something. */
+export function ProgressBar({ value, color = colors.primary, track = colors.bgAlt, height = 6 }: { value: number; color?: string; track?: string; height?: number }) {
   const pct = Math.max(0, Math.min(1, value));
   return (
     <View
@@ -139,11 +146,12 @@ export function ProgressBar({ value, color = colors.primary, track = colors.bord
   );
 }
 
+/** Round icon button, 44 points by default. */
 export function IconButton({
   icon,
   onPress,
   label,
-  size = 40,
+  size = 44,
   bg = colors.card,
   color = colors.text,
   badge,
@@ -162,7 +170,6 @@ export function IconButton({
     <Press
       onPress={onPress}
       accessibilityLabel={label}
-      hitSlop={6}
       style={{
         width: size,
         height: size,
@@ -173,11 +180,11 @@ export function IconButton({
         borderWidth: bordered ? 1 : 0,
         borderColor: colors.border,
       }}>
-      <Ionicons name={icon} size={size * 0.46} color={color} />
+      <Ionicons name={icon} size={Math.round(size * 0.46)} color={color} />
       {badge ? (
         <View style={styles.badge}>
           {typeof badge === 'number' ? (
-            <T variant="micro" weight="bold" color={colors.white} style={{ fontSize: 9 }}>
+            <T variant="micro" weight="bold" color={colors.white} style={{ fontSize: 9.5 }}>
               {badge > 9 ? '9+' : badge}
             </T>
           ) : null}
@@ -187,6 +194,7 @@ export function IconButton({
   );
 }
 
+/** A block's title in condensed display type, with an optional quiet action on the right. */
 export function SectionHeader({ title, action, onAction, style }: { title: string; action?: string; onAction?: () => void; style?: StyleProp<ViewStyle> }) {
   return (
     <View style={[styles.sectionHeader, style]}>
@@ -194,44 +202,61 @@ export function SectionHeader({ title, action, onAction, style }: { title: strin
         {title}
       </T>
       {action ? (
-        <Press onPress={onAction} hitSlop={8} accessibilityLabel={action}>
-          <T variant="small" weight="semibold" color={colors.textSecondary}>
+        <Press onPress={onAction} hitSlop={8} accessibilityLabel={action} style={styles.sectionAction}>
+          <T variant="small" weight="bold" color={colors.textSecondary}>
             {action}
           </T>
+          <Ionicons name="chevron-forward" size={14} color={colors.textSecondary} />
         </Press>
       ) : null}
     </View>
   );
 }
 
+/**
+ * A small label. The green, amber and red tones are for states only (under budget, near, over; going, maybe, can't go).
+ * Blue and purple are quiet info tints; yellow is the theme accent.
+ */
 export function Pill({ label, tone = 'green', icon }: { label: string; tone?: 'green' | 'orange' | 'blue' | 'red' | 'gray' | 'yellow' | 'purple'; icon?: IconName }) {
   const map = {
-    green: [colors.primarySoft, isDark ? '#6FD39A' : colors.primary],
-    orange: [colors.orangeSoft, isDark ? colors.orange : '#B45A1C'],
-    blue: [colors.blueSoft, isDark ? '#7FB0F0' : '#2B5FB0'],
+    green: [colors.positiveSoft, colors.positive],
+    orange: [colors.warnSoft, colors.warn],
+    blue: [colors.blueSoft, colors.blue],
     red: [colors.redSoft, colors.red],
     gray: [colors.bgAlt, colors.textSecondary],
-    yellow: [colors.yellowSoft, isDark ? colors.yellow : '#94660A'],
+    yellow: [colors.accentSoft, colors.accentText],
     purple: [colors.purpleSoft, colors.purple],
   } as const;
   const [bg, fg] = map[tone];
   return (
     <View style={[styles.pill, { backgroundColor: bg }]}>
-      {icon ? <Ionicons name={icon} size={11} color={fg} /> : null}
-      <T variant="micro" weight="semibold" color={fg}>
+      {icon ? <Ionicons name={icon} size={12} color={fg} /> : null}
+      <T variant="micro" weight="bold" color={fg}>
         {label}
       </T>
     </View>
   );
 }
 
-export function EmptyState({ icon, title, body, children }: { icon: IconName; title: string; body?: string; children?: ReactNode }) {
+/**
+ * An empty list turned into an invitation: a big playful picture, a title in display type, one line of help and one button.
+ * `art` is an emoji that gently floats; without it a round icon is used.
+ */
+export function EmptyState({ icon, title, body, children, art }: { icon?: IconName; title: string; body?: string; children?: ReactNode; art?: string }) {
   return (
     <View style={styles.empty}>
-      <View style={styles.emptyIcon}>
-        <Ionicons name={icon} size={26} color={colors.primary} />
-      </View>
-      <T variant="title" center>
+      {art ? (
+        <Float amount={8}>
+          <T style={{ fontSize: 52, lineHeight: 60 }} accessibilityElementsHidden importantForAccessibility="no">
+            {art}
+          </T>
+        </Float>
+      ) : (
+        <View style={styles.emptyIcon}>
+          <Ionicons name={icon ?? 'sparkles-outline'} size={28} color={colors.accentText} />
+        </View>
+      )}
+      <T variant="headline" center accessibilityRole="header">
         {title}
       </T>
       {body ? (
@@ -239,7 +264,7 @@ export function EmptyState({ icon, title, body, children }: { icon: IconName; ti
           {body}
         </T>
       ) : null}
-      {children}
+      {children ? <View style={{ alignSelf: 'stretch', marginTop: 8 }}>{children}</View> : null}
     </View>
   );
 }
@@ -249,11 +274,11 @@ export function ToggleRow({ label, sub, value, onChange, icon }: { label: string
     <View style={styles.toggleRow}>
       {icon ? (
         <View style={styles.rowIcon}>
-          <Ionicons name={icon} size={17} color={colors.primary} />
+          <Ionicons name={icon} size={18} color={colors.text} />
         </View>
       ) : null}
       <View style={{ flex: 1 }}>
-        <T variant="bodySm" weight="medium">
+        <T variant="bodySm" weight="semibold">
           {label}
         </T>
         {sub ? (
@@ -274,14 +299,14 @@ export function ToggleRow({ label, sub, value, onChange, icon }: { label: string
   );
 }
 
-export function ListRow({ icon, label, sub, onPress, right, tint = colors.primary }: { icon: IconName; label: string; sub?: string; onPress?: () => void; right?: ReactNode; tint?: string }) {
+export function ListRow({ icon, label, sub, onPress, right, tint = colors.text }: { icon: IconName; label: string; sub?: string; onPress?: () => void; right?: ReactNode; tint?: string }) {
   return (
     <Press onPress={onPress} style={styles.listRow} scaleTo={0.99} accessibilityLabel={label}>
-      <View style={[styles.rowIcon, { backgroundColor: tint === colors.primary ? colors.primarySofter : `${tint}1F` }]}>
-        <Ionicons name={icon} size={17} color={tint} />
+      <View style={[styles.rowIcon, { backgroundColor: tint === colors.text ? colors.bgAlt : `${tint}1F` }]}>
+        <Ionicons name={icon} size={18} color={tint} />
       </View>
       <View style={{ flex: 1 }}>
-        <T variant="bodySm" weight="medium">
+        <T variant="bodySm" weight="semibold">
           {label}
         </T>
         {sub ? (
@@ -302,7 +327,7 @@ export function Divider({ style }: { style?: StyleProp<ViewStyle> }) {
 const styles = StyleSheet.create({
   card: {
     backgroundColor: colors.card,
-    borderRadius: radius.lg,
+    borderRadius: radius.card,
     borderWidth: 1,
     borderColor: colors.border,
     ...shadow,
@@ -311,40 +336,42 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    height: 38,
-    paddingHorizontal: 14,
+    height: 44,
+    paddingHorizontal: 16,
     borderRadius: radius.pill,
-    borderWidth: 1,
+    borderWidth: 1.5,
   },
-  chipSmall: { height: 30, paddingHorizontal: 11, gap: 4 },
-  chipImg: { width: 28, height: 28, borderRadius: 14 },
+  chipSmall: { height: 36, paddingHorizontal: 13, gap: 5 },
+  chipImg: { width: 32, height: 32, borderRadius: 16 },
+  avatarDot: { position: 'absolute', right: -1, bottom: -1, borderWidth: 2, borderColor: colors.card },
   badge: {
     position: 'absolute',
-    top: 5,
-    right: 5,
-    minWidth: 15,
-    height: 15,
+    top: 4,
+    right: 4,
+    minWidth: 16,
+    height: 16,
     paddingHorizontal: 3,
     borderRadius: 8,
     backgroundColor: colors.red,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1.5,
-    borderColor: colors.white,
+    borderColor: colors.card,
   },
-  sectionHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 },
-  pill: { flexDirection: 'row', alignItems: 'center', gap: 3, paddingHorizontal: 8, paddingVertical: 3, borderRadius: radius.pill, alignSelf: 'flex-start' },
-  empty: { alignItems: 'center', gap: 8, paddingVertical: 36, paddingHorizontal: 24 },
+  sectionHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12, minHeight: 44 },
+  sectionAction: { flexDirection: 'row', alignItems: 'center', gap: 2, minHeight: 44, paddingLeft: 10 },
+  pill: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 10, paddingVertical: 4, borderRadius: radius.pill, alignSelf: 'flex-start' },
+  empty: { alignItems: 'center', gap: 10, paddingVertical: 40, paddingHorizontal: 24 },
   emptyIcon: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: colors.primarySofter,
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: colors.accentSoft,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 6,
+    marginBottom: 4,
   },
-  toggleRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 10 },
-  rowIcon: { width: 34, height: 34, borderRadius: 10, backgroundColor: colors.primarySofter, alignItems: 'center', justifyContent: 'center' },
-  listRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 11 },
+  toggleRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 10, minHeight: 56 },
+  rowIcon: { width: 36, height: 36, borderRadius: radius.button + 2, backgroundColor: colors.bgAlt, alignItems: 'center', justifyContent: 'center' },
+  listRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 11, minHeight: 56 },
 });

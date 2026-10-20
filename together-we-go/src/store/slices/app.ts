@@ -1,7 +1,9 @@
 /**
  * App-wide state: onboarding, settings, personalization, bucket list, favourites, notifications and cached weather/rates.
  */
+import { layoutAnswers } from '@/data/layouts';
 import { uid } from '@/utils/format';
+import { nextStreak } from '@/utils/trivia';
 
 import type { AppNotification, BucketItem, RatesSnapshot, Settings, WeatherSnapshot, Personal } from '../types';
 import { initialAuth } from './auth';
@@ -27,9 +29,19 @@ export const defaultPersonal: Personal = {
   interests: [],
   travelStyle: 'balanced',
   budgetStyle: 'mid',
-  sections: { glance: true, budget: true, upnext: true, quick: true, forYou: true, nearby: false, discover: true },
+  ...layoutAnswers('planner'),
+  effects: 'lively',
+  triviaReminder: false,
   motion: true,
 };
+
+/** Today's trivia question: which day it was answered, what was picked, and the streak of days answered right in a row. */
+export interface TriviaState {
+  day: string | null;
+  picked: number | null;
+  streak: number;
+  lastCorrectDay: string | null;
+}
 
 export interface AppSlice {
   hydrated: boolean;
@@ -43,6 +55,7 @@ export interface AppSlice {
   quizBest: number;
   surveyResult: string[] | null;
   personal: Personal;
+  trivia: TriviaState;
   restyled: boolean;
   firedReminders: Record<string, number>;
   setHydrated: () => void;
@@ -61,6 +74,8 @@ export interface AppSlice {
   setQuizBest: (n: number) => void;
   setSurveyResult: (ids: string[] | null) => void;
   updatePersonal: (patch: Partial<Personal>) => void;
+  /** Records the answer to the day's trivia question (only the first answer of a day counts). */
+  answerTrivia: (day: string, picked: number, correct: boolean) => void;
   setRestyled: (v: boolean) => void;
   setToured: (v: boolean) => void;
   markReminderFired: (key: string) => void;
@@ -80,6 +95,7 @@ export const initialApp = {
   quizBest: 0,
   surveyResult: null,
   personal: defaultPersonal,
+  trivia: { day: null, picked: null, streak: 0, lastCorrectDay: null } as TriviaState,
   restyled: false,
   firedReminders: {},
 };
@@ -153,6 +169,15 @@ export const createAppSlice: Slice<AppSlice> = (set) => {
     updatePersonal: (patch) =>
       set((s) => {
         Object.assign(s.personal, patch);
+      }),
+
+    answerTrivia: (day, picked, correct) =>
+      set((s) => {
+        if (s.trivia.day === day) return;
+        s.trivia.streak = nextStreak(s.trivia.streak, s.trivia.lastCorrectDay, day, correct);
+        if (correct) s.trivia.lastCorrectDay = day;
+        s.trivia.day = day;
+        s.trivia.picked = picked;
       }),
 
     setRestyled: (v) => set({ restyled: v }),
