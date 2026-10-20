@@ -8,10 +8,10 @@ import { Animated, Modal, Platform, Pressable, StyleSheet, View } from 'react-na
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { create } from 'zustand';
 
-import { colors, isDark, radius, shadowStrong } from '@/theme';
-import { readableOn } from '@/utils/contrast';
+import { colors, line, radius } from '@/theme';
 
 import { Button } from './Button';
+import { Plate } from './Plate';
 import type { IconName } from './bits';
 import { tap } from './Press';
 import { T } from './T';
@@ -50,9 +50,10 @@ export function ToastHost() {
   }, [t, anim, hide]);
 
   if (!t) return null;
-  // The toast is the opposite of the page (black on white, white on the dark mode), so it stands out; a warning is red.
-  const bg = t.tone === 'warn' ? colors.red : colors.primary;
-  const fg = t.tone === 'warn' ? readableOn(colors.red) : colors.onPrimary;
+  // A toast is a slip of ink-coloured paper with a hard plate; a warning is the red one.
+  const warn = t.tone === 'warn';
+  const bg = warn ? colors.red : colors.primary;
+  const fg = warn ? colors.white : colors.onPrimary;
   return (
     <Animated.View
       pointerEvents="box-none"
@@ -60,12 +61,14 @@ export function ToastHost() {
         styles.toastWrap,
         { top: insets.top + 10, opacity: anim, transform: [{ translateY: anim.interpolate({ inputRange: [0, 1], outputRange: [-30, 0] }) }] },
       ]}>
-      <Pressable onPress={hide} style={[styles.toast, { backgroundColor: bg }]} accessibilityLiveRegion="polite" accessibilityRole="alert">
-        <Ionicons name={t.icon} size={20} color={t.tone === 'warn' ? fg : isDark ? colors.accentText : colors.accent} />
-        <T variant="small" weight="semibold" color={fg} style={{ flex: 1 }}>
-          {t.text}
-        </T>
-      </Pressable>
+      <Plate corner={radius.card} color={colors.accent} style={{ width: '100%', maxWidth: 480 }}>
+        <Pressable onPress={hide} style={[styles.toast, { backgroundColor: bg }]} accessibilityLiveRegion="polite" accessibilityRole="alert">
+          <Ionicons name={t.icon} size={20} color={warn ? fg : colors.accent} />
+          <T variant="small" weight="bold" color={fg} style={{ flex: 1 }}>
+            {t.text}
+          </T>
+        </Pressable>
+      </Plate>
     </Animated.View>
   );
 }
@@ -116,13 +119,14 @@ export function DialogHost() {
   return (
     <Modal transparent visible animationType="fade" onRequestClose={close} statusBarTranslucent>
       <View style={styles.dialogBackdrop}>
+        <Plate corner={radius.modal} style={{ width: '100%', maxWidth: 372 }}>
         <View style={styles.dialog} accessibilityViewIsModal accessibilityRole="alert">
           {d.icon ? (
             <View style={styles.dialogIcon}>
-              <Ionicons name={d.icon} size={26} color={colors.accentText} />
+              <Ionicons name={d.icon} size={26} color={colors.ink} />
             </View>
           ) : null}
-          <T variant="h3" center>
+          <T variant="headline" center>
             {d.title}
           </T>
           {d.message ? (
@@ -145,6 +149,7 @@ export function DialogHost() {
             ))}
           </View>
         </View>
+        </Plate>
       </View>
     </Modal>
   );
@@ -160,26 +165,27 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     minHeight: 52,
     borderRadius: radius.card,
-    maxWidth: 480,
+    borderWidth: line,
+    borderColor: colors.ink,
     width: '100%',
-    ...shadowStrong,
   },
   dialogBackdrop: { flex: 1, backgroundColor: colors.overlay, alignItems: 'center', justifyContent: 'center', padding: 28 },
   dialog: {
     width: '100%',
-    maxWidth: 360,
     backgroundColor: colors.raised,
     borderRadius: radius.modal,
-    borderWidth: 1,
-    borderColor: colors.border,
+    borderWidth: line,
+    borderColor: colors.ink,
     padding: 22,
     alignItems: 'center',
-    ...shadowStrong,
   },
   dialogIcon: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
+    width: 54,
+    height: 54,
+    borderRadius: 27,
+    borderWidth: line,
+    borderStyle: 'dashed',
+    borderColor: colors.ink,
     backgroundColor: colors.accentSoft,
     alignItems: 'center',
     justifyContent: 'center',

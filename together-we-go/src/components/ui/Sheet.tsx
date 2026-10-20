@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { MAX_WIDTH, colors, radius, timing } from '@/theme';
+import { MAX_WIDTH, colors, line, radius, timing } from '@/theme';
 
 import { T } from './T';
 
@@ -65,7 +65,7 @@ export function Sheet({ visible, onClose, title, subtitle, children, footer, max
             <View style={styles.handle} />
             {title ? (
               <View style={{ paddingHorizontal: 22, paddingTop: 6, paddingBottom: 10 }}>
-                <T variant="h2" accessibilityRole="header">
+                <T variant="headline" accessibilityRole="header">
                   {title}
                 </T>
                 {subtitle ? (
@@ -101,16 +101,16 @@ const styles = StyleSheet.create({
     backgroundColor: colors.raised,
     borderTopLeftRadius: radius.modal,
     borderTopRightRadius: radius.modal,
-    borderWidth: 1,
+    borderWidth: line,
     borderBottomWidth: 0,
-    borderColor: colors.border,
+    borderColor: colors.ink,
   },
   handle: {
     alignSelf: 'center',
-    width: 44,
+    width: 40,
     height: 5,
     borderRadius: 3,
-    backgroundColor: colors.borderStrong,
+    backgroundColor: colors.ink,
     marginTop: 10,
     marginBottom: 10,
   },

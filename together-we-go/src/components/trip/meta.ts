@@ -3,21 +3,25 @@ import type { PlaceCategory } from '@/data/places';
 import type { ActivityStatus, ActivityType, ExpenseCategory } from '@/store/types';
 import { colors } from '@/theme';
 
+/**
+ * What kind of thing an activity is. Each kind has one line icon; the colours are the same ink on paper for every kind
+ * (the app does not colour-code kinds: colour is kept for states).
+ */
 export const activityTypes: { key: ActivityType; label: string; icon: IconName; color: string; bg: string }[] = [
-  { key: 'transport', label: 'Transport', icon: 'train-outline', color: '#2B5FB0', bg: colors.blueSoft },
-  { key: 'stay', label: 'Stay', icon: 'bed-outline', color: colors.purple, bg: colors.purpleSoft },
-  { key: 'food', label: 'Food', icon: 'restaurant-outline', color: '#C2410C', bg: colors.orangeSoft },
-  { key: 'sightseeing', label: 'Sightseeing', icon: 'camera-outline', color: colors.teal, bg: colors.tealSoft },
-  { key: 'culture', label: 'Culture', icon: 'business-outline', color: '#8B5E0F', bg: colors.yellowSoft },
-  { key: 'adventure', label: 'Adventure', icon: 'bonfire-outline', color: colors.primary, bg: colors.primarySoft },
-  { key: 'nightlife', label: 'Nightlife', icon: 'musical-notes-outline', color: '#B4235A', bg: '#FCE4EE' },
-  { key: 'shopping', label: 'Shopping', icon: 'bag-handle-outline', color: '#5B4AB8', bg: colors.purpleSoft },
+  { key: 'transport', label: 'Transport', icon: 'train-outline', color: colors.ink, bg: colors.bgAlt },
+  { key: 'stay', label: 'Stay', icon: 'bed-outline', color: colors.ink, bg: colors.bgAlt },
+  { key: 'food', label: 'Food', icon: 'restaurant-outline', color: colors.ink, bg: colors.bgAlt },
+  { key: 'sightseeing', label: 'Sightseeing', icon: 'camera-outline', color: colors.ink, bg: colors.bgAlt },
+  { key: 'culture', label: 'Culture', icon: 'business-outline', color: colors.ink, bg: colors.bgAlt },
+  { key: 'adventure', label: 'Adventure', icon: 'bonfire-outline', color: colors.ink, bg: colors.bgAlt },
+  { key: 'nightlife', label: 'Nightlife', icon: 'musical-notes-outline', color: colors.ink, bg: colors.bgAlt },
+  { key: 'shopping', label: 'Shopping', icon: 'bag-handle-outline', color: colors.ink, bg: colors.bgAlt },
 ];
 
 export const typeMeta = (t: ActivityType) => activityTypes.find((x) => x.key === t) ?? activityTypes[3];
 
 export const statusMeta: Record<ActivityStatus, { tone: 'green' | 'orange' | 'blue'; key: string; dot: string }> = {
-  confirmed: { tone: 'green', key: 'itin.confirmed', dot: colors.primary },
+  confirmed: { tone: 'green', key: 'itin.confirmed', dot: colors.positive },
   voting: { tone: 'orange', key: 'itin.voting', dot: colors.orange },
   pending: { tone: 'blue', key: 'itin.pending', dot: colors.blue },
 };
@@ -55,7 +59,10 @@ export const activityFilters: { key: 'all' | ActivityType; labelKey: string }[] 
   { key: 'shopping', labelKey: 'cat.shopping' },
 ];
 
-/** Emoji shown in the round icon of an activity card and in the filter chips. */
+/** The line icon of an activity kind (use this, not emoji). */
+export const typeIcon = (t: ActivityType): IconName => typeMeta(t).icon;
+
+/** @deprecated Emoji are not used in the app's look. Use typeIcon. Kept only until every screen has switched. */
 export const typeEmoji: Record<ActivityType, string> = {
   transport: '🚐',
   stay: '🏡',

@@ -5,18 +5,38 @@ import type { ComponentProps, ReactNode } from 'react';
 import { StyleSheet, Switch, View, type StyleProp, type ViewStyle } from 'react-native';
 
 import { imageSource } from '@/data/images';
-import { colors, radius, shadow } from '@/theme';
+import { colors, hair, line, radius } from '@/theme';
 import { initials } from '@/utils/format';
 
 import { Float } from './motion';
+import { Plate, PlatePress } from './Plate';
 import { Press } from './Press';
+import { Rule } from './Rule';
+import { Stamp, stampColors, type StampTone } from './Stamp';
 import { T } from './T';
 
 export type IconName = ComponentProps<typeof Ionicons>['name'];
 
-/** A card: flat surface, 12 px corners, a hairline border and (light mode only) a soft shadow. */
-export function Card({ children, style, padded = true, onPress, accessibilityLabel }: { children: ReactNode; style?: StyleProp<ViewStyle>; padded?: boolean; onPress?: () => void; accessibilityLabel?: string }) {
+/**
+ * A card: a paper-white surface with a 2 px ink outline and 12 px corners. `plated` puts the hard plate under it, for the one
+ * card on a screen that should stand up (the others lie flat). A pressable card squeezes a little when pressed.
+ */
+export function Card({ children, style, padded = true, onPress, accessibilityLabel, plated }: { children: ReactNode; style?: StyleProp<ViewStyle>; padded?: boolean; onPress?: () => void; accessibilityLabel?: string; plated?: boolean }) {
   const s = [styles.card, padded && { padding: 16 }, style];
+  if (plated) {
+    const { margin, marginTop, marginBottom, marginLeft, marginRight, marginHorizontal, marginVertical, alignSelf, flex, width } = StyleSheet.flatten(style) ?? {};
+    const outer = { margin, marginTop, marginBottom, marginLeft, marginRight, marginHorizontal, marginVertical, alignSelf, flex, width };
+    const inner = [styles.card, padded && { padding: 16 }];
+    return onPress ? (
+      <PlatePress onPress={onPress} accessibilityLabel={accessibilityLabel} corner={radius.card} wrapperStyle={outer} style={inner}>
+        {children}
+      </PlatePress>
+    ) : (
+      <Plate corner={radius.card} style={outer}>
+        <View style={inner}>{children}</View>
+      </Plate>
+    );
+  }
   if (onPress)
     return (
       <Press onPress={onPress} style={s} scaleTo={0.985} accessibilityLabel={accessibilityLabel}>
@@ -26,7 +46,7 @@ export function Card({ children, style, padded = true, onPress, accessibilityLab
   return <View style={s}>{children}</View>;
 }
 
-/** Pill for choosing: filled black (white in the dark mode) when selected. */
+/** A small outlined rectangle for choosing. Chosen = filled with the accent, like a highlighter pass. */
 export function Chip({
   label,
   active,
@@ -46,57 +66,42 @@ export function Chip({
   tone?: 'soft';
   style?: StyleProp<ViewStyle>;
 }) {
-  const bg = active ? colors.primary : tone === 'soft' ? colors.bgAlt : colors.card;
-  const fg = active ? colors.onPrimary : colors.text;
+  const bg = active ? colors.accent : tone === 'soft' ? colors.bgAlt : colors.card;
+  const fg = active ? colors.onAccent : colors.text;
   return (
     <Press
       onPress={onPress}
       accessibilityRole="button"
       accessibilityState={{ selected: !!active }}
       accessibilityLabel={label}
-      style={[
-        styles.chip,
-        small && styles.chipSmall,
-        { backgroundColor: bg, borderColor: active ? colors.primary : colors.border },
-        !!image && { paddingLeft: 5 },
-        style,
-      ]}>
+      scaleTo={0.97}
+      style={[styles.chip, small && styles.chipSmall, { backgroundColor: bg, borderColor: colors.ink }, !!image && { paddingLeft: 5 }, style]}>
       {image ? <Image source={imageSource(image)} style={styles.chipImg} contentFit="cover" /> : null}
       {icon ? <Ionicons name={icon} size={small ? 14 : 16} color={fg} /> : null}
-      <T variant={small ? 'caption' : 'small'} weight={active ? 'bold' : 'semibold'} color={fg} numberOfLines={1}>
+      <T variant={small ? 'caption' : 'small'} weight="bold" color={fg} numberOfLines={1}>
         {label}
       </T>
+      {active ? <Ionicons name="checkmark" size={14} color={fg} /> : null}
     </Press>
   );
 }
 
-/** A person: initials on a quiet tint (the picture, if they have one, takes over). */
+/** A person: a photo or initials in an ink ring. */
 export function Avatar({ name, src, size = 34, ring, dot }: { name: string; src?: string; size?: number; ring?: string; /** A small status dot, for example green for "here now". */ dot?: string }) {
-  const tints = [colors.bgAlt, colors.accentSoft, colors.primarySoft, colors.cardMuted];
+  const tints = [colors.accentSoft, colors.bgAlt, colors.cardMuted, colors.primarySoft];
   const bg = tints[(name.charCodeAt(0) + name.length) % tints.length];
   return (
     <View accessibilityLabel={name} style={{ width: size, height: size }}>
-      <View
-        style={{
-          width: size,
-          height: size,
-          borderRadius: size / 2,
-          backgroundColor: bg,
-          alignItems: 'center',
-          justifyContent: 'center',
-          overflow: 'hidden',
-          borderWidth: ring ? 2 : 0,
-          borderColor: ring,
-        }}>
+      <View style={{ width: size, height: size, borderRadius: size / 2, backgroundColor: bg, alignItems: 'center', justifyContent: 'center', overflow: 'hidden', borderWidth: size < 30 ? 1.5 : line, borderColor: ring ?? colors.ink }}>
         {src ? (
           <Image source={imageSource(src)} style={{ width: '100%', height: '100%' }} contentFit="cover" />
         ) : (
-          <T variant={size > 40 ? 'title' : 'micro'} weight="bold" color={colors.text} style={size <= 28 ? { fontSize: 10 } : null}>
+          <T variant="kicker" color={colors.ink} style={{ fontSize: size > 40 ? 15 : 10.5, letterSpacing: 0 }}>
             {initials(name)}
           </T>
         )}
       </View>
-      {dot ? <View style={[styles.avatarDot, { backgroundColor: dot, width: Math.max(8, size * 0.28), height: Math.max(8, size * 0.28), borderRadius: size }]} /> : null}
+      {dot ? <View style={[styles.avatarDot, { backgroundColor: dot, width: Math.max(9, size * 0.28), height: Math.max(9, size * 0.28), borderRadius: size }]} /> : null}
     </View>
   );
 }
@@ -107,24 +112,13 @@ export function AvatarStack({ people, max = 3, size = 28 }: { people: { name: st
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center' }}>
       {shown.map((p, i) => (
-        <View key={`${p.name}${i}`} style={{ marginLeft: i === 0 ? 0 : -size * 0.32 }}>
-          <Avatar name={p.name} src={p.avatar} size={size} ring={colors.card} />
+        <View key={`${p.name}${i}`} style={{ marginLeft: i === 0 ? 0 : -size * 0.28 }}>
+          <Avatar name={p.name} src={p.avatar} size={size} />
         </View>
       ))}
       {extra > 0 && (
-        <View
-          style={{
-            marginLeft: -size * 0.32,
-            width: size,
-            height: size,
-            borderRadius: size / 2,
-            backgroundColor: colors.primary,
-            borderWidth: 2,
-            borderColor: colors.card,
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}>
-          <T variant="micro" weight="bold" color={colors.onPrimary}>
+        <View style={{ marginLeft: -size * 0.28, width: size, height: size, borderRadius: size / 2, backgroundColor: colors.accent, borderWidth: size < 30 ? 1.5 : line, borderColor: colors.ink, alignItems: 'center', justifyContent: 'center' }}>
+          <T variant="kicker" color={colors.onAccent} style={{ fontSize: 10.5, letterSpacing: 0 }}>
             +{extra}
           </T>
         </View>
@@ -133,27 +127,27 @@ export function AvatarStack({ people, max = 3, size = 28 }: { people: { name: st
   );
 }
 
-/** A thin bar. Pass a state colour (`colors.positive`, `colors.warn`, `colors.red`) only when it means something. */
-export function ProgressBar({ value, color = colors.primary, track = colors.bgAlt, height = 6 }: { value: number; color?: string; track?: string; height?: number }) {
+/** A chunky bar in an ink outline. Pass a state colour (`colors.positive`, `colors.warn`, `colors.red`) only when it means something. */
+export function ProgressBar({ value, color = colors.accent, track = colors.card, height = 14 }: { value: number; color?: string; track?: string; height?: number }) {
   const pct = Math.max(0, Math.min(1, value));
   return (
     <View
       accessibilityRole="progressbar"
       accessibilityValue={{ min: 0, max: 100, now: Math.round(pct * 100) }}
-      style={{ height, borderRadius: height, backgroundColor: track, overflow: 'hidden' }}>
-      <View style={{ width: `${pct * 100}%`, height: '100%', backgroundColor: color, borderRadius: height }} />
+      style={{ height, borderRadius: radius.xs, backgroundColor: track, borderWidth: line, borderColor: colors.ink, overflow: 'hidden' }}>
+      <View style={{ width: `${pct * 100}%`, height: '100%', backgroundColor: color, borderRightWidth: pct > 0 && pct < 1 ? line : 0, borderColor: colors.ink }} />
     </View>
   );
 }
 
-/** Round icon button, 44 points by default. */
+/** A square-cornered icon button, 44 points by default, with its own small plate. */
 export function IconButton({
   icon,
   onPress,
   label,
   size = 44,
   bg = colors.card,
-  color = colors.text,
+  color = colors.ink,
   badge,
   bordered = true,
 }: {
@@ -166,20 +160,9 @@ export function IconButton({
   badge?: number | boolean;
   bordered?: boolean;
 }) {
-  return (
-    <Press
-      onPress={onPress}
-      accessibilityLabel={label}
-      style={{
-        width: size,
-        height: size,
-        borderRadius: size / 2,
-        backgroundColor: bg,
-        alignItems: 'center',
-        justifyContent: 'center',
-        borderWidth: bordered ? 1 : 0,
-        borderColor: colors.border,
-      }}>
+  const face = { width: size, height: size, borderRadius: radius.button, backgroundColor: bg, alignItems: 'center' as const, justifyContent: 'center' as const, borderWidth: bordered ? line : 0, borderColor: colors.ink };
+  const inner = (
+    <>
       <Ionicons name={icon} size={Math.round(size * 0.46)} color={color} />
       {badge ? (
         <View style={styles.badge}>
@@ -190,72 +173,63 @@ export function IconButton({
           ) : null}
         </View>
       ) : null}
+    </>
+  );
+  return bordered ? (
+    <PlatePress onPress={onPress} accessibilityLabel={label} offset={3} corner={radius.button} color={bg === colors.primary ? colors.accent : colors.plate} style={face}>
+      {inner}
+    </PlatePress>
+  ) : (
+    <Press onPress={onPress} accessibilityLabel={label} style={face}>
+      {inner}
     </Press>
   );
 }
 
-/** A block's title in condensed display type, with an optional quiet action on the right. */
+/** The title of a block of the page: a serif headline over an ink rule, with a quiet mono action on the right. */
 export function SectionHeader({ title, action, onAction, style }: { title: string; action?: string; onAction?: () => void; style?: StyleProp<ViewStyle> }) {
   return (
     <View style={[styles.sectionHeader, style]}>
-      <T variant="headline" accessibilityRole="header" style={{ flexShrink: 1 }}>
-        {title}
-      </T>
-      {action ? (
-        <Press onPress={onAction} hitSlop={8} accessibilityLabel={action} style={styles.sectionAction}>
-          <T variant="small" weight="bold" color={colors.textSecondary}>
-            {action}
-          </T>
-          <Ionicons name="chevron-forward" size={14} color={colors.textSecondary} />
-        </Press>
-      ) : null}
+      <View style={styles.sectionTop}>
+        <T variant="headline" accessibilityRole="header" style={{ flexShrink: 1 }}>
+          {title}
+        </T>
+        {action ? (
+          <Press onPress={onAction} hitSlop={8} accessibilityLabel={action} style={styles.sectionAction}>
+            <T variant="kicker" color={colors.ink}>
+              {action}
+            </T>
+            <Ionicons name="arrow-forward" size={14} color={colors.ink} />
+          </Press>
+        ) : null}
+      </View>
+      <Rule />
     </View>
   );
 }
 
 /**
- * A small label. The green, amber and red tones are for states only (under budget, near, over; going, maybe, can't go).
- * Blue and purple are quiet info tints; yellow is the theme accent.
+ * A small status tag, drawn like a stamp. Green, amber and red are for states only (under budget, near, over; going, maybe,
+ * can't go). `yellow` is the theme accent; blue and purple are quiet info tints.
  */
 export function Pill({ label, tone = 'green', icon }: { label: string; tone?: 'green' | 'orange' | 'blue' | 'red' | 'gray' | 'yellow' | 'purple'; icon?: IconName }) {
-  const map = {
-    green: [colors.positiveSoft, colors.positive],
-    orange: [colors.warnSoft, colors.warn],
-    blue: [colors.blueSoft, colors.blue],
-    red: [colors.redSoft, colors.red],
-    gray: [colors.bgAlt, colors.textSecondary],
-    yellow: [colors.accentSoft, colors.accentText],
-    purple: [colors.purpleSoft, colors.purple],
-  } as const;
-  const [bg, fg] = map[tone];
-  return (
-    <View style={[styles.pill, { backgroundColor: bg }]}>
-      {icon ? <Ionicons name={icon} size={12} color={fg} /> : null}
-      <T variant="micro" weight="bold" color={fg}>
-        {label}
-      </T>
-    </View>
-  );
+  const map: Record<string, StampTone> = { green: 'positive', orange: 'warn', red: 'danger', gray: 'muted', yellow: 'accent', blue: 'ink', purple: 'ink' };
+  return <Stamp label={label} tone={map[tone]} icon={icon} rotate={0} />;
 }
+export { stampColors };
 
 /**
- * An empty list turned into an invitation: a big playful picture, a title in display type, one line of help and one button.
- * `art` is an emoji that gently floats; without it a round icon is used.
+ * An empty list turned into an invitation: a big line icon in a dashed ring, a serif prompt, one line of help and one button.
+ * (`art` is ignored: the app uses line icons, not emoji.)
  */
-export function EmptyState({ icon, title, body, children, art }: { icon?: IconName; title: string; body?: string; children?: ReactNode; art?: string }) {
+export function EmptyState({ icon, title, body, children }: { icon?: IconName; title: string; body?: string; children?: ReactNode; art?: string }) {
   return (
     <View style={styles.empty}>
-      {art ? (
-        <Float amount={8}>
-          <T style={{ fontSize: 52, lineHeight: 60 }} accessibilityElementsHidden importantForAccessibility="no">
-            {art}
-          </T>
-        </Float>
-      ) : (
+      <Float amount={6}>
         <View style={styles.emptyIcon}>
-          <Ionicons name={icon ?? 'sparkles-outline'} size={28} color={colors.accentText} />
+          <Ionicons name={icon ?? 'airplane-outline'} size={34} color={colors.ink} />
         </View>
-      )}
+      </Float>
       <T variant="headline" center accessibilityRole="header">
         {title}
       </T>
@@ -274,7 +248,7 @@ export function ToggleRow({ label, sub, value, onChange, icon }: { label: string
     <View style={styles.toggleRow}>
       {icon ? (
         <View style={styles.rowIcon}>
-          <Ionicons name={icon} size={18} color={colors.text} />
+          <Ionicons name={icon} size={18} color={colors.ink} />
         </View>
       ) : null}
       <View style={{ flex: 1 }}>
@@ -291,18 +265,18 @@ export function ToggleRow({ label, sub, value, onChange, icon }: { label: string
         accessibilityLabel={label}
         value={value}
         onValueChange={onChange}
-        trackColor={{ false: colors.borderStrong, true: colors.primary }}
-        thumbColor={colors.white}
-        {...({ activeThumbColor: colors.white } as object)}
+        trackColor={{ false: colors.borderStrong, true: colors.ink }}
+        thumbColor={colors.card}
+        {...({ activeThumbColor: colors.accent } as object)}
       />
     </View>
   );
 }
 
-export function ListRow({ icon, label, sub, onPress, right, tint = colors.text }: { icon: IconName; label: string; sub?: string; onPress?: () => void; right?: ReactNode; tint?: string }) {
+export function ListRow({ icon, label, sub, onPress, right, tint = colors.ink }: { icon: IconName; label: string; sub?: string; onPress?: () => void; right?: ReactNode; tint?: string }) {
   return (
     <Press onPress={onPress} style={styles.listRow} scaleTo={0.99} accessibilityLabel={label}>
-      <View style={[styles.rowIcon, { backgroundColor: tint === colors.text ? colors.bgAlt : `${tint}1F` }]}>
+      <View style={[styles.rowIcon, tint !== colors.ink && { backgroundColor: `${tint}1F`, borderColor: tint }]}>
         <Ionicons name={icon} size={18} color={tint} />
       </View>
       <View style={{ flex: 1 }}>
@@ -315,63 +289,65 @@ export function ListRow({ icon, label, sub, onPress, right, tint = colors.text }
           </T>
         ) : null}
       </View>
-      {right ?? <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />}
+      {right ?? <Ionicons name="arrow-forward" size={16} color={colors.ink} />}
     </Press>
   );
 }
 
 export function Divider({ style }: { style?: StyleProp<ViewStyle> }) {
-  return <View style={[{ height: 1, backgroundColor: colors.border }, style]} />;
+  return <View style={[{ height: hair, backgroundColor: colors.border }, style]} />;
 }
 
 const styles = StyleSheet.create({
   card: {
     backgroundColor: colors.card,
     borderRadius: radius.card,
-    borderWidth: 1,
-    borderColor: colors.border,
-    ...shadow,
+    borderWidth: line,
+    borderColor: colors.ink,
   },
   chip: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
     height: 44,
-    paddingHorizontal: 16,
-    borderRadius: radius.pill,
-    borderWidth: 1.5,
+    paddingHorizontal: 14,
+    borderRadius: radius.chip,
+    borderWidth: line,
   },
-  chipSmall: { height: 36, paddingHorizontal: 13, gap: 5 },
-  chipImg: { width: 32, height: 32, borderRadius: 16 },
-  avatarDot: { position: 'absolute', right: -1, bottom: -1, borderWidth: 2, borderColor: colors.card },
+  chipSmall: { paddingHorizontal: 11, gap: 5 },
+  chipImg: { width: 30, height: 30, borderRadius: radius.xs },
+  avatarDot: { position: 'absolute', right: -1, bottom: -1, borderWidth: 2, borderColor: colors.ink },
   badge: {
     position: 'absolute',
-    top: 4,
-    right: 4,
-    minWidth: 16,
-    height: 16,
-    paddingHorizontal: 3,
-    borderRadius: 8,
+    top: -7,
+    right: -7,
+    minWidth: 20,
+    height: 20,
+    paddingHorizontal: 4,
+    borderRadius: 10,
     backgroundColor: colors.red,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1.5,
-    borderColor: colors.card,
+    borderWidth: 2,
+    borderColor: colors.ink,
   },
-  sectionHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12, minHeight: 44 },
-  sectionAction: { flexDirection: 'row', alignItems: 'center', gap: 2, minHeight: 44, paddingLeft: 10 },
-  pill: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 10, paddingVertical: 4, borderRadius: radius.pill, alignSelf: 'flex-start' },
+  sectionHeader: { marginBottom: 14, gap: 8 },
+  sectionTop: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', minHeight: 36 },
+  sectionAction: { flexDirection: 'row', alignItems: 'center', gap: 4, minHeight: 44, paddingLeft: 10 },
   empty: { alignItems: 'center', gap: 10, paddingVertical: 40, paddingHorizontal: 24 },
   emptyIcon: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
+    width: 84,
+    height: 84,
+    borderRadius: 42,
+    borderWidth: line,
+    borderStyle: 'dashed',
+    borderColor: colors.ink,
     backgroundColor: colors.accentSoft,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 4,
   },
   toggleRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 10, minHeight: 56 },
-  rowIcon: { width: 36, height: 36, borderRadius: radius.button + 2, backgroundColor: colors.bgAlt, alignItems: 'center', justifyContent: 'center' },
+  rowIcon: { width: 38, height: 38, borderRadius: radius.button, borderWidth: line, borderColor: colors.ink, backgroundColor: colors.card, alignItems: 'center', justifyContent: 'center' },
   listRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 11, minHeight: 56 },
 });

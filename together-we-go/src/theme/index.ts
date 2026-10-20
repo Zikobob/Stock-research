@@ -1,9 +1,10 @@
 /**
  * TogetherWeGo design tokens.
  *
- * "Quiet base, loud moments": a calm neutral canvas (white, or #121212 in the dark mode), black
- * primary actions, condensed display type, and ONE vivid accent per theme that appears only where it
- * matters. The colours themselves live in ./palettes (pure data, unit-tested for contrast).
+ * The look is a boarding pass printed on paper: a warm paper page, ink outlines on everything, a serif for
+ * headlines, mono for the small labels and numbers, ONE flat accent per theme used like a highlighter, and a
+ * hard offset "plate" under things you can press instead of a soft shadow. The colours themselves live in
+ * ./palettes (pure data, unit-tested for contrast).
  *
  * The person picks a theme (accent) and a mode (light, dark, or follow the phone) in "Make it yours" or
  * Settings. Styles are created once when each module loads, so the saved choice is read synchronously
@@ -134,20 +135,28 @@ export const categoryColors: Record<string, string> = categoryPalette(resolvedMo
 const cornerScale = cornerStyles[appearance.corners].scale;
 const r = (n: number) => Math.round(n * cornerScale);
 /**
- * Corner radii. `button`, `card` and `modal` are the three the design uses: 8 for buttons and inputs, 12 for
- * cards and images, 16 for sheets and dialogs; pills are fully round. The older names map onto them.
+ * Corner radii: 10 for buttons and inputs, 12 for cards and images, 16 for sheets and dialogs, 8 for chips and
+ * tags (small rectangles, not pills). The older names map onto them.
  */
 export const radius = {
-  button: r(8),
+  button: r(10),
   card: r(12),
   modal: r(16),
-  xs: r(8),
-  sm: r(12),
-  md: r(12),
+  /** Chips and tags are small rectangles, not pills: a pill shape is only for avatars and dots. */
+  chip: r(8),
+  xs: r(6),
+  sm: r(8),
+  md: r(10),
   lg: r(12),
-  xl: r(16),
+  xl: r(14),
   pill: 999,
 };
+
+/** Outline widths: `line` is the ink outline on cards, buttons and inputs; `hair` divides things inside a card. */
+export const line = 2;
+export const hair = 1;
+/** How far the hard plate under a pressable thing sticks out (right and down). */
+export const plateOffset = 4;
 
 /** A 4-point spacing scale. `section` is the gap between blocks on a page, bigger than any gap inside one (law of proximity). */
 export const space = {
@@ -170,33 +179,26 @@ export const touch = { min: 44 } as const;
 export const timing = { fast: 160, base: 240, sheet: 340, slow: 480, stagger: 50 } as const;
 
 export const fonts = {
-  regular: 'Manrope_400Regular',
-  medium: 'Manrope_500Medium',
-  semibold: 'Manrope_600SemiBold',
-  bold: 'Manrope_700Bold',
-  extrabold: 'Manrope_800ExtraBold',
-  /** Tall condensed face for headlines and big numbers (THE PLAN, 3 DAYS TO GO). */
-  display: 'Anton_400Regular',
+  regular: 'SpaceGrotesk_400Regular',
+  medium: 'SpaceGrotesk_500Medium',
+  semibold: 'SpaceGrotesk_600SemiBold',
+  bold: 'SpaceGrotesk_700Bold',
+  extrabold: 'SpaceGrotesk_700Bold',
+  /** Heavy soft serif for page titles: the masthead of a travel magazine. */
+  display: 'Fraunces_900Black',
+  /** Serif for section headlines. */
+  serif: 'Fraunces_700Bold',
+  /** Mono for the small caps labels, times, codes and every number that matters: a ticket's print. */
+  mono: 'SpaceMono_700Bold',
+  monoRegular: 'SpaceMono_400Regular',
 } as const;
 
-/** Shadows are for cards and floating things only. The dark mode shows height with a lighter surface instead. */
-export const shadow = (
-  isDark
-    ? {}
-    : Platform.select({
-        web: { boxShadow: '0px 1px 2px rgba(10, 10, 10, 0.05), 0px 8px 22px rgba(10, 10, 10, 0.06)' },
-        default: { shadowColor: '#0A0A0A', shadowOpacity: 0.07, shadowRadius: 14, shadowOffset: { width: 0, height: 6 }, elevation: 2 },
-      })
-) as object;
-
-export const shadowStrong = (
-  isDark
-    ? {}
-    : Platform.select({
-        web: { boxShadow: '0px 4px 8px rgba(10, 10, 10, 0.08), 0px 16px 36px rgba(10, 10, 10, 0.16)' },
-        default: { shadowColor: '#0A0A0A', shadowOpacity: 0.18, shadowRadius: 20, shadowOffset: { width: 0, height: 10 }, elevation: 6 },
-      })
-) as object;
+/**
+ * There are no soft shadows in this look (a blurry drop shadow is the first thing that makes an app look generated).
+ * These stay as empty styles so older screens compile; depth comes from the hard plate (see ui/Plate).
+ */
+export const shadow = {} as object;
+export const shadowStrong = {} as object;
 
 /** Width of the app column on tablets / web so layouts stay phone-shaped. */
 export const MAX_WIDTH = 520;

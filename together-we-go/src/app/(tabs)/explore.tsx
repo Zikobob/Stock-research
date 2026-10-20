@@ -24,7 +24,7 @@ import { useNow, useWeather } from '@/hooks/useTrip';
 import { useT } from '@/i18n';
 import { nextUpcoming } from '@/services/notifications';
 import { totalSpent, tripStatus, useActiveTrip, useAppStore, useCurrentUser } from '@/store/useAppStore';
-import { MAX_WIDTH, colors } from '@/theme';
+import { MAX_WIDTH, colors, radius } from '@/theme';
 import { daysBetween, deviceTimeZone, greetingFor, todayInTz } from '@/utils/time';
 
 /** Home: a hero picture, then the things worth seeing at a glance. Each block is its own component in components/home. */
@@ -64,7 +64,7 @@ export default function Home() {
     <View style={styles.root}>
       <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
         <View style={styles.column}>
-          <HomeHero trip={trip} dest={dest} tz={tz} status={status} daysToGo={daysToGo} unread={unread} onMenu={() => setMenu(true)} onCopyCode={copyCode} />
+          <HomeHero trip={trip} dest={dest} tz={tz} status={status} daysToGo={daysToGo} dayNo={dayNo} tripLen={tripLen} unread={unread} onMenu={() => setMenu(true)} onCopyCode={copyCode} />
 
           <View style={styles.sheet}>
             <T variant="small" color={colors.textSecondary} style={{ marginBottom: 14 }}>
@@ -84,10 +84,10 @@ export default function Home() {
               </Card>
             ) : null}
 
-            {show.glance ? <GlanceTiles dest={dest} weather={weather} now={now} tz={tz} homeTz={deviceTimeZone()} /> : null}
+            {show.weather ? <GlanceTiles dest={dest} weather={weather} now={now} tz={tz} homeTz={deviceTimeZone()} /> : null}
             {trip && show.budget ? <BudgetTile trip={trip} spent={totalSpent(trip)} /> : null}
             {trip && show.upnext ? <UpNextSection trip={trip} status={status} todays={todays} dayNo={dayNo} tripLen={tripLen} next={nextUpcoming(trip)} now={now} /> : null}
-            {trip && show.quick ? <QuickTiles votingCount={votingCount} /> : null}
+            {trip && show.play ? <QuickTiles votingCount={votingCount} /> : null}
             {show.forYou ? <PicksSection personal={personal} /> : null}
             {trip && dest && show.nearby ? <NearbySection trip={trip} dest={dest} /> : null}
             {show.discover ? <DiscoverSection dest={dest} colW={colW} /> : null}
@@ -113,6 +113,6 @@ const styles = StyleSheet.create({
   // width 100% so the page is exactly as wide as the phone (the root centres its children, which would otherwise let a wide card row stretch the page sideways)
   scroll: { width: '100%' },
   column: { width: '100%', maxWidth: MAX_WIDTH },
-  sheet: { marginTop: -28, borderTopLeftRadius: 28, borderTopRightRadius: 28, backgroundColor: colors.bg, paddingHorizontal: 20, paddingTop: 22 },
-  customize: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: 26, paddingVertical: 13, borderRadius: 999, borderWidth: 1, borderStyle: 'dashed', borderColor: colors.borderStrong },
+  sheet: { backgroundColor: colors.bg, paddingHorizontal: 20, paddingTop: 22 },
+  customize: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: 26, minHeight: 48, borderRadius: radius.button, borderWidth: 2, borderStyle: 'dashed', borderColor: colors.ink },
 });

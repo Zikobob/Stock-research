@@ -15,10 +15,14 @@ import { Press } from '@/components/ui/Press';
 import { T, type TProps } from '@/components/ui/T';
 import { photos } from '@/data/images';
 import { LAYOUTS, layoutAnswers, visibleSections, type Preset } from '@/data/layouts';
+import type { Personal } from '@/store/types';
 import { radius, themes, timing, type ModePref, type ThemeKey } from '@/theme';
 
 import { BLOCK_SHORT, MODES } from './options';
 import { paletteOf, type Pal } from './palette';
+
+/** Updates part of the survey answers. */
+export type SetPersonal = (patch: Partial<Personal>) => void;
 
 type Tone = 'text' | 'secondary' | 'muted' | 'accent';
 

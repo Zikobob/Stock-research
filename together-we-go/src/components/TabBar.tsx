@@ -6,7 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useT } from '@/i18n';
 import { useActiveTrip, useAppStore } from '@/store/useAppStore';
-import { MAX_WIDTH, colors } from '@/theme';
+import { MAX_WIDTH, colors, line, radius } from '@/theme';
 
 import type { IconName } from './ui/bits';
 import { nativeDriver, useMotion } from './ui/motion';
@@ -23,7 +23,7 @@ const TABS: Record<string, { label: string; icon: IconName; active: IconName }> 
   profile: { label: 'nav.profile', icon: 'grid-outline', active: 'grid' },
 };
 
-/** Five tabs, Home first and More last (the ends of a row are the easiest to find). One accent bar slides to the tab you are on. */
+/** Five tabs, Home first and More last (the ends of a row are the easiest to find). A highlighter-coloured sticker slides behind the icon of the tab you are on. */
 export function TabBar({ state, navigation }: BottomTabBarProps) {
   const t = useT();
   const insets = useSafeAreaInsets();
@@ -49,7 +49,7 @@ export function TabBar({ state, navigation }: BottomTabBarProps) {
   }, [activeSlot, motion, slide, pop]);
 
   const slotW = innerW > 0 ? (innerW - 16) / Math.max(1, visible.length) : 0;
-  const barW = 30;
+  const barW = 52;
 
   return (
     <View style={[styles.bar, { paddingBottom: Math.max(insets.bottom, 8) }]}>
@@ -81,10 +81,10 @@ export function TabBar({ state, navigation }: BottomTabBarProps) {
               style={styles.item}
               scaleTo={0.92}>
               <Animated.View style={focused ? { transform: [{ scale: pop }] } : undefined}>
-                <Ionicons name={focused ? cfg.active : cfg.icon} size={24} color={focused ? colors.text : colors.textMuted} />
+                <Ionicons name={focused ? cfg.active : cfg.icon} size={23} color={focused ? colors.onAccent : colors.textSecondary} />
                 {route.name === 'chat' && unreadChat > 0 && !focused ? <View style={styles.dot} /> : null}
               </Animated.View>
-              <T variant="micro" weight={focused ? 'bold' : 'semibold'} color={focused ? colors.text : colors.textMuted} numberOfLines={1} style={{ fontSize: 11 }}>
+              <T variant="kicker" color={focused ? colors.ink : colors.textSecondary} numberOfLines={1} style={{ fontSize: 10, letterSpacing: 0.8 }}>
                 {t(cfg.label)}
               </T>
             </Press>
@@ -96,9 +96,9 @@ export function TabBar({ state, navigation }: BottomTabBarProps) {
 }
 
 const styles = StyleSheet.create({
-  bar: { backgroundColor: colors.card, borderTopWidth: 1, borderTopColor: colors.border, alignItems: 'center' },
+  bar: { backgroundColor: colors.bg, borderTopWidth: line, borderTopColor: colors.ink, alignItems: 'center' },
   inner: { flexDirection: 'row', width: '100%', maxWidth: MAX_WIDTH, paddingHorizontal: 8, paddingTop: 6 },
-  item: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 3, height: 54 },
-  indicator: { position: 'absolute', top: -1, height: 3, borderBottomLeftRadius: 3, borderBottomRightRadius: 3, backgroundColor: colors.accent },
-  dot: { position: 'absolute', top: -1, right: -4, width: 9, height: 9, borderRadius: 5, backgroundColor: colors.red, borderWidth: 1.5, borderColor: colors.card },
+  item: { flex: 1, alignItems: 'center', justifyContent: 'flex-start', gap: 6, height: 64, paddingTop: 9 },
+  indicator: { position: 'absolute', top: 8, height: 34, borderRadius: radius.chip, backgroundColor: colors.accent, borderWidth: line, borderColor: colors.ink },
+  dot: { position: 'absolute', top: -3, right: -5, width: 11, height: 11, borderRadius: 6, backgroundColor: colors.red, borderWidth: 2, borderColor: colors.ink },
 });

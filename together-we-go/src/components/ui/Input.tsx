@@ -3,8 +3,9 @@ import { forwardRef, useState, type ComponentProps, type ReactNode } from 'react
 import { Platform, StyleSheet, TextInput, View, type StyleProp, type TextInputProps, type ViewStyle } from 'react-native';
 
 import { useAppStore } from '@/store/useAppStore';
-import { colors, fonts, radius } from '@/theme';
+import { colors, fonts, line, radius } from '@/theme';
 
+import { Plate } from './Plate';
 import { Press } from './Press';
 import { T } from './T';
 
@@ -31,9 +32,10 @@ export const Input = forwardRef<TextInput, InputProps>(function Input(
   const [hidden, setHidden] = useState(true);
   const scale = useAppStore((s) => s.settings.textScale);
   const hasValue = !!rest.value;
-  const borderColor = error ? colors.red : focused ? colors.text : colors.border;
+  const borderColor = error ? colors.red : colors.ink;
 
   const field = (
+    <Plate offset={3} corner={radius.button} color={error ? colors.red : focused ? colors.accent : 'transparent'}>
     <View
       style={[
         styles.field,
@@ -83,12 +85,13 @@ export const Input = forwardRef<TextInput, InputProps>(function Input(
       )}
       {right}
     </View>
+    </Plate>
   );
 
   return (
     <View style={[{ gap: 6 }, containerStyle]}>
       {label && !inlineLabel ? (
-        <T variant="small" weight="semibold">
+        <T variant="kicker" color={colors.ink}>
           {label}
         </T>
       ) : null}
@@ -116,8 +119,8 @@ const styles = StyleSheet.create({
   field: {
     minHeight: 52,
     borderRadius: radius.button,
-    borderWidth: 1.5,
-    backgroundColor: colors.bgAlt,
+    borderWidth: line,
+    backgroundColor: colors.card,
     paddingHorizontal: 14,
     flexDirection: 'row',
     alignItems: 'center',

@@ -8,9 +8,9 @@ const combos = THEME_KEYS.flatMap((key) => MODES.map((mode) => ({ key, mode, c: 
 const name = (x: { key: string; mode: string }) => `${x.key} / ${x.mode}`;
 
 describe('theme colours', () => {
-  it('has six themes, each with a name and an emoji', () => {
+  it('has six themes, each with a name and a vibe', () => {
     expect(THEME_KEYS).toHaveLength(6);
-    for (const k of THEME_KEYS) expect(themes[k].name && themes[k].emoji).toBeTruthy();
+    for (const k of THEME_KEYS) expect(themes[k].name && themes[k].vibe).toBeTruthy();
   });
 
   it.each(combos)('body text reads at 4.5:1 on every surface: $key / $mode', ({ c }) => {
@@ -54,17 +54,22 @@ describe('theme colours', () => {
     }
   });
 
-  it('primary actions are black in the light mode and white in the dark mode', () => {
-    for (const k of THEME_KEYS) {
-      expect(buildPalette(k, 'light').primary).toBe('#0A0A0A');
-      expect(buildPalette(k, 'dark').primary).toBe('#F5F5F5');
+  it('is printed in ink: text, outlines and main buttons are the same ink colour', () => {
+    for (const x of combos) {
+      expect(x.c.ink).toBe(x.c.text);
+      expect(x.c.primary).toBe(x.c.ink);
+      expect(contrast(x.c.ink, x.c.card)).toBeGreaterThanOrEqual(7);
     }
   });
 
-  it('every theme but Classic has a wash; Classic is flat', () => {
-    for (const x of combos) {
-      const flat = x.c.washFrom === x.c.bg && x.c.washTo === x.c.bg;
-      expect(flat).toBe(x.key === 'classic');
+  it('has no gradient wash: the page is one flat colour', () => {
+    for (const x of combos) expect(x.c.washFrom === x.c.bg && x.c.washTo === x.c.bg).toBe(true);
+  });
+
+  it('puts the hard shadow plate in ink on paper and in the accent at night', () => {
+    for (const k of THEME_KEYS) {
+      expect(buildPalette(k, 'light').plate).toBe(buildPalette(k, 'light').ink);
+      expect(buildPalette(k, 'dark').plate).toBe(buildPalette(k, 'dark').accent);
     }
   });
 

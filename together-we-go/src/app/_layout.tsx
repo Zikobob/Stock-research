@@ -1,5 +1,6 @@
-import { Anton_400Regular } from '@expo-google-fonts/anton';
-import { Manrope_400Regular, Manrope_500Medium, Manrope_600SemiBold, Manrope_700Bold, Manrope_800ExtraBold, useFonts } from '@expo-google-fonts/manrope';
+import { Fraunces_700Bold, Fraunces_900Black } from '@expo-google-fonts/fraunces';
+import { SpaceGrotesk_400Regular, SpaceGrotesk_500Medium, SpaceGrotesk_600SemiBold, SpaceGrotesk_700Bold } from '@expo-google-fonts/space-grotesk';
+import { SpaceMono_400Regular, SpaceMono_700Bold, useFonts } from '@expo-google-fonts/space-mono';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
@@ -7,8 +8,8 @@ import { useEffect } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { ReminderService } from '@/components/ReminderService';
-import { ConfettiHost } from '@/components/ui/Confetti';
-import { DialogHost, ToastHost, toast } from '@/components/ui/feedback';
+import { ConfettiHost, celebrate } from '@/components/ui/Confetti';
+import { DialogHost, ToastHost } from '@/components/ui/feedback';
 import { useWatchOsReduceMotion } from '@/hooks/useReduceMotion';
 import { initNotifications } from '@/services/notifications';
 import { startSync } from '@/sync/runtime';
@@ -18,7 +19,7 @@ import { colors, isDark } from '@/theme';
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
 export default function RootLayout() {
-  const [fontsLoaded, fontError] = useFonts({ Anton_400Regular, Manrope_400Regular, Manrope_500Medium, Manrope_600SemiBold, Manrope_700Bold, Manrope_800ExtraBold });
+  const [fontsLoaded, fontError] = useFonts({ Fraunces_700Bold, Fraunces_900Black, SpaceGrotesk_400Regular, SpaceGrotesk_500Medium, SpaceGrotesk_600SemiBold, SpaceGrotesk_700Bold, SpaceMono_400Regular, SpaceMono_700Bold });
   const hydrated = useAppStore((s) => s.hydrated);
   const seeded = useAppStore((s) => s.seeded);
   const signedIn = useAppStore((s) => !!s.session);
@@ -42,7 +43,7 @@ export default function RootLayout() {
     const { restyled, setRestyled } = useAppStore.getState();
     if (restyled) {
       setRestyled(false);
-      setTimeout(() => toast('Your new look is live ✨', { icon: 'sparkles' }), 600);
+      setTimeout(() => celebrate('Your new look is live. Change it anytime in Settings'), 600);
     }
   }, [ready]);
 
