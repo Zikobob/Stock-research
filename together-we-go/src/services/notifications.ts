@@ -11,6 +11,7 @@ import { Platform } from 'react-native';
 
 import { toast } from '@/components/ui/feedback';
 import { destinationById } from '@/data/destinations';
+import { TRIVIA_REMINDER } from '@/data/personal';
 import { tripStatus, useAppStore } from '@/store/useAppStore';
 import type { Activity, Trip } from '@/store/types';
 import { time12, zonedToUtc } from '@/utils/time';
@@ -58,6 +59,38 @@ export async function ensurePermission(): Promise<boolean> {
   }
 }
 
+/** Puts the daily trivia nudge on the phone's calendar (or takes it off). A no-op on the web. */
+async function scheduleTrivia(on: boolean): Promise<void> {
+  if (!isNative) return;
+  try {
+    await Notifications.cancelScheduledNotificationAsync(TRIVIA_REMINDER.id);
+  } catch {
+    // it was not scheduled
+  }
+  if (!on) return;
+  await Notifications.scheduleNotificationAsync({
+    identifier: TRIVIA_REMINDER.id,
+    content: { title: TRIVIA_REMINDER.title, body: TRIVIA_REMINDER.body, data: { route: '/(tabs)/explore' } },
+    trigger: { type: Notifications.SchedulableTriggerInputTypes.DAILY, hour: TRIVIA_REMINDER.hour, minute: TRIVIA_REMINDER.minute, channelId: 'reminders' },
+  });
+}
+
+/**
+ * Switches the daily trivia reminder on or off: one local notification a day, at the same time every day.
+ * Asks the phone for permission when turning it on and returns false if that was refused (or anything failed).
+ * On the web there are no scheduled notifications, so it does nothing and says yes.
+ */
+export async function setTriviaReminder(on: boolean): Promise<boolean> {
+  if (!isNative) return true;
+  try {
+    if (on && !(await ensurePermission())) return false;
+    await scheduleTrivia(on);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 export function activityStartUtc(trip: Trip, a: Activity): number {
   const tz = destinationById(trip.destinationId)?.tz ?? 'UTC';
   return zonedToUtc(a.date, a.time, tz);
@@ -79,8 +112,10 @@ export async function syncReminders(): Promise<number> {
   } catch {
     return 0;
   }
-  if (!s.settings.notificationsEnabled || !s.session) return 0;
+  // Cancelling everything above also removed the daily trivia nudge, so put it back (it does not depend on the activity reminders).
   const granted = (await Notifications.getPermissionsAsync().catch(() => null))?.granted;
+  await scheduleTrivia(!!granted && s.personal.triviaReminder).catch(() => {});
+  if (!s.settings.notificationsEnabled || !s.session) return 0;
   if (!granted) return 0;
   const lead = s.settings.reminderLeadMin;
   const now = Date.now();
