@@ -1,91 +1,104 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
-import { ActivityIndicator, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/ui/Button';
-import { Press } from '@/components/ui/Press';
+import { PlatePress } from '@/components/ui/Plate';
+import { Skeleton } from '@/components/ui/Skeleton';
 import { T } from '@/components/ui/T';
-import { Avatar } from '@/components/ui/bits';
+import { Avatar, type IconName } from '@/components/ui/bits';
 import { confirmAction } from '@/components/ui/feedback';
 import { imageSource } from '@/data/images';
 import { deleteLocalFile } from '@/services/files';
 import { sharePhoto } from '@/services/share';
 import type { Photo, Trip } from '@/store/types';
 import { useSharedFile } from '@/sync/useFile';
-import { colors } from '@/theme';
+import { colors, line, radius } from '@/theme';
 import { timeAgo } from '@/utils/format';
 import { dayLabel } from '@/utils/time';
 
-/** The full-screen view of one photo: the picture, who posted it, likes, share and (for your own photos) delete. */
+/** A square outlined control (44 points) that sits on the dark backdrop, like the controls on the Home photo. */
+function Control({ icon, label, onPress, active }: { icon: IconName; label: string; onPress: () => void; active?: boolean }) {
+  return (
+    <PlatePress onPress={onPress} accessibilityLabel={label} offset={3} corner={radius.button} color={colors.accent} style={[styles.control, active && { backgroundColor: colors.accent }]}>
+      <Ionicons name={icon} size={20} color={active ? colors.onAccent : colors.ink} />
+    </PlatePress>
+  );
+}
+
+/** The full-screen view of one photo: the picture as a print in a paper frame, who posted it, likes, share and (for your own photos) delete. */
 export function PhotoViewer({ photo, trip, userId, onClose, onShare, onLike, onDelete }: { photo: Photo; trip: Trip; userId: string; onClose: () => void; onShare: () => void; onLike: () => void; onDelete: () => void }) {
   const insets = useSafeAreaInsets();
   const { uri, loading } = useSharedFile(photo.uri, photo.blob);
   const author = trip.members.find((x) => x.id === photo.by);
+  const first = author?.name.split(' ')[0] ?? 'a friend';
   const liked = photo.likes.includes(userId);
   return (
-    <View style={[styles.viewer, { paddingTop: insets.top + 8, paddingBottom: insets.bottom + 16 }]}>
-      <View style={styles.viewerTop}>
-        <Press onPress={onClose} style={styles.round} accessibilityLabel="Close photo">
-          <Ionicons name="close" size={22} color={colors.white} />
-        </Press>
-        <View style={{ flexDirection: 'row', gap: 10 }}>
-          <Press onPress={onShare} style={styles.round} accessibilityLabel="Share photo to social media">
-            <Ionicons name="share-social-outline" size={20} color={colors.white} />
-          </Press>
+    <View style={[styles.viewer, { paddingTop: insets.top + 12, paddingBottom: insets.bottom + 16 }]}>
+      <View style={styles.top}>
+        <Control icon="close" label="Close photo" onPress={onClose} />
+        <View style={{ flexDirection: 'row', gap: 14 }}>
+          <Control icon="share-social-outline" label="Share photo to social media" onPress={onShare} />
           {photo.by === userId ? (
-            <Press
+            <Control
+              icon="trash-outline"
+              label="Delete photo"
               onPress={() =>
                 confirmAction('Delete photo?', 'It will be removed from the photo dump for everyone.', () => {
                   deleteLocalFile(photo.uri);
                   onDelete();
                 }, { destructive: true, confirmLabel: 'Delete' })
               }
-              style={styles.round}
-              accessibilityLabel="Delete photo">
-              <Ionicons name="trash-outline" size={20} color={colors.white} />
-            </Press>
+            />
           ) : null}
         </View>
       </View>
-      {uri ? (
-        <Image source={imageSource(uri)} style={{ flex: 1, width: '100%' }} contentFit="contain" />
-      ) : (
-        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: 8, padding: 30 }}>
-          {loading ? <ActivityIndicator color="rgba(255,255,255,0.8)" size="large" /> : <Ionicons name="phone-portrait-outline" size={40} color="rgba(255,255,255,0.6)" />}
-          <T variant="small" color="rgba(255,255,255,0.8)" center>
-            {loading ? `Getting ${author?.name.split(' ')[0] ?? 'your friend'}’s photo…` : `This photo is on ${author?.name.split(' ')[0] ?? 'a friend'}’s phone. Likes and captions still sync.`}
-          </T>
-        </View>
-      )}
-      <View style={styles.viewerBottom}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-          <Avatar name={author?.name ?? '?'} src={author?.avatar} size={32} />
-          <View style={{ flex: 1 }}>
-            <T variant="small" weight="semibold" color={colors.white}>
-              {photo.caption || 'Untitled'}
-            </T>
-            <T variant="caption" color="rgba(255,255,255,0.7)">
-              {author?.name.split(' ')[0]} · {photo.day ? dayLabel(photo.day) : ''} · {timeAgo(photo.ts)}
+      <View style={styles.print}>
+        {uri ? (
+          <Image source={imageSource(uri)} style={{ flex: 1, width: '100%' }} contentFit="contain" accessibilityIgnoresInvertColors />
+        ) : loading ? (
+          <Skeleton height={320} corner={radius.xs} />
+        ) : (
+          <View style={styles.away}>
+            <Ionicons name="phone-portrait-outline" size={36} color={colors.textSecondary} />
+            <T variant="small" color={colors.textSecondary} center>
+              This photo is on {first}’s phone. Likes and captions still sync.
             </T>
           </View>
-          <Press onPress={onLike} style={styles.likeBtn} accessibilityLabel={liked ? 'Unlike' : 'Like'}>
-            <Ionicons name={liked ? 'heart' : 'heart-outline'} size={22} color={liked ? '#FF6B81' : colors.white} />
-            <T variant="small" weight="semibold" color={colors.white}>
+        )}
+      </View>
+      <View style={styles.panel}>
+        <View style={styles.who}>
+          <Avatar name={author?.name ?? '?'} src={author?.avatar} size={40} />
+          <View style={{ flex: 1, gap: 2 }}>
+            <T variant="title" weight="bold" numberOfLines={2}>
+              {photo.caption || 'Untitled'}
+            </T>
+            <T variant="kicker" color={colors.textSecondary} numberOfLines={1}>
+              {first} / {photo.day ? dayLabel(photo.day) : ''} / {timeAgo(photo.ts)}
+            </T>
+          </View>
+          <PlatePress onPress={onLike} accessibilityLabel={liked ? 'Unlike' : 'Like'} accessibilityState={{ selected: liked }} offset={3} corner={radius.button} style={[styles.like, liked && { backgroundColor: colors.accent }]}>
+            <Ionicons name={liked ? 'heart' : 'heart-outline'} size={20} color={liked ? colors.onAccent : colors.ink} />
+            <T variant="numeralSm" color={liked ? colors.onAccent : colors.ink} style={{ fontSize: 17, lineHeight: 22 }}>
               {photo.likes.length}
             </T>
-          </Press>
+          </PlatePress>
         </View>
-        {uri ? <Button label="Save & share" variant="light" size="md" icon="download-outline" onPress={() => sharePhoto(uri, photo.caption)} /> : null}
+        {uri ? <Button label="Save & share" size="md" icon="download-outline" onPress={() => sharePhoto(uri, photo.caption)} /> : null}
       </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  viewer: { flex: 1, backgroundColor: '#0B0F0A' },
-  viewerTop: { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 16, marginBottom: 8 },
-  round: { width: 42, height: 42, borderRadius: 21, backgroundColor: 'rgba(255,255,255,0.14)', alignItems: 'center', justifyContent: 'center' },
-  viewerBottom: { paddingHorizontal: 16, paddingTop: 12, gap: 12 },
-  likeBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 999, backgroundColor: 'rgba(255,255,255,0.14)' },
+  viewer: { flex: 1, backgroundColor: colors.black, paddingHorizontal: 20, gap: 16 },
+  top: { flexDirection: 'row', justifyContent: 'space-between' },
+  control: { width: 44, height: 44, borderRadius: radius.button, borderWidth: line, borderColor: colors.ink, backgroundColor: colors.card, alignItems: 'center', justifyContent: 'center' },
+  print: { flex: 1, backgroundColor: colors.card, borderWidth: line, borderColor: colors.ink, borderRadius: radius.card, padding: 8, overflow: 'hidden' },
+  away: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 10, padding: 24 },
+  panel: { backgroundColor: colors.card, borderWidth: line, borderColor: colors.ink, borderRadius: radius.card, padding: 14, gap: 14 },
+  who: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  like: { minWidth: 64, height: 44, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingHorizontal: 12, borderRadius: radius.button, borderWidth: line, borderColor: colors.ink, backgroundColor: colors.card },
 });

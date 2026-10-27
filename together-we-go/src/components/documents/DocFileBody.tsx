@@ -1,11 +1,12 @@
 import { Image } from 'expo-image';
-import { ActivityIndicator, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 import { Button } from '@/components/ui/Button';
+import { Skeleton } from '@/components/ui/Skeleton';
 import { T } from '@/components/ui/T';
 import type { TripDoc } from '@/store/types';
 import { useSharedFile } from '@/sync/useFile';
-import { colors } from '@/theme';
+import { colors, line, radius } from '@/theme';
 
 /** The file part of an opened document: a preview for pictures, an "Open / share" button, or why there is no file here. */
 export function DocFileBody({ doc, adderName, onOpen }: { doc: TripDoc; adderName: string; onOpen: (uri: string) => void }) {
@@ -13,8 +14,8 @@ export function DocFileBody({ doc, adderName, onOpen }: { doc: TripDoc; adderNam
   if (doc.kind === 'note') return null;
   if (!uri) {
     return loading ? (
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-        <ActivityIndicator color={colors.primary} />
+      <View style={{ gap: 10 }}>
+        <Skeleton height={120} />
         <T variant="small" color={colors.textSecondary}>
           Getting the file from {adderName}…
         </T>
@@ -27,8 +28,12 @@ export function DocFileBody({ doc, adderName, onOpen }: { doc: TripDoc; adderNam
   }
   return (
     <>
-      {doc.kind === 'image' ? <Image source={{ uri }} style={{ width: '100%', height: 320, borderRadius: 14 }} contentFit="contain" /> : null}
+      {doc.kind === 'image' ? <Image source={{ uri }} style={styles.preview} contentFit="contain" accessibilityIgnoresInvertColors /> : null}
       <Button label="Open / share file" icon="open-outline" onPress={() => onOpen(uri)} />
     </>
   );
 }
+
+const styles = StyleSheet.create({
+  preview: { width: '100%', height: 320, borderRadius: radius.card, borderWidth: line, borderColor: colors.ink, backgroundColor: colors.bgAlt },
+});

@@ -2,7 +2,9 @@
 // (A phone's own switch keeps the size the platform gives it, so switches are not counted.)
 const { BASE, start, ROUTES } = require('./lib');
 const MIN = 44;
-const routes = process.env.E2E_ONLY ? ROUTES.filter((r) => process.env.E2E_ONLY.split(',').includes(r)) : ROUTES;
+// the 360° screen is not in the list of every screen (the overflow test skips it) but its controls must be big enough too
+const all = [...ROUTES, 'panorama'];
+const routes = process.env.E2E_ONLY ? all.filter((r) => process.env.E2E_ONLY.split(',').includes(r)) : all;
 
 const audit = (min) => {
   const SEL = 'button, a[href], [role=button], [role=link], [role=tab], [role=radio], [role=menuitem], input:not([type=hidden]):not([role=switch]):not([type=checkbox]), textarea, select';

@@ -1,21 +1,27 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
-import { ScrollView, StyleSheet, TextInput, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 
+import { PackRow } from '@/components/play/PackingParts';
+import { completesList, needsSomeone as findNeeds, splitFairly } from '@/components/play/packingLogic';
 import { MemberPickerSheet } from '@/components/trip/MemberPickerSheet';
 import { NoTrip } from '@/components/trip/NoTrip';
 import { Button } from '@/components/ui/Button';
-import { Avatar, Card, Chip, ProgressBar } from '@/components/ui/bits';
+import { Avatar, Card, Chip, Divider, EmptyState, ProgressBar } from '@/components/ui/bits';
+import { celebrate } from '@/components/ui/Confetti';
 import { toast } from '@/components/ui/feedback';
+import { Input } from '@/components/ui/Input';
+import { PlatePress } from '@/components/ui/Plate';
 import { Press, tap } from '@/components/ui/Press';
 import { Header, Screen } from '@/components/ui/Screen';
 import { Segmented } from '@/components/ui/Segmented';
+import { Stamp } from '@/components/ui/Stamp';
 import { T } from '@/components/ui/T';
 import { destinationById } from '@/data/destinations';
 import { packingBase } from '@/data/reference';
 import { useWeather } from '@/hooks/useTrip';
 import { useActiveTrip, useAppStore } from '@/store/useAppStore';
-import { colors, fonts, radius } from '@/theme';
+import { colors, line, radius } from '@/theme';
 
 type Filter = 'all' | 'mine' | 'open';
 
@@ -27,6 +33,7 @@ const COUNTRY_EXTRAS: Record<string, string[]> = {
   ID: ['Reef-safe sunscreen', 'Mosquito repellent'],
 };
 
+/** The shared packing list: how much is packed, who is bringing what, and every item in a section of its own. */
 export default function Packing() {
   const trip = useActiveTrip();
   const me = useAppStore((s) => s.session?.userId);
@@ -34,6 +41,7 @@ export default function Packing() {
   const assign = useAppStore((s) => s.assignPacking);
   const addItems = useAppStore((s) => s.addPackingItems);
   const del = useAppStore((s) => s.deletePackingItem);
+  const markFired = useAppStore((s) => s.markReminderFired);
   const weather = useWeather(trip?.destinationId);
   const [text, setText] = useState('');
   const [cat, setCat] = useState('Extras');
@@ -45,12 +53,14 @@ export default function Packing() {
   const dest = destinationById(trip.destinationId);
   const total = trip.packing.length;
   const packed = trip.packing.filter((p) => p.packed).length;
+  const memberIds = trip.members.map((m) => m.id);
   const bringer = (broughtBy?: string) => trip.members.find((m) => m.id === broughtBy);
-  const needsSomeone = trip.packing.filter((p) => !p.packed && !bringer(p.broughtBy));
+  const needsSomeone = findNeeds(trip.packing, memberIds);
   const shown = trip.packing.filter((p) => (filter === 'mine' ? p.broughtBy === me : filter === 'open' ? !p.packed && !bringer(p.broughtBy) : true));
   const groups = Array.from(new Set(shown.map((p) => p.category)));
   const have = new Set(trip.packing.map((p) => p.text.toLowerCase()));
   const picking = trip.packing.find((p) => p.id === pickId);
+  const allPacked = total > 0 && packed === total;
   const suggestions = [
     ...(COUNTRY_EXTRAS[dest?.countryCode ?? ''] ?? []),
     ...(weather?.daily.some((d) => d.rain >= 50) ? ['Compact umbrella'] : []),
@@ -69,162 +79,159 @@ export default function Packing() {
     tap('success');
   };
 
-  const splitFairly = () => {
-    if (!needsSomeone.length || !trip.members.length) return;
-    const load: Record<string, number> = {};
-    trip.members.forEach((m) => (load[m.id] = trip.packing.filter((p) => p.broughtBy === m.id).length));
-    needsSomeone.forEach((p) => {
-      const next = trip.members.reduce((a, b) => (load[b.id] < load[a.id] ? b : a));
-      assign(trip.id, p.id, next.id);
-      load[next.id] += 1;
-    });
+  // Packing the very last thing is the moment worth a celebration, once per trip (so un-ticking and ticking again stays quiet).
+  const tick = (id: string, wasPacked: boolean) => {
+    toggle(trip.id, id);
+    const key = `packed:${trip.id}`;
+    if (completesList(packed, total, wasPacked) && !(key in useAppStore.getState().firedReminders)) {
+      markFired(key);
+      celebrate('Everything is packed');
+    }
+  };
+
+  const split = () => {
+    const plan = splitFairly(trip.packing, memberIds);
+    if (!plan.length) return;
+    plan.forEach((p) => assign(trip.id, p.itemId, p.memberId));
     tap('success');
-    toast(`Assigned ${needsSomeone.length} item${needsSomeone.length === 1 ? '' : 's'}`);
+    toast(`Assigned ${plan.length} item${plan.length === 1 ? '' : 's'}`);
   };
 
   return (
     <Screen header={<Header title="Packing list" subtitle={`Shared with ${trip.members.length} travellers`} />}>
-      <Card style={[styles.card, styles.stack]}>
-        <View style={styles.between}>
-          <T variant="headline">Shared checklist</T>
-          <View style={styles.pct}>
-            <T variant="small" weight="bold" color={colors.onAccent}>
-              {total ? Math.round((packed / total) * 100) : 0}%
-            </T>
+      {total ? (
+        <View>
+          <View style={styles.progress} accessible accessibilityLabel={`${packed} of ${total} packed`}>
+            <View style={styles.count}>
+              <T variant="title" importantForAccessibility="no">
+                <T variant="numeral">{packed}</T> of <T variant="numeral">{total}</T> packed
+              </T>
+              {allPacked ? <Stamp label="All packed" tone="positive" icon="checkmark" rotate={-3} slam /> : null}
+            </View>
+            <ProgressBar value={packed / total} color={allPacked ? colors.positive : colors.accent} />
           </View>
-        </View>
-        <T variant="bodySm" weight="semibold">
-          {packed} of {total} packed · {needsSomeone.length} still need someone
-        </T>
-        <ProgressBar value={total ? packed / total : 0} height={10} />
-        {total ? (
-          <View style={styles.wrap}>
+          <View style={styles.crew}>
             {trip.members.map((m) => (
-              <View key={m.id} style={styles.load}>
-                <Avatar name={m.name} src={m.avatar} size={22} />
-                <T variant="caption" weight="semibold">
+              <View key={m.id} style={styles.load} accessible accessibilityLabel={`${m.name.split(' ')[0]} is bringing ${trip.packing.filter((p) => p.broughtBy === m.id).length}`}>
+                <Avatar name={m.name} src={m.avatar} size={28} />
+                <T variant="caption" weight="bold" importantForAccessibility="no">
                   {m.name.split(' ')[0]} · {trip.packing.filter((p) => p.broughtBy === m.id).length}
                 </T>
               </View>
             ))}
+            {needsSomeone.length ? (
+              <View style={styles.load} accessible accessibilityLabel={`${needsSomeone.length} still need someone`}>
+                <T variant="caption" weight="bold" color={colors.textSecondary} importantForAccessibility="no">
+                  Anyone · {needsSomeone.length}
+                </T>
+              </View>
+            ) : null}
           </View>
-        ) : null}
-        <Button label="Split the rest fairly" icon="shuffle-outline" size="md" disabled={!needsSomeone.length} onPress={splitFairly} />
-      </Card>
+          <View style={{ marginTop: 16 }}>
+            <Button label="Split the rest fairly" icon="shuffle-outline" size="md" variant="secondary" disabled={!needsSomeone.length} onPress={split} />
+          </View>
 
-      <View style={{ marginTop: 14 }}>
-        <Segmented
-          value={filter}
-          onChange={setFilter}
-          options={[
-            { key: 'all', label: 'All' },
-            { key: 'mine', label: 'Mine' },
-            { key: 'open', label: 'Unassigned' },
-          ]}
-        />
-      </View>
+          <View style={{ marginTop: 24 }}>
+            <Segmented
+              value={filter}
+              onChange={setFilter}
+              options={[
+                { key: 'all', label: 'All' },
+                { key: 'mine', label: 'Mine' },
+                { key: 'open', label: 'Unassigned' },
+              ]}
+            />
+          </View>
+        </View>
+      ) : (
+        <EmptyState icon="bag-handle-outline" title="Nothing to pack yet" body="Start with the essentials, then add your own. The whole crew shares this list.">
+          <Button label="Start with the essentials" icon="list-outline" onPress={() => addItems(trip.id, packingBase.flatMap((g) => g.items.map((text) => ({ text, category: g.category }))))} />
+        </EmptyState>
+      )}
 
-      {suggestions.length ? (
-        <Card style={[styles.card, styles.stack, { marginTop: 14, backgroundColor: colors.accentSoft, borderColor: colors.accent }]}>
-          <View style={styles.between}>
-            <T variant="small" weight="bold" color={colors.onAccent}>
-              Smart suggestions for {dest?.city}
-            </T>
-            <Press
-              onPress={() => {
-                addItems(trip.id, suggestions.map((s) => ({ text: s, category: 'Suggested' })));
-                toast(`Added ${suggestions.length} items`);
-              }}
-              hitSlop={8}
-              style={styles.addAll}>
-              <T variant="caption" weight="bold" color={colors.onPrimary}>
-                Add all
+      {groups.map((g) => {
+        const rows = shown.filter((p) => p.category === g);
+        return (
+          <View key={g} style={{ marginTop: 28 }}>
+            <View style={styles.groupHead}>
+              <T variant="kicker" color={colors.ink} accessibilityRole="header">
+                {g}
               </T>
-            </Press>
+              <T variant="kicker" color={colors.textSecondary}>
+                {rows.filter((p) => p.packed).length} / {rows.length}
+              </T>
+            </View>
+            <Card padded={false} style={{ overflow: 'hidden' }}>
+              {rows.map((p, i) => (
+                <View key={p.id}>
+                  {i > 0 ? <Divider /> : null}
+                  <PackRow item={p} who={bringer(p.broughtBy)} me={me} onToggle={() => tick(p.id, p.packed)} onWho={() => setPickId(p.id)} onRemove={() => del(trip.id, p.id)} />
+                </View>
+              ))}
+            </Card>
           </View>
-          <View style={styles.wrap}>
-            {suggestions.map((s) => (
-              <Chip key={s} small icon="add" label={s} onPress={() => addItems(trip.id, [{ text: s, category: 'Suggested' }])} />
-            ))}
-          </View>
-        </Card>
-      ) : null}
+        );
+      })}
 
-      <Card style={[styles.card, { marginTop: 14, gap: 8 }]}>
-        <View style={{ flexDirection: 'row', gap: 8 }}>
-          <TextInput value={text} onChangeText={(v) => { setText(v); setErr(null); }} placeholder="Add an item…" placeholderTextColor={colors.textMuted} style={[styles.input, err && { borderColor: colors.red }]} onSubmitEditing={add} returnKeyType="done" accessibilityLabel="New packing item" />
-          <Press onPress={add} style={styles.addBtn} accessibilityLabel="Add item">
-            <Ionicons name="add" size={22} color={colors.onPrimary} />
-          </Press>
-        </View>
-        {err ? (
-          <T variant="caption" color={colors.red}>
-            {err}
-          </T>
-        ) : null}
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6 }}>
-          {[...packingBase.map((g) => g.category), 'Weather', 'Suggested'].map((c) => (
-            <Chip key={c} small label={c} active={cat === c} onPress={() => setCat(c)} />
-          ))}
-        </ScrollView>
-      </Card>
-
-      {groups.map((g) => (
-        <View key={g} style={{ marginTop: 20 }}>
-          <T variant="headline" style={{ marginBottom: 10 }} accessibilityRole="header">
-            {g}
-          </T>
-          <Card padded={false} style={[styles.card, { paddingHorizontal: 14 }]}>
-            {shown
-              .filter((p) => p.category === g)
-              .map((p, i, arr) => {
-                const who = bringer(p.broughtBy);
-                return (
-                  <View key={p.id} style={[styles.item, i === arr.length - 1 && { borderBottomWidth: 0 }]}>
-                    <Press onPress={() => toggle(trip.id, p.id)} style={styles.itemMain} accessibilityRole="checkbox" accessibilityState={{ checked: p.packed }} accessibilityLabel={p.text}>
-                      <Ionicons name={p.packed ? 'checkbox' : 'square-outline'} size={22} color={p.packed ? colors.primary : colors.borderStrong} />
-                      <T variant="small" color={p.packed ? colors.textMuted : colors.text} style={[{ flex: 1 }, p.packed && { textDecorationLine: 'line-through' }]}>
-                        {p.text}
-                      </T>
-                    </Press>
-                    <Press onPress={() => setPickId(p.id)} hitSlop={6} style={[styles.who, !who && styles.whoEmpty]} accessibilityLabel={who ? `${p.text} is brought by ${who.name}. Change` : `Assign ${p.text}`}>
-                      {who ? (
-                        <>
-                          <Avatar name={who.name} src={who.avatar} size={22} />
-                          <T variant="caption" weight="semibold" numberOfLines={1} style={{ maxWidth: 56 }}>
-                            {who.id === me ? 'Me' : who.name.split(' ')[0]}
-                          </T>
-                        </>
-                      ) : (
-                        <T variant="caption" weight="semibold" color={colors.textSecondary}>
-                          Anyone
-                        </T>
-                      )}
-                    </Press>
-                    <Press onPress={() => del(trip.id, p.id)} hitSlop={8} accessibilityLabel={`Remove ${p.text}`}>
-                      <Ionicons name="close" size={16} color={colors.textMuted} />
-                    </Press>
-                  </View>
-                );
-              })}
-          </Card>
-        </View>
-      ))}
       {total && !shown.length ? (
-        <Card style={[styles.card, { marginTop: 20, alignItems: 'center' }]}>
-          <T variant="small" color={colors.textSecondary} center>
-            {filter === 'mine' ? 'Nothing is assigned to you yet. Tap “Anyone” on an item to pick it up.' : 'Every item has someone bringing it. Nice teamwork!'}
-          </T>
-        </Card>
+        <T variant="small" color={colors.textSecondary} center style={{ marginTop: 28 }}>
+          {filter === 'mine' ? 'Nothing is assigned to you yet. Tap “Anyone” on an item to pick it up.' : 'Every item has someone bringing it.'}
+        </T>
       ) : null}
-      {!total ? (
-        <Button
-          label="Start with the essentials"
-          icon="sparkles-outline"
-          variant="secondary"
-          style={{ marginTop: 16 }}
-          onPress={() => addItems(trip.id, packingBase.flatMap((g) => g.items.map((text) => ({ text, category: g.category }))))}
-        />
+
+      {total ? (
+        <View style={styles.addBlock}>
+          {suggestions.length ? (
+            <Card style={styles.tip}>
+              <View style={styles.tipHead}>
+                <T variant="kicker" color={colors.textSecondary} style={{ flex: 1 }}>
+                  Suggested for {dest?.city}
+                </T>
+                <Press
+                  onPress={() => {
+                    addItems(trip.id, suggestions.map((s) => ({ text: s, category: 'Suggested' })));
+                    toast(`Added ${suggestions.length} items`);
+                  }}
+                  style={styles.addAll}
+                  accessibilityLabel="Add all suggestions">
+                  <T variant="kicker" color={colors.ink}>
+                    Add all
+                  </T>
+                  <Ionicons name="add" size={16} color={colors.ink} />
+                </Press>
+              </View>
+              <View style={styles.wrap}>
+                {suggestions.map((s) => (
+                  <Chip key={s} icon="add" label={s} onPress={() => addItems(trip.id, [{ text: s, category: 'Suggested' }])} />
+                ))}
+              </View>
+            </Card>
+          ) : null}
+          <View style={styles.add}>
+            <Input
+              containerStyle={{ flex: 1 }}
+              label="Add an item"
+              accessibilityLabel="New packing item"
+              placeholder="Add an item…"
+              value={text}
+              onChangeText={(v) => {
+                setText(v);
+                setErr(null);
+              }}
+              error={err}
+              onSubmitEditing={add}
+              returnKeyType="done"
+            />
+            <PlatePress onPress={add} accessibilityLabel="Add item" corner={radius.button} color={colors.accent} wrapperStyle={{ marginTop: 21 }} style={styles.addBtn}>
+              <Ionicons name="add" size={26} color={colors.onPrimary} />
+            </PlatePress>
+          </View>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingHorizontal: 20 }} style={{ marginHorizontal: -20, marginTop: 12 }}>
+            {[...packingBase.map((g) => g.category), 'Weather', 'Suggested'].map((c) => (
+              <Chip key={c} label={c} active={cat === c} onPress={() => setCat(c)} />
+            ))}
+          </ScrollView>
+        </View>
       ) : null}
 
       <MemberPickerSheet
@@ -241,17 +248,16 @@ export default function Packing() {
 }
 
 const styles = StyleSheet.create({
-  card: { borderRadius: radius.xl },
-  stack: { gap: 12 },
-  between: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 8 },
-  wrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
-  pct: { backgroundColor: colors.accent, borderRadius: radius.pill, paddingHorizontal: 12, paddingVertical: 4 },
-  load: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingRight: 10, paddingLeft: 3, height: 28, borderRadius: radius.pill, backgroundColor: colors.bgAlt },
-  addAll: { backgroundColor: colors.primary, borderRadius: radius.pill, paddingHorizontal: 12, height: 26, alignItems: 'center', justifyContent: 'center' },
-  input: { flex: 1, height: 46, borderRadius: radius.pill, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.cardMuted, paddingHorizontal: 18, fontFamily: fonts.regular, fontSize: 15, color: colors.text },
-  addBtn: { width: 46, height: 46, borderRadius: 23, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' },
-  item: { flexDirection: 'row', alignItems: 'center', gap: 10, borderBottomWidth: 1, borderBottomColor: colors.border },
-  itemMain: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 12 },
-  who: { flexDirection: 'row', alignItems: 'center', gap: 5, height: 30, paddingLeft: 4, paddingRight: 10, borderRadius: radius.pill, backgroundColor: colors.bgAlt },
-  whoEmpty: { paddingLeft: 10, backgroundColor: 'transparent', borderWidth: 1, borderStyle: 'dashed', borderColor: colors.borderStrong },
+  progress: { gap: 12 },
+  count: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, minHeight: 40 },
+  crew: { flexDirection: 'row', flexWrap: 'wrap', columnGap: 16, rowGap: 8, marginTop: 16 },
+  load: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  tip: { marginBottom: 24, gap: 12 },
+  tipHead: { flexDirection: 'row', alignItems: 'center', gap: 8, minHeight: 44 },
+  addAll: { flexDirection: 'row', alignItems: 'center', gap: 2, minHeight: 44, paddingLeft: 10 },
+  wrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  groupHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 },
+  addBlock: { marginTop: 32 },
+  add: { flexDirection: 'row', alignItems: 'flex-start', gap: 12 },
+  addBtn: { width: 52, height: 52, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.primary, borderWidth: line, borderColor: colors.ink, borderRadius: radius.button },
 });

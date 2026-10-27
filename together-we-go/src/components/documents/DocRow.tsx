@@ -2,39 +2,52 @@ import { Ionicons } from '@expo/vector-icons';
 import { StyleSheet, View } from 'react-native';
 
 import { Press } from '@/components/ui/Press';
+import { Stamp } from '@/components/ui/Stamp';
 import { T } from '@/components/ui/T';
-import { Pill } from '@/components/ui/bits';
 import { sizeLabel } from '@/services/files';
 import type { Trip, TripDoc } from '@/store/types';
 import { useSharedFile } from '@/sync/useFile';
-import { colors, radius } from '@/theme';
+import { colors, line, radius } from '@/theme';
 import { timeAgo } from '@/utils/format';
 
-const ICON = { image: 'image-outline', note: 'document-text-outline', pdf: 'document-outline', file: 'attach-outline' } as const;
+/** One line icon for each kind of file, so the vault reads at a glance. */
+export const DOC_ICON = { image: 'image-outline', note: 'create-outline', pdf: 'document-text-outline', file: 'attach-outline' } as const;
+export const docKind = (d: Pick<TripDoc, 'kind'>) => (d.kind === 'note' ? 'Note' : d.kind.toUpperCase());
 
-/** One line in the document vault. The pill says whether the file can be opened with no connection. */
+/** One line in the document vault. The stamp says whether the file can be opened with no connection. */
 export function DocRow({ doc, trip, onPress }: { doc: TripDoc; trip: Trip; onPress: () => void }) {
   const { uri, loading } = useSharedFile(doc.uri, doc.blob);
   const adder = trip.members.find((m) => m.id === doc.addedBy)?.name.split(' ')[0];
   return (
     <Press onPress={onPress} style={styles.row} scaleTo={0.99} accessibilityLabel={`Open ${doc.name}`}>
       <View style={styles.icon}>
-        <Ionicons name={ICON[doc.kind]} size={20} color={colors.primary} />
+        <Ionicons name={DOC_ICON[doc.kind]} size={22} color={colors.ink} />
       </View>
-      <View style={{ flex: 1 }}>
-        <T variant="small" weight="semibold" numberOfLines={1}>
+      <View style={{ flex: 1, gap: 4 }}>
+        <T variant="title" weight="bold" numberOfLines={1}>
           {doc.name}
         </T>
-        <T variant="caption" color={colors.textMuted}>
-          {doc.kind === 'note' ? 'Note' : doc.kind.toUpperCase()} {doc.size ? `· ${sizeLabel(doc.size)}` : ''} · {timeAgo(doc.addedAt)} · {adder}
-        </T>
+        <View style={styles.meta}>
+          <T variant="kicker" color={colors.textSecondary} numberOfLines={1} style={{ flexShrink: 1 }}>
+            {docKind(doc)}
+            {doc.size ? ` / ${sizeLabel(doc.size)}` : ''} / {timeAgo(doc.addedAt)}
+            {adder ? ` / ${adder}` : ''}
+          </T>
+          {doc.kind === 'note' || uri ? (
+            <Stamp label="Offline" tone="positive" rotate={0} />
+          ) : loading ? (
+            <Stamp label="Downloading" tone="muted" rotate={0} />
+          ) : (
+            <Stamp label={`On ${adder ?? 'a friend'}’s phone`} tone="warn" rotate={0} />
+          )}
+        </View>
       </View>
-      {doc.kind === 'note' || uri ? <Pill label="Offline" icon="cloud-done-outline" /> : loading ? <Pill label="Downloading" icon="cloud-download-outline" tone="blue" /> : <Pill label={`On ${adder ?? 'a friend'}’s phone`} icon="phone-portrait-outline" tone="gray" />}
     </Press>
   );
 }
 
 const styles = StyleSheet.create({
-  row: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 12, borderRadius: radius.md, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border },
-  icon: { width: 40, height: 40, borderRadius: 12, backgroundColor: colors.primarySofter, alignItems: 'center', justifyContent: 'center' },
+  row: { flexDirection: 'row', alignItems: 'center', gap: 12, minHeight: 68, paddingHorizontal: 12, paddingVertical: 10 },
+  meta: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  icon: { width: 44, height: 44, borderRadius: radius.button, borderWidth: line, borderColor: colors.ink, backgroundColor: colors.bgAlt, alignItems: 'center', justifyContent: 'center' },
 });

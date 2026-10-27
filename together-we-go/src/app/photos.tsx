@@ -1,6 +1,7 @@
 import { Image } from 'expo-image';
 import { useMemo, useState } from 'react';
 import { Modal, Platform, ScrollView, StyleSheet, View, useWindowDimensions } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { PhotoTile } from '@/components/photos/PhotoTile';
 import { PhotoViewer } from '@/components/photos/PhotoViewer';
@@ -8,6 +9,7 @@ import { ShareSheet } from '@/components/ShareSheet';
 import { NoTrip } from '@/components/trip/NoTrip';
 import { Button } from '@/components/ui/Button';
 import { Chip, EmptyState } from '@/components/ui/bits';
+import { Fab } from '@/components/ui/Fab';
 import { toast } from '@/components/ui/feedback';
 import { Input } from '@/components/ui/Input';
 import { tap } from '@/components/ui/Press';
@@ -17,15 +19,19 @@ import { destinationById } from '@/data/destinations';
 import { FileTooLargeError, pickImage } from '@/services/files';
 import { useActiveTrip, useAppStore } from '@/store/useAppStore';
 import type { Photo } from '@/store/types';
-import { MAX_WIDTH } from '@/theme';
+import { MAX_WIDTH, colors, line, radius } from '@/theme';
 import { todayInTz, tripDays } from '@/utils/time';
 import { maxLen } from '@/utils/validation';
 
 type Filter = 'all' | 'mine' | 'liked' | string;
 
+const GAP = 6;
+
+/** The photo dump: every picture the crew took, in a tight grid of outlined prints. Tap one to open it, like it or share it. */
 export default function Photos() {
   const trip = useActiveTrip();
   const { width } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
   const userId = useAppStore((s) => s.session?.userId ?? '');
   const addPhoto = useAppStore((s) => s.addPhoto);
   const like = useAppStore((s) => s.toggleLikePhoto);
@@ -36,6 +42,7 @@ export default function Photos() {
   const [caption, setCaption] = useState('');
   const [captionErr, setCaptionErr] = useState<string | null>(null);
   const [shareFor, setShareFor] = useState<Photo | null>(null);
+  const [source, setSource] = useState(false);
 
   const list = useMemo(() => {
     if (!trip) return [];
@@ -48,11 +55,12 @@ export default function Photos() {
 
   if (!trip) return <NoTrip />;
   const colW = Math.min(width, MAX_WIDTH) - 40;
-  const tile = (colW - 8) / 3;
+  const tile = Math.floor((colW - GAP * 2) / 3);
   const live = viewing ? trip.photos.find((p) => p.id === viewing.id) ?? null : null;
   const days = tripDays(trip.startDate, trip.endDate);
 
   const add = async (camera: boolean) => {
+    setSource(false);
     try {
       const f = await pickImage(camera);
       if (f) {
@@ -63,32 +71,51 @@ export default function Photos() {
       toast(e instanceof FileTooLargeError ? e.message : e instanceof Error ? e.message : 'Couldn’t open photos', { tone: 'warn' });
     }
   };
+  // On a phone the camera is one tap away; the web has only the file picker.
+  const onAdd = () => (Platform.OS === 'web' ? add(false) : setSource(true));
 
   const today = todayInTz(destinationById(trip.destinationId)?.tz ?? 'UTC');
+  const empty = trip.photos.length === 0;
 
   return (
-    <Screen header={<Header title="Photo dump" subtitle={`${trip.photos.length} photos · ${trip.name}`} />}>
-      <View style={{ flexDirection: 'row', gap: 8 }}>
-        <Button label="Add photos" icon="images-outline" size="md" onPress={() => add(false)} style={{ flex: 1 }} />
-        {Platform.OS !== 'web' ? <Button label="Camera" icon="camera-outline" size="md" variant="secondary" onPress={() => add(true)} style={{ flex: 1 }} /> : null}
-      </View>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6, paddingHorizontal: 20 }} style={{ marginHorizontal: -20, marginVertical: 14 }}>
-        <Chip small label="All" active={filter === 'all'} onPress={() => setFilter('all')} />
-        <Chip small label="❤️ Most liked" active={filter === 'liked'} onPress={() => setFilter('liked')} />
-        <Chip small label="Mine" active={filter === 'mine'} onPress={() => setFilter('mine')} />
-        {days.map((d, i) => (
-          <Chip key={d} small label={`Day ${i + 1}`} active={filter === d} onPress={() => setFilter(d)} />
-        ))}
-      </ScrollView>
-      {list.length ? (
-        <View style={styles.grid}>
-          {list.map((p) => (
-            <PhotoTile key={p.id} photo={p} size={tile} who={trip.members.find((x) => x.id === p.by)?.name.split(' ')[0] ?? 'a friend'} onPress={() => setViewing(p)} />
-          ))}
-        </View>
+    <Screen
+      header={<Header title="Photo dump" subtitle={`${trip.photos.length} photos · ${trip.name}`} />}
+      fab={empty ? undefined : <Fab icon="images-outline" label="Add photos" onPress={onAdd} />}
+      fabBottom={insets.bottom + 16}>
+      {empty ? (
+        <EmptyState icon="images-outline" title="No photos yet" body="Add your best shots. Everyone on the trip can like and share them.">
+          <Button label="Add photos" icon="images-outline" onPress={onAdd} />
+        </EmptyState>
       ) : (
-        <EmptyState icon="images-outline" title="No photos here yet" body="Add your best shots — everyone in the trip can like and share them." />
+        <>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips} style={{ marginHorizontal: -20, marginBottom: 20 }}>
+            <Chip label="All" active={filter === 'all'} onPress={() => setFilter('all')} />
+            <Chip label="Most liked" icon="heart-outline" active={filter === 'liked'} onPress={() => setFilter('liked')} />
+            <Chip label="Mine" active={filter === 'mine'} onPress={() => setFilter('mine')} />
+            {days.map((d, i) => (
+              <Chip key={d} label={`Day ${i + 1}`} active={filter === d} onPress={() => setFilter(d)} />
+            ))}
+          </ScrollView>
+          {list.length ? (
+            <View style={styles.grid}>
+              {list.map((p) => (
+                <PhotoTile key={p.id} photo={p} size={tile} who={trip.members.find((x) => x.id === p.by)?.name.split(' ')[0] ?? 'a friend'} onPress={() => setViewing(p)} />
+              ))}
+            </View>
+          ) : (
+            <EmptyState icon="images-outline" title="Nothing here yet" body="No photos match this filter.">
+              <Button label="Show all photos" variant="secondary" onPress={() => setFilter('all')} />
+            </EmptyState>
+          )}
+        </>
       )}
+
+      <Sheet visible={source} onClose={() => setSource(false)} title="Add a photo">
+        <View style={{ gap: 12, paddingBottom: 8 }}>
+          <Button label="Photo library" icon="images-outline" onPress={() => add(false)} />
+          <Button label="Camera" icon="camera-outline" variant="secondary" onPress={() => add(true)} />
+        </View>
+      </Sheet>
 
       <Sheet
         visible={!!pending}
@@ -105,11 +132,11 @@ export default function Photos() {
               addPhoto(trip.id, { uri: pending, caption: caption.trim(), day: days.includes(today) ? today : trip.startDate });
               setPending(null);
               tap('success');
-              toast('Photo added 📸');
+              toast('Photo added');
             }}
           />
         }>
-        {pending ? <Image source={{ uri: pending }} style={{ width: '100%', height: 220, borderRadius: 16 }} contentFit="cover" /> : null}
+        {pending ? <Image source={{ uri: pending }} style={styles.preview} contentFit="cover" accessibilityIgnoresInvertColors /> : null}
         <Input placeholder="Say something about it…" value={caption} onChangeText={setCaption} error={captionErr} maxLength={90} />
       </Sheet>
 
@@ -132,7 +159,7 @@ export default function Photos() {
           visible={!!shareFor}
           onClose={() => setShareFor(null)}
           title="Share this memory"
-          message={`${shareFor?.caption ?? ''} 📸 from our trip “${trip.name}” — planned with TogetherWeGo`}
+          message={`${shareFor?.caption ? `${shareFor.caption}. ` : ''}From our trip “${trip.name}”, planned with TogetherWeGo.`}
         />
       </Modal>
     </Screen>
@@ -140,5 +167,7 @@ export default function Photos() {
 }
 
 const styles = StyleSheet.create({
-  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 4 },
+  chips: { gap: 8, paddingHorizontal: 20 },
+  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: GAP },
+  preview: { width: '100%', height: 220, borderRadius: radius.card, borderWidth: line, borderColor: colors.ink },
 });

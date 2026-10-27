@@ -35,6 +35,9 @@ import { deviceTimeZone, hoursAhead, partsInTz, time12, utcOffsetLabel } from '@
 const PARALLAX = 60;
 const HERO = 380;
 
+/** 9,400 becomes "9.4K": a count that fits under a number in a narrow cell. */
+const compactCount = (n: number) => (n >= 1000 ? `${(n / 1000).toFixed(1).replace(/\.0$/, '')}K` : String(n));
+
 /** An outlined square on the photo, like the controls on Home. */
 function Control({ onPress, label, children }: { onPress: () => void; label: string; children: ReactNode }) {
   return (
@@ -133,7 +136,8 @@ export default function DestinationScreen() {
                     </T>
                   </View>
                   <T variant="micro" color={colors.textSecondary} numberOfLines={1}>
-                    {d.reviews.toLocaleString()} reviews
+                    {compactCount(d.reviews)}
+                    {narrow ? '' : ' reviews'}
                   </T>
                 </View>
                 <View style={styles.cutline} />
@@ -154,7 +158,7 @@ export default function DestinationScreen() {
                 <View style={styles.cutline} />
                 <View style={styles.cell} accessible accessibilityLabel={`Best time to go: ${d.bestMonths}`}>
                   <T variant="kicker" color={colors.textSecondary}>
-                    Best time
+                    Best
                   </T>
                   <T variant="numeralSm" numberOfLines={1} style={{ fontSize: factSize, lineHeight: factSize + 9 }}>
                     {best[0]}

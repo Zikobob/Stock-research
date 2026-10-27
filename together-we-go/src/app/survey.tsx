@@ -1,48 +1,29 @@
-import { Image } from 'expo-image';
-import { LinearGradient } from 'expo-linear-gradient';
-import { router } from 'expo-router';
 import { useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { View, useWindowDimensions } from 'react-native';
 
 import { AddToTripSheet } from '@/components/explore';
+import { MatchRow, OptionTile, TopPick } from '@/components/play/SurveyParts';
+import { optionArt, recommend, sameAnswer, type Match } from '@/components/play/recommend';
 import { Button } from '@/components/ui/Button';
-import { Pill, ProgressBar } from '@/components/ui/bits';
-import { Press, tap } from '@/components/ui/Press';
+import { Card, ProgressBar, SectionHeader } from '@/components/ui/bits';
+import { tap } from '@/components/ui/Press';
 import { Header, Screen } from '@/components/ui/Screen';
 import { T } from '@/components/ui/T';
-import { destinationById, destinations } from '@/data/destinations';
-import { imageSource } from '@/data/images';
+import { destinationById } from '@/data/destinations';
 import { surveyQuestions } from '@/data/reference';
 import { useAppStore } from '@/store/useAppStore';
-import { colors, radius } from '@/theme';
-import { money } from '@/utils/format';
+import { MAX_WIDTH, colors } from '@/theme';
 
-/** Scores every destination against the answers: tag matches + budget fit + rating. */
-function recommend(answers: string[][]): { id: string; match: number }[] {
-  const tags = answers.flat();
-  const budgetTag = tags.find((t) => t.startsWith('$'));
-  const budget = budgetTag ? Number(budgetTag.slice(1)) : 2;
-  const scored = destinations.map((d) => {
-    let s = 0;
-    for (const t of tags) if (!t.startsWith('$') && d.tags.includes(t as never)) s += 2;
-    s -= Math.abs(d.priceLevel - budget) * 1.5;
-    s += (d.rating - 4.5) * 4;
-    return { id: d.id, s };
-  });
-  const max = Math.max(...scored.map((x) => x.s));
-  const min = Math.min(...scored.map((x) => x.s));
-  return scored
-    .sort((a, b) => b.s - a.s)
-    .slice(0, 5)
-    .map((x) => ({ id: x.id, match: Math.round(70 + ((x.s - min) / Math.max(1, max - min)) * 29) }));
-}
+const GAP = 16;
 
+/** The travel survey: one question per screen with big answer tiles, then the five destinations that fit best. */
 export default function Survey() {
   const saved = useAppStore((s) => s.surveyResult);
   const save = useAppStore((s) => s.setSurveyResult);
+  const { width } = useWindowDimensions();
   const [step, setStep] = useState(saved ? surveyQuestions.length : 0);
   const [answers, setAnswers] = useState<string[][]>([]);
-  const [results, setResults] = useState<{ id: string; match: number }[]>(saved ? saved.map((id, i) => ({ id, match: 98 - i * 4 })) : []);
+  const [results, setResults] = useState<Match[]>(saved ? saved.map((id, i) => ({ id, match: 98 - i * 4 })) : []);
   const [adding, setAdding] = useState<string | null>(null);
 
   const pick = (tags: string[]) => {
@@ -58,55 +39,30 @@ export default function Survey() {
   };
 
   if (step >= surveyQuestions.length) {
+    const [top, ...rest] = results;
+    const topDest = top ? destinationById(top.id) : undefined;
     return (
-      <Screen header={<Header title="Your matches" subtitle="Based on your travel style" />}>
-        <T variant="small" color={colors.textSecondary} style={{ marginBottom: 14 }}>
-          We matched your answers against 32 destinations — tap one to explore it, or add it to a trip.
+      <Screen header={<Header kicker="Based on your travel style" title="Your matches" />}>
+        <T variant="small" color={colors.textSecondary} style={{ marginBottom: 20 }}>
+          We matched your answers against 32 destinations. Tap one to explore it, or add it to a trip.
         </T>
-        <View style={{ gap: 14 }}>
-          {results.map((r, i) => {
-            const d = destinationById(r.id)!;
-            return (
-              // The Add button sits next to the card button, not inside it: on the web a button inside a button is invalid HTML.
-              <View key={r.id} style={[styles.result, i === 0 && { height: 300 }]}>
-                <Press onPress={() => router.push({ pathname: '/destination/[id]', params: { id: d.id } })} style={StyleSheet.absoluteFill} scaleTo={0.985} accessibilityLabel={`${d.city}, ${r.match}% match`}>
-                  <Image source={imageSource(d.image)} style={StyleSheet.absoluteFill} contentFit="cover" transition={250} />
-                  <LinearGradient colors={['rgba(0,0,0,0)', 'rgba(0,0,0,0.72)']} locations={[0.35, 1]} style={StyleSheet.absoluteFill} />
-                  <View style={styles.match}>
-                    <T variant="micro" weight="bold" color={colors.primary}>
-                      {r.match}% match
-                    </T>
-                  </View>
-                  <View style={styles.resultText}>
-                    {i === 0 ? (
-                      <T variant="kicker" color="rgba(255,255,255,0.85)">
-                        Top pick for you
-                      </T>
-                    ) : null}
-                    <T variant={i === 0 ? 'display' : 'h2'} color={colors.white}>
-                      {d.city}
-                    </T>
-                    <T variant="small" color="rgba(255,255,255,0.9)" numberOfLines={2}>
-                      {d.blurb}
-                    </T>
-                    <View style={styles.resultPills}>
-                      <Pill label={`~${money(d.dailyCost)}/day`} tone="yellow" />
-                      <Pill label={`★ ${d.rating}`} />
-                    </View>
-                  </View>
-                </Press>
-                <View style={styles.resultAdd}>
-                  <Button label="Add" size="sm" full={false} variant="light" icon="add" onPress={() => setAdding(d.id)} />
-                </View>
-              </View>
-            );
-          })}
-        </View>
+        {top && topDest ? <TopPick dest={topDest} match={top.match} onAdd={() => setAdding(topDest.id)} /> : null}
+        {rest.length ? (
+          <View style={{ marginTop: 32 }}>
+            <SectionHeader title="Also good for you" />
+            <Card padded={false} style={{ overflow: 'hidden' }}>
+              {rest.map((r, i) => {
+                const d = destinationById(r.id);
+                return d ? <MatchRow key={r.id} dest={d} match={r.match} last={i === rest.length - 1} onAdd={() => setAdding(d.id)} /> : null;
+              })}
+            </Card>
+          </View>
+        ) : null}
         <Button
           label="Retake survey"
           variant="secondary"
           icon="refresh-outline"
-          style={{ marginTop: 16 }}
+          style={{ marginTop: 32 }}
           onPress={() => {
             setAnswers([]);
             setStep(0);
@@ -118,33 +74,20 @@ export default function Survey() {
   }
 
   const q = surveyQuestions[step];
+  // two tiles side by side in the phone-wide column (the plate under each tile adds 3 points)
+  const tile = Math.floor((Math.min(width, MAX_WIDTH) - 40 - GAP) / 2) - 3;
   return (
-    <Screen header={<Header title="Find your next trip" subtitle={`Question ${step + 1} of ${surveyQuestions.length}`} />}>
-      <ProgressBar value={step / surveyQuestions.length} height={6} />
-      <T variant="h1" style={{ marginTop: 22, marginBottom: 18 }} accessibilityRole="header">
+    <Screen header={<Header kicker={`Question ${step + 1} of ${surveyQuestions.length}`} title="Find your next trip" />}>
+      <ProgressBar value={step / surveyQuestions.length} />
+      <T variant="headline" style={{ marginTop: 24, marginBottom: 20 }} accessibilityRole="header">
         {q.q}
       </T>
-      <View style={styles.grid}>
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: GAP - 3 }}>
         {q.options.map((o) => (
-          <Press key={o.label} onPress={() => pick(o.tags)} style={styles.option} accessibilityLabel={o.label}>
-            <T style={{ fontSize: 40, lineHeight: 48 }}>{o.emoji}</T>
-            <T variant="small" weight="semibold" center>
-              {o.label}
-            </T>
-          </Press>
+          <OptionTile key={o.label} label={o.label} art={optionArt(q, o.label)} width={tile} chosen={sameAnswer(answers[step], o.tags)} onPress={() => pick(o.tags)} />
         ))}
       </View>
-      {step > 0 ? <Button label="Back" variant="ghost" icon="arrow-back" onPress={() => setStep(step - 1)} style={{ marginTop: 16 }} /> : null}
+      {step > 0 ? <Button label="Back" variant="ghost" icon="arrow-back" onPress={() => setStep(step - 1)} style={{ marginTop: 24 }} /> : null}
     </Screen>
   );
 }
-
-const styles = StyleSheet.create({
-  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
-  option: { width: '47.5%', aspectRatio: 1.05, borderRadius: radius.xl, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, alignItems: 'center', justifyContent: 'center', gap: 8, padding: 12 },
-  result: { height: 220, borderRadius: radius.xl, overflow: 'hidden' },
-  match: { position: 'absolute', top: 12, right: 12, backgroundColor: colors.white, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 999 },
-  resultText: { position: 'absolute', left: 16, right: 16, bottom: 14 },
-  resultPills: { flexDirection: 'row', gap: 6, marginTop: 6, alignItems: 'center', minHeight: 36 },
-  resultAdd: { position: 'absolute', right: 16, bottom: 14 },
-});

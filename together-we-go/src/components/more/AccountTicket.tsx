@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, View, useWindowDimensions } from 'react-native';
 
 import { Avatar } from '@/components/ui/bits';
 import { Press } from '@/components/ui/Press';
@@ -14,6 +14,8 @@ import { colors } from '@/theme';
  * under the tear line that opens My trips (switch, create or join). Pressing the main part opens the profile and settings.
  */
 export function AccountTicket({ user, destCity, homeCity, tripCount }: { user: Account | undefined; destCity?: string; homeCity?: string; tripCount: number }) {
+  // on a very narrow phone the name needs the room more than the arrow does
+  const roomy = useWindowDimensions().width >= 350;
   const route = [homeCity, destCity].filter(Boolean).join('  →  ');
   return (
     <Ticket
@@ -42,13 +44,13 @@ export function AccountTicket({ user, destCity, homeCity, tripCount }: { user: A
             </T>
           ) : null}
         </View>
-        <Ionicons name="arrow-forward" size={18} color={colors.ink} />
+        {roomy ? <Ionicons name="arrow-forward" size={18} color={colors.ink} /> : null}
       </Press>
     </Ticket>
   );
 }
 
 const styles = StyleSheet.create({
-  main: { flexDirection: 'row', alignItems: 'center', gap: 14, padding: 16 },
+  main: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 16 },
   stub: { flexDirection: 'row', alignItems: 'center', gap: 12, minHeight: 56, paddingHorizontal: 16 },
 });

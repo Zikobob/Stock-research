@@ -60,7 +60,7 @@ const { BASE, ROUTES, start, nestedControls } = require('./lib');
   await expect('Apply my style');
   await audit(p, 'the last page of Make it yours');
   await open('survey');
-  for (let i = 0; i < 5; i++) { await p.locator('button').filter({ hasText: /\p{Extended_Pictographic}/u }).first().click(); await p.waitForTimeout(250); }
+  for (let i = 0; i < 5; i++) { await p.getByTestId('survey-option').first().click(); await p.waitForTimeout(250); }
   await p.getByText('Your matches').first().waitFor({ state: 'visible', timeout: 5000 });
   await audit(p, 'the survey matches');
   // Budget: the sheets and the folded tools

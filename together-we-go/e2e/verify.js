@@ -161,6 +161,14 @@ const tab = (p, n) => p.getByRole('tab', { name: n, exact: true }).click().then(
     await p.goBack(); await p.waitForTimeout(900);
     if (!(await vis(p.getByText('Maya Chen'), 800))) { await tab(p, 'More'); }
   }
+  // the boarding pass at the top (My trips is its stub) and the four groups of tags
+  check('more → boarding pass and groups', (await vis(p.getByText('Maya Chen'))) && (await vis(p.getByRole('button', { name: 'My trips' }))) && (await vis(p.getByRole('heading', { name: 'Around town' }))) && (await vis(p.getByRole('heading', { name: 'The app' }))));
+  for (const [label, expect] of [['My trips', /Trips|Join|Create/i], ['Weather', /Right now|Loading/i], ['Phrasebook', /phrases/i], ['Emergency', /Call in an emergency/i], ['Help & FAQ', /The journey/i]]) {
+    await p.getByRole('button', { name: label, exact: true }).first().click(); await p.waitForTimeout(1000);
+    check(`more → ${label}`, await vis(p.getByText(expect)));
+    await p.goBack(); await p.waitForTimeout(900);
+    if (!(await vis(p.getByText('Maya Chen'), 800))) { await tab(p, 'More'); }
+  }
   console.log(results.join('\n'));
   console.log('errors:', errors.length ? errors.join('\n') : 'none');
   await b.close();
