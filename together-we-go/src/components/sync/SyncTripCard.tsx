@@ -80,7 +80,7 @@ export function SyncTripCard({ trip }: { trip: Trip }) {
           <T variant="small" color={colors.textSecondary}>
             Share this trip so friends who join with the invite code see the same plan, chat and budget on their own phones.
           </T>
-          <Button label="Share this trip across phones" icon="phone-portrait-outline" loading={busy} onPress={start} />
+          <Button label="Share this trip across phones" icon="phone-portrait-outline" variant="secondary" loading={busy} onPress={start} />
         </>
       ) : (
         <>

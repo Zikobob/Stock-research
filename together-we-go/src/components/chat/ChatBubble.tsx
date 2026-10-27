@@ -8,6 +8,9 @@ import { colors, hair, line, radius } from '@/theme';
 
 import { clock, continues, dayHeading, endsRun, startsDay, systemLine } from './logic';
 
+/** Height the clock time takes under the last bubble of a run, so the face lines up with the bubble and not with the time. */
+const CLOCK_SPACE = 19;
+
 /** A thin line with a few words in the middle: a new day, or something that happened (Sam joined the trip). */
 function Quiet({ children, strong }: { children: string; strong?: boolean }) {
   return (
@@ -46,7 +49,7 @@ export function ChatBubble({ item, prev, next, trip, userId }: { item: ChatMessa
       {day}
       <View style={[styles.msgRow, mine && { flexDirection: 'row-reverse' }, joined && { marginTop: 4 }]}>
         {!mine ? (
-          <View style={{ width: 30 }}>
+          <View style={{ width: 30, marginBottom: last ? CLOCK_SPACE : 0 }}>
             {last ? (
               item.ai ? (
                 <View style={styles.scout}>
@@ -97,5 +100,5 @@ const styles = StyleSheet.create({
   mine: { backgroundColor: colors.primary, borderColor: colors.ink },
   theirs: { backgroundColor: colors.card, borderColor: colors.ink },
   ai: { backgroundColor: colors.accentSoft, borderColor: colors.ink },
-  clock: { fontSize: 10, lineHeight: 14, marginTop: 4, letterSpacing: 0.6 },
+  clock: { marginTop: 4 },
 });

@@ -46,7 +46,7 @@ function Hub() {
 
   return (
     <Screen
-      header={<Header kicker={trip.name} title="The crew" backLabel="More" right={<AvatarStack people={trip.members} max={3} size={34} />} />}
+      header={<Header kicker={trip.name} title="The crew" backLabel="More" right={<AvatarStack people={trip.members} max={2} size={32} />} />}
       bottomInset={30}>
       <InviteCard trip={trip} owner={owner} onShare={() => setShareOpen(true)} />
 

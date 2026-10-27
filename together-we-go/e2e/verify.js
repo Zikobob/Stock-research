@@ -147,6 +147,8 @@ const tab = (p, n) => p.getByRole('tab', { name: n, exact: true }).click().then(
   await tab(p, 'Chat');
   await p.getByTestId('chat-input').fill('Anyone up for gelato?'); await p.getByTestId('chat-send').click(); await p.waitForTimeout(500);
   check('crew message sent', await vis(p.getByText('Anyone up for gelato?')));
+  check('chat shows a day heading and a clock time', await vis(p.getByText('Today', { exact: true })) && await vis(p.getByText(/^\d{1,2}:\d{2} (AM|PM)$/)));
+  check('the send button is a real 44 point target', await p.getByTestId('chat-send').evaluate((el) => { const r = el.getBoundingClientRect(); return r.width >= 44 && r.height >= 44; }));
   await p.getByRole('tab', { name: 'Scout AI' }).click(); await p.waitForTimeout(500);
   await p.getByTestId('chat-input').fill('Who owes who?'); await p.getByTestId('chat-send').click(); await p.waitForTimeout(2200);
   check('scout ai answers offline', await vis(p.getByText(/owes|gets|square/i)));

@@ -4,12 +4,12 @@ import type { ReactNode } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { Button } from '@/components/ui/Button';
-import { Card, Divider, type IconName } from '@/components/ui/bits';
+import { SectionHeader, type IconName } from '@/components/ui/bits';
 import { Press } from '@/components/ui/Press';
 import { Header, Screen } from '@/components/ui/Screen';
 import { T } from '@/components/ui/T';
 import { useAppStore } from '@/store/useAppStore';
-import { colors, radius } from '@/theme';
+import { colors, hair, line, radius, space } from '@/theme';
 
 const LAYERS: { icon: IconName; title: string; where: string; body: string }[] = [
   { icon: 'phone-portrait-outline', title: 'Screens', where: 'src/app · src/components', body: 'Show the data and turn taps into actions.' },
@@ -51,7 +51,7 @@ const RUBRIC: { icon: IconName; area: string; where: string; href: Href }[] = [
   { icon: 'calendar-outline', area: 'Scheduling', where: 'Plan tab: day-by-day itinerary, reminders, flights and time zones.', href: '/(tabs)/itinerary' },
   { icon: 'wallet-outline', area: 'Budgeting', where: 'Budget tab: expenses, split, settle up and currency converter.', href: '/(tabs)/budget' },
   { icon: 'folder-open-outline', area: 'Organization', where: 'More: offline docs, packing list, weather, photo dump and printable planner.', href: '/documents' },
-  { icon: 'sparkles-outline', area: 'Other features', where: 'Themes and languages, trip quiz, bucket list, phrasebook and the recap story card.', href: '/personalize' },
+  { icon: 'color-palette-outline', area: 'Other features', where: 'Themes and languages, trip quiz, bucket list, phrasebook and the recap story card.', href: '/personalize' },
   { icon: 'airplane-outline', area: 'Trip management', where: 'Home: switch trips. Create or join with an invite code. Recap when the trip ends.', href: '/trips' },
 ];
 
@@ -85,154 +85,142 @@ const LIBRARIES = [
   'Jest',
 ];
 
-function Section({ icon, title, children }: { icon: IconName; title: string; children: ReactNode }) {
+/** One part of the page: a serif title over a rule, then its content. The gap between parts is the big one. */
+function Section({ title, children, first }: { title: string; children: ReactNode; first?: boolean }) {
   return (
-    <Card style={styles.card}>
-      <View style={styles.sectionHead}>
-        <View style={styles.sectionIcon}>
-          <Ionicons name={icon} size={17} color={colors.onAccent} />
-        </View>
-        <T variant="headline" accessibilityRole="header" style={{ flex: 1 }}>
-          {title}
-        </T>
-      </View>
+    <View style={{ marginTop: first ? 0 : space.section }}>
+      <SectionHeader title={title} />
       {children}
-    </Card>
+    </View>
   );
 }
 
+/** A line icon, a bold title and a few words, one under the other with a hair rule between. */
+function Rows({ items }: { items: [IconName, string, string][] }) {
+  return (
+    <View>
+      {items.map(([icon, title, body], i) => (
+        <View key={title} style={[styles.row, i === 0 && styles.first]}>
+          <Ionicons name={icon} size={22} color={colors.ink} style={{ marginTop: 1 }} />
+          <View style={{ flex: 1, gap: 2 }}>
+            <T variant="bodySm" weight="bold">
+              {title}
+            </T>
+            <T variant="small" color={colors.textSecondary}>
+              {body}
+            </T>
+          </View>
+        </View>
+      ))}
+    </View>
+  );
+}
+
+/** How the app is built, drawn for the judges: layers, sync, security, validation, the rubric map and the libraries. */
 export default function HowItWorks() {
   const setToured = useAppStore((s) => s.setToured);
   return (
-    <Screen header={<Header title="How it works" subtitle="How TogetherWeGo is built and where to find everything" backLabel="More" />}>
-      <View style={{ gap: 14 }}>
-        <Section icon="layers-outline" title="Architecture">
-          <T variant="small" color={colors.textSecondary}>
-            A layered, MVVM-style design. Data flows one way: a screen calls a store action, the state updates, and the screen redraws.
-          </T>
-          <View>
-            {LAYERS.map((l, i) => (
-              <View key={l.title}>
-                <View style={styles.layer}>
-                  <View style={styles.layerIcon}>
-                    <Ionicons name={l.icon} size={17} color={colors.primary} />
-                  </View>
-                  <View style={{ flex: 1 }}>
-                    <T variant="small" weight="bold">
-                      {l.title}
-                    </T>
-                    <T variant="caption" weight="semibold" color={colors.textMuted}>
-                      {l.where}
-                    </T>
-                    <T variant="caption" color={colors.textSecondary}>
-                      {l.body}
-                    </T>
-                  </View>
+    <Screen header={<Header kicker="TogetherWeGo" title="How it works" subtitle="How TogetherWeGo is built and where to find everything" backLabel="More" />}>
+      <Section title="Architecture" first>
+        <T variant="small" color={colors.textSecondary}>
+          A layered, MVVM-style design. Data flows one way: a screen calls a store action, the state updates, and the screen redraws.
+        </T>
+        <View style={{ marginTop: space.lg }}>
+          {LAYERS.map((l, i) => (
+            <View key={l.title}>
+              <View style={styles.layer}>
+                <View style={styles.layerIcon}>
+                  <Ionicons name={l.icon} size={20} color={colors.ink} />
                 </View>
-                {i < LAYERS.length - 1 ? <Ionicons name="arrow-down" size={14} color={colors.borderStrong} style={{ alignSelf: 'center', marginVertical: 3 }} /> : null}
+                <View style={{ flex: 1, gap: 1 }}>
+                  <T variant="bodySm" weight="bold">
+                    {l.title}
+                  </T>
+                  <T variant="kicker" color={colors.textSecondary} style={{ textTransform: 'none' }}>
+                    {l.where}
+                  </T>
+                  <T variant="small" color={colors.textSecondary}>
+                    {l.body}
+                  </T>
+                </View>
               </View>
-            ))}
-          </View>
-        </Section>
-
-        <Section icon="sync-outline" title="Sync across phones">
-          <T variant="small" color={colors.textSecondary}>
-            Friends on different phones see the same plan, chat, votes and budget, live.
-          </T>
-          {SYNC.map(([icon, title, body]) => (
-            <View key={title} style={styles.row}>
-              <Ionicons name={icon} size={20} color={colors.primary} style={{ marginTop: 1 }} />
-              <View style={{ flex: 1 }}>
-                <T variant="small" weight="bold">
-                  {title}
-                </T>
-                <T variant="caption" color={colors.textSecondary}>
-                  {body}
-                </T>
-              </View>
+              {i < LAYERS.length - 1 ? <Ionicons name="arrow-down" size={16} color={colors.ink} style={{ alignSelf: 'center', marginVertical: 4 }} /> : null}
             </View>
           ))}
-        </Section>
+        </View>
+      </Section>
 
-        <Section icon="shield-checkmark-outline" title="Data & security">
-          {SECURITY.map(([icon, title, body]) => (
-            <View key={title} style={styles.row}>
-              <Ionicons name={icon} size={20} color={colors.primary} style={{ marginTop: 1 }} />
-              <View style={{ flex: 1 }}>
-                <T variant="small" weight="bold">
-                  {title}
-                </T>
-                <T variant="caption" color={colors.textSecondary}>
-                  {body}
-                </T>
-              </View>
-            </View>
-          ))}
-        </Section>
+      <Section title="Sync across phones">
+        <T variant="small" color={colors.textSecondary} style={{ marginBottom: space.sm }}>
+          Friends on different phones see the same plan, chat, votes and budget, live.
+        </T>
+        <Rows items={SYNC} />
+      </Section>
 
-        <Section icon="checkmark-done-outline" title="Input validation">
-          <T variant="small" color={colors.textSecondary}>
-            Every form checks the format and whether the value makes sense, then shows a plain message next to the field.
-          </T>
+      <Section title="Data and security">
+        <Rows items={SECURITY} />
+      </Section>
+
+      <Section title="Input validation">
+        <T variant="small" color={colors.textSecondary}>
+          Every form checks the format and whether the value makes sense, then shows a plain message next to the field.
+        </T>
+        <View style={{ marginTop: space.sm }}>
           {VALIDATION.map(([field, rule, message], i) => (
-            <View key={field}>
-              {i ? <Divider style={{ marginBottom: 10 }} /> : null}
-              <T variant="small" weight="bold">
+            <View key={field} style={[styles.row, styles.col, i === 0 && styles.first]}>
+              <T variant="bodySm" weight="bold">
                 {field}
               </T>
-              <T variant="caption" color={colors.textSecondary}>
+              <T variant="small" color={colors.textSecondary}>
                 {rule}
               </T>
               <View style={styles.msg}>
-                <Ionicons name="alert-circle" size={13} color={colors.red} />
-                <T variant="caption" color={colors.red} style={{ flex: 1 }}>
+                <Ionicons name="alert-circle" size={14} color={colors.red} />
+                <T variant="caption" color={colors.red} style={{ flexShrink: 1 }}>
                   {message}
                 </T>
               </View>
             </View>
           ))}
-        </Section>
+        </View>
+      </Section>
 
-        <Section icon="ribbon-outline" title="Rubric map">
-          <T variant="small" color={colors.textSecondary}>
-            Each competition area and where to find it. Tap a row to open it.
-          </T>
-          {RUBRIC.map((r, i) => (
-            <View key={r.area}>
-              {i ? <Divider style={{ marginBottom: 10 }} /> : null}
-              <Press onPress={() => router.push(r.href)} style={styles.row} accessibilityLabel={`${r.area}. ${r.where}`}>
-                <Ionicons name={r.icon} size={20} color={colors.primary} style={{ marginTop: 1 }} />
-                <View style={{ flex: 1 }}>
-                  <T variant="small" weight="bold">
-                    {r.area}
-                  </T>
-                  <T variant="caption" color={colors.textSecondary}>
-                    {r.where}
-                  </T>
-                </View>
-                <Ionicons name="chevron-forward" size={16} color={colors.textMuted} style={{ marginTop: 2 }} />
-              </Press>
+      <Section title="Rubric map">
+        <T variant="small" color={colors.textSecondary} style={{ marginBottom: space.sm }}>
+          Each competition area and where to find it. Tap a row to open it.
+        </T>
+        {RUBRIC.map((r, i) => (
+          <Press key={r.area} onPress={() => router.push(r.href)} style={[styles.row, styles.press, i === 0 && styles.first]} scaleTo={0.99} accessibilityLabel={`${r.area}. ${r.where}`}>
+            <Ionicons name={r.icon} size={22} color={colors.ink} style={{ marginTop: 1 }} />
+            <View style={{ flex: 1, gap: 2 }}>
+              <T variant="bodySm" weight="bold">
+                {r.area}
+              </T>
+              <T variant="small" color={colors.textSecondary}>
+                {r.where}
+              </T>
+            </View>
+            <Ionicons name="arrow-forward" size={16} color={colors.ink} style={{ marginTop: 3 }} />
+          </Press>
+        ))}
+      </Section>
+
+      <Section title="Libraries used">
+        <View style={styles.tags}>
+          {LIBRARIES.map((l) => (
+            <View key={l} style={styles.tag}>
+              <T variant="caption" weight="semibold">
+                {l}
+              </T>
             </View>
           ))}
-        </Section>
-
-        <Section icon="cube-outline" title="Libraries used">
-          <View style={styles.tags}>
-            {LIBRARIES.map((l) => (
-              <View key={l} style={styles.tag}>
-                <T variant="caption" weight="semibold">
-                  {l}
-                </T>
-              </View>
-            ))}
-          </View>
-        </Section>
-      </View>
+        </View>
+      </Section>
 
       <Button
         label="Replay the app tour"
         icon="play-circle-outline"
-        style={{ marginTop: 18 }}
+        style={{ marginTop: space.section }}
         onPress={() => {
           setToured(false);
           router.navigate('/(tabs)/explore');
@@ -243,13 +231,13 @@ export default function HowItWorks() {
 }
 
 const styles = StyleSheet.create({
-  card: { borderRadius: radius.xl, gap: 12 },
-  sectionHead: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  sectionIcon: { width: 32, height: 32, borderRadius: 16, backgroundColor: colors.accent, alignItems: 'center', justifyContent: 'center' },
-  layer: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 12, borderRadius: radius.md, backgroundColor: colors.cardMuted, borderWidth: 1, borderColor: colors.border },
-  layerIcon: { width: 36, height: 36, borderRadius: 18, backgroundColor: colors.card, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: colors.border },
-  row: { flexDirection: 'row', alignItems: 'flex-start', gap: 12 },
-  msg: { flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 5, paddingHorizontal: 10, paddingVertical: 5, borderRadius: radius.sm, backgroundColor: colors.redSoft, alignSelf: 'flex-start' },
-  tags: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
-  tag: { paddingHorizontal: 11, paddingVertical: 6, borderRadius: radius.pill, backgroundColor: colors.bgAlt },
+  row: { flexDirection: 'row', alignItems: 'flex-start', gap: space.md, paddingVertical: space.md, borderTopWidth: hair, borderTopColor: colors.border },
+  first: { borderTopWidth: 0 },
+  col: { flexDirection: 'column', alignItems: 'stretch', gap: 2 },
+  press: { minHeight: 56 },
+  layer: { flexDirection: 'row', alignItems: 'center', gap: space.md, padding: space.md, borderRadius: radius.card, borderWidth: line, borderColor: colors.ink, backgroundColor: colors.card },
+  layerIcon: { width: 44, height: 44, borderRadius: radius.button, borderWidth: line, borderColor: colors.ink, backgroundColor: colors.bgAlt, alignItems: 'center', justifyContent: 'center' },
+  msg: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 6, paddingHorizontal: 10, paddingVertical: 6, borderRadius: radius.xs, borderWidth: 1.5, borderColor: colors.red, backgroundColor: colors.redSoft, alignSelf: 'flex-start', maxWidth: '100%' },
+  tags: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
+  tag: { paddingHorizontal: 10, paddingVertical: 6, borderRadius: radius.chip, borderWidth: 1.5, borderColor: colors.ink, backgroundColor: colors.card },
 });

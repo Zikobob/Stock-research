@@ -36,5 +36,5 @@ export function parseInviteUrl(url: string): { code: string | null; server: stri
 
 /** A plain-words message for chat apps: the code, the link, and what to do if the link does not open the app. */
 export function inviteText(tripName: string, code: string, link: string): string {
-  return `Join my trip “${tripName}” on TogetherWeGo ✈️\nInvite code: ${code}\nOpen: ${link}\nOr open the app, tap Join a trip and type the code.`;
+  return `Join my trip “${tripName}” on TogetherWeGo\nInvite code: ${code}\nOpen: ${link}\nOr open the app, tap Join a trip and type the code.`;
 }

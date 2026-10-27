@@ -7,12 +7,32 @@ const go = async (p, r) => { await p.goto(BASE + '/' + r, { waitUntil: 'networki
   let { b, p, errors } = await start();
   // ---- Crew hub
   await go(p, 'crew');
+  // the invitation: a ticket with the code in print, the QR button and one black Invite friends button
+  check('crew invitation shows the code', await vis(p.getByLabel('Invite code AML-2026', { exact: true })));
+  check('crew invitation has the QR button and Invite friends', await vis(p.getByTestId('invite-qr')) && await vis(p.getByRole('button', { name: 'Invite friends' })));
+  await p.getByRole('button', { name: 'Invite friends' }).click(); await p.waitForTimeout(600);
+  check('Invite friends opens the share sheet', await vis(p.getByText('WhatsApp')) && await vis(p.getByRole('button', { name: 'Copy', exact: true })));
+  await p.keyboard.press('Escape'); await p.waitForTimeout(400);
+  check('members are stamped GOING', (await p.getByLabel('Going', { exact: true }).filter({ visible: true }).count()) >= 4);
+  check('the green dot marks you as here now', await vis(p.getByLabel('Maya Chen').first()));
+  check('checklist shows progress', await vis(p.getByLabel(/^\d+ of \d+ done$/)));
+  const before = await p.getByLabel(/^\d+ of \d+ done$/).first().getAttribute('aria-label');
+  await p.getByRole('checkbox', { name: 'Travel insurance' }).click(); await p.waitForTimeout(500);
+  const after = await p.getByLabel(/^\d+ of \d+ done$/).first().getAttribute('aria-label');
+  check('ticking a task moves the count and the bar', before !== after, `${before} -> ${after}`);
+  await p.getByRole('checkbox', { name: 'Travel insurance' }).click(); await p.waitForTimeout(300);
+  check('polls start OPEN', await vis(p.getByLabel('Open', { exact: true })));
   await p.getByLabel(/Diego Alvarez, Food Lead/).click(); await p.waitForTimeout(600);
   await p.getByRole('button', { name: 'Navigator' }).last().click().catch(() => {}); await p.waitForTimeout(500);
   check('role change toast', await vis(p.getByText(/Diego is now Navigator/)));
   await p.keyboard.press('Escape'); await p.waitForTimeout(300);
   await p.getByLabel(/Fornillo \(quiet, pebbles\)/).click().catch(() => {}); await p.waitForTimeout(500);
   check('poll vote registers', await vis(p.getByLabel(/Fornillo \(quiet, pebbles\), .*your vote/)));
+  await p.getByRole('button', { name: 'Close poll' }).first().click(); await p.waitForTimeout(700);
+  check('closing a poll with a winner stamps it LOCKED IN', await vis(p.getByLabel('Locked in', { exact: true })));
+  check('closing a poll celebrates the winner', await vis(p.getByText(/Locked in: Fornillo/)));
+  await p.getByRole('button', { name: 'Reopen' }).first().click(); await p.waitForTimeout(500);
+  check('a reopened poll is OPEN again', await vis(p.getByLabel('Open', { exact: true })));
   await p.getByLabel('Add task').click(); await p.waitForTimeout(400);
   check('empty task error', await vis(p.getByText(/enter|task|empty|required/i)));
   await p.getByLabel('New task').fill('Buy sunscreen'); await p.getByLabel('Add task').click(); await p.waitForTimeout(500);
@@ -23,7 +43,13 @@ const go = async (p, r) => { await p.goto(BASE + '/' + r, { waitUntil: 'networki
   await p.getByText('+ Add').first().click(); await p.waitForTimeout(500);
   await p.getByRole('button', { name: 'Add member' }).click(); await p.waitForTimeout(400);
   check('add member validation', await vis(p.getByText(/name/i).filter({ hasText: /enter|required|letters/i })) || await vis(p.getByText(/Enter .*name|required/i)));
-  await p.keyboard.press('Escape');
+  await p.getByLabel('Name', { exact: true }).fill('Jules Moreau'); await p.getByRole('button', { name: 'Add member' }).click(); await p.waitForTimeout(700);
+  check('someone added by name is stamped INVITED', await vis(p.getByLabel('Invited', { exact: true })));
+  await p.getByText('+ Add').first().click(); await p.waitForTimeout(500);
+  await p.getByLabel('Name', { exact: true }).fill('A'); await p.keyboard.press('Escape'); await p.waitForTimeout(500);
+  await p.getByText('+ Add').first().click(); await p.waitForTimeout(500);
+  check('a half-typed member name survives closing the sheet', (await p.getByLabel('Name', { exact: true }).inputValue()) === 'A');
+  await p.getByLabel('Name', { exact: true }).fill(''); await p.keyboard.press('Escape');
   // ---- Flights
   await go(p, 'flights');
   check('flights Sam shows no flight', await vis(p.getByText('No flight added yet')));
@@ -89,10 +115,29 @@ const go = async (p, r) => { await p.goto(BASE + '/' + r, { waitUntil: 'networki
   check('today card on home', await vis(p.getByText(/Today · Day \d of 6/)));
   // ---- Join
   await go(p, 'join');
+  check('join shows the demo ticket', await vis(p.getByText('Seoul Food Crawl')));
+  await p.getByLabel('Use demo code SEO-5521').click(); await p.waitForTimeout(300);
+  check('the demo ticket fills in its code', (await p.getByTestId('invite-code').inputValue()) === 'SEO-5521');
+  await p.getByTestId('invite-code').fill('ZZZ-9999'); await p.getByTestId('join-submit').click(); await p.waitForTimeout(800);
+  check('an unknown code is explained in words', await vis(p.getByText(/No trip found with that code/)));
   await p.getByRole('button', { name: /^Join/ }).first().click().catch(() => {});
   await p.getByPlaceholder(/ABC|TKY|code/i).first().fill('SEO-5521').catch(() => {});
   await p.getByRole('button', { name: /Join trip|Join$/ }).last().click().catch(() => {}); await p.waitForTimeout(1200);
   check('join SEO-5521', await vis(p.getByText(/Seoul/)));
+  // ---- New trip (a short form with one Create button), the Trips list, and the invitation-style empty states of a new trip
+  await go(p, 'new-trip');
+  await p.getByRole('button', { name: 'Create trip' }).click(); await p.waitForTimeout(500);
+  check('new trip asks for a name and a budget', await vis(p.getByText('Enter a trip name')) && await vis(p.getByText(/Enter a group budget/)));
+  await p.getByLabel('Search destinations').fill('Lisbon'); await p.waitForTimeout(300);
+  check('destination search narrows the photo tiles', !(await vis(p.getByLabel(/^Tokyo, Japan$/), 500)));
+  await p.getByLabel('Search destinations').fill('');
+  await p.getByLabel('Trip name').fill('Pier Pressure'); await p.getByLabel('Group budget (USD)').fill('900');
+  await p.getByRole('button', { name: 'Create trip' }).click(); await p.waitForTimeout(1200);
+  check('new trip is created and opens the crew page', await vis(p.getByText('Trip created. Share the invite code with your group')) && await vis(p.getByRole('heading', { name: 'The crew' })));
+  check('a new trip has an empty polls invitation', await vis(p.getByText('No polls yet')));
+  await go(p, 'trips');
+  check('trips list stamps the current trip', await vis(p.getByLabel('Pier Pressure, current trip')) && await vis(p.getByLabel('Current', { exact: true })));
+  check('trips list has Join with code and New trip', await vis(p.getByRole('button', { name: 'Join with code' })) && await vis(p.getByLabel('New trip').first()));
   console.log(results.join('\n'));
   console.log('errors:', errors.length ? errors.join('\n') : 'none');
   await b.close();

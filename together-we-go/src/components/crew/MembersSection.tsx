@@ -25,20 +25,20 @@ export function MembersSection({ trip, userId, onPick, onAdd }: { trip: Trip; us
             <Press onPress={() => onPick(m)} style={styles.member} scaleTo={0.99} accessibilityLabel={`${m.name}, ${m.role}. Tap to change role`}>
               <Avatar name={m.name} src={m.avatar} size={44} dot={m.id === userId ? colors.positive : undefined} />
               <View style={styles.who}>
-                <T variant="title" weight="bold" numberOfLines={1}>
+                <T variant="title" weight="bold" numberOfLines={2}>
                   {m.name}
                   {m.id === userId ? ' (you)' : ''}
                 </T>
                 <T variant="kicker" color={colors.textSecondary} numberOfLines={1}>
-                  {m.homeCity ? `${m.role} · ${m.homeCity}` : m.role}
+                  {m.role}
                 </T>
-                {m.invited ? (
-                  <T variant="caption" color={colors.textMuted}>
-                    Hasn’t joined yet
+                {m.invited || m.homeCity ? (
+                  <T variant="caption" color={colors.textMuted} numberOfLines={1}>
+                    {m.invited ? 'Hasn’t joined yet' : `From ${m.homeCity}`}
                   </T>
                 ) : null}
               </View>
-              {m.invited ? <Stamp label="Invited" tone="warn" icon="mail-outline" rotate={0} /> : <Stamp label="Going" tone="positive" icon="checkmark" rotate={0} />}
+              {m.invited ? <Stamp label="Invited" tone="warn" rotate={0} /> : <Stamp label="Going" tone="positive" rotate={0} />}
             </Press>
           </View>
         ))}

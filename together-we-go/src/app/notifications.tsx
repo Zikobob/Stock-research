@@ -3,28 +3,36 @@ import { router, type Href } from 'expo-router';
 import { useEffect } from 'react';
 import { StyleSheet, View } from 'react-native';
 
+import { groupByDay } from '@/components/more/groups';
 import { Button } from '@/components/ui/Button';
-import { EmptyState, type IconName } from '@/components/ui/bits';
+import { EmptyState, SectionHeader, type IconName } from '@/components/ui/bits';
+import { confirmAction, toast } from '@/components/ui/feedback';
 import { Press } from '@/components/ui/Press';
 import { Header, Screen } from '@/components/ui/Screen';
 import { T } from '@/components/ui/T';
 import { sendTestReminder } from '@/services/notifications';
-import { useAppStore } from '@/store/useAppStore';
 import type { AppNotification } from '@/store/types';
-import { colors, radius } from '@/theme';
+import { useAppStore } from '@/store/useAppStore';
+import { colors, hair, line, radius, space } from '@/theme';
 import { timeAgo } from '@/utils/format';
-import { toast } from '@/components/ui/feedback';
 
-const ICONS: Record<AppNotification['kind'], { icon: IconName; color: string }> = {
-  reminder: { icon: 'alarm-outline', color: colors.orange },
-  chat: { icon: 'chatbubble-ellipses-outline', color: colors.blue },
-  vote: { icon: 'stats-chart-outline', color: colors.purple },
-  expense: { icon: 'wallet-outline', color: colors.primary },
-  system: { icon: 'information-circle-outline', color: colors.textSecondary },
-  member: { icon: 'person-add-outline', color: colors.teal },
-  photo: { icon: 'images-outline', color: colors.red },
+/** One line icon per kind of notification. Colour is kept for states, so every kind is ink; unread is the one that is lit. */
+const ICONS: Record<AppNotification['kind'], IconName> = {
+  reminder: 'alarm-outline',
+  chat: 'chatbubble-ellipses-outline',
+  vote: 'stats-chart-outline',
+  expense: 'wallet-outline',
+  system: 'information-circle-outline',
+  member: 'person-add-outline',
+  photo: 'images-outline',
 };
 
+function testReminder() {
+  sendTestReminder(5);
+  toast('Test reminder scheduled. Lock your phone to see it arrive', { icon: 'alarm-outline' });
+}
+
+/** Reminders, votes and chat mentions, grouped Today and Earlier. Unread ones have an accent icon. */
 export default function Notifications() {
   const list = useAppStore((s) => s.notifications);
   const markAllRead = useAppStore((s) => s.markAllRead);
@@ -34,74 +42,87 @@ export default function Notifications() {
   // Mark everything read when leaving the screen.
   useEffect(() => () => markAllRead(), [markAllRead]);
 
+  const unread = list.filter((n) => !n.read).length;
+  const groups = groupByDay(list);
+
   return (
-    <Screen
-      header={
-        <Header
-          title="Notifications"
-          subtitle={`${list.filter((n) => !n.read).length} unread`}
-          right={
-            list.length ? (
-              <Press onPress={clear} hitSlop={8} accessibilityLabel="Clear all notifications">
-                <T variant="small" weight="semibold" color={colors.textSecondary}>
-                  Clear
-                </T>
-              </Press>
-            ) : null
-          }
-        />
-      }>
-      <Button
-        label="Send a test reminder (5 sec)"
-        icon="alarm-outline"
-        variant="soft"
-        onPress={() => {
-          sendTestReminder(5);
-          toast('Test reminder scheduled — lock your phone to see it arrive', { icon: 'alarm-outline' });
-        }}
-      />
-      <View style={{ gap: 8, marginTop: 14 }}>
-        {list.length ? (
-          list.map((n) => {
-            const meta = ICONS[n.kind];
-            return (
-              <Press
-                key={n.id}
-                onPress={() => {
-                  if (n.tripId) setActive(n.tripId);
-                  if (n.route) router.push((n.route === '/(tabs)/profile' ? '/crew' : n.route) as Href);
-                }}
-                style={[styles.item, !n.read && styles.unread]}
-                accessibilityLabel={`${n.title}. ${n.body}`}>
-                <View style={[styles.icon, { backgroundColor: `${meta.color}1A` }]}>
-                  <Ionicons name={meta.icon} size={18} color={meta.color} />
-                </View>
-                <View style={{ flex: 1 }}>
-                  <T variant="small" weight="semibold">
-                    {n.title}
-                  </T>
-                  <T variant="caption" color={colors.textSecondary}>
-                    {n.body}
-                  </T>
-                  <T variant="micro" color={colors.textMuted} style={{ marginTop: 3 }}>
-                    {timeAgo(n.ts)}
-                  </T>
-                </View>
-                {!n.read ? <View style={styles.dot} /> : null}
-              </Press>
-            );
-          })
-        ) : (
-          <EmptyState icon="notifications-off-outline" title="You’re all caught up" body="Reminders, votes and chat mentions will show up here." />
-        )}
-      </View>
+    <Screen header={<Header kicker="TogetherWeGo" title="Notifications" subtitle={unread ? `${unread} unread` : 'Nothing new'} backLabel="Home" />}>
+      {list.length ? (
+        <>
+          <View style={styles.bar}>
+            <T variant="kicker" color={colors.textSecondary} style={{ flex: 1 }}>
+              {list.length} {list.length === 1 ? 'notification' : 'notifications'}
+            </T>
+            <Button
+              label="Mark all read"
+              icon="checkmark-done-outline"
+              size="sm"
+              variant="secondary"
+              full={false}
+              disabled={!unread}
+              onPress={() => {
+                markAllRead();
+                toast('All marked as read', { icon: 'checkmark-done-outline' });
+              }}
+            />
+          </View>
+
+          {groups.map((g) => (
+            <View key={g.label} style={{ marginTop: space.xl }}>
+              <SectionHeader title={g.label} />
+              {g.items.map((n, i) => (
+                <Press
+                  key={n.id}
+                  onPress={() => {
+                    if (n.tripId) setActive(n.tripId);
+                    if (n.route) router.push((n.route === '/(tabs)/profile' ? '/crew' : n.route) as Href);
+                  }}
+                  style={[styles.item, i === 0 && styles.first]}
+                  scaleTo={0.99}
+                  accessibilityLabel={`${n.read ? '' : 'Unread. '}${n.title}. ${n.body}`}>
+                  <View style={[styles.icon, !n.read && { backgroundColor: colors.accent }]}>
+                    <Ionicons name={ICONS[n.kind]} size={20} color={n.read ? colors.ink : colors.onAccent} />
+                  </View>
+                  <View style={{ flex: 1, gap: 2 }}>
+                    <T variant="bodySm" weight={n.read ? 'semibold' : 'bold'}>
+                      {n.title}
+                    </T>
+                    <T variant="small" color={colors.textSecondary}>
+                      {n.body}
+                    </T>
+                    <T variant="kicker" color={colors.textSecondary} style={{ marginTop: 2 }}>
+                      {timeAgo(n.ts)}
+                    </T>
+                  </View>
+                </Press>
+              ))}
+            </View>
+          ))}
+
+          <View style={styles.foot}>
+            <Button label="Send a test reminder (5 sec)" icon="alarm-outline" variant="secondary" size="md" onPress={testReminder} />
+            <Button
+              label="Clear all notifications"
+              icon="trash-outline"
+              variant="danger"
+              size="md"
+              onPress={() => confirmAction('Clear all notifications?', 'This removes every notification from this list.', clear, { confirmLabel: 'Clear all', destructive: true })}
+            />
+          </View>
+        </>
+      ) : (
+        <EmptyState icon="notifications-off-outline" title="You’re all caught up" body="Reminders, votes and chat mentions will show up here.">
+          <Button label="Send a test reminder (5 sec)" icon="alarm-outline" variant="secondary" onPress={testReminder} />
+        </EmptyState>
+      )}
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  item: { flexDirection: 'row', gap: 12, padding: 14, borderRadius: radius.md, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border },
-  unread: { backgroundColor: colors.primarySofter, borderColor: colors.primaryLine },
-  icon: { width: 38, height: 38, borderRadius: 19, alignItems: 'center', justifyContent: 'center' },
-  dot: { width: 9, height: 9, borderRadius: 5, backgroundColor: colors.primary, marginTop: 4 },
+  bar: { flexDirection: 'row', alignItems: 'center', gap: space.md },
+  item: { flexDirection: 'row', alignItems: 'flex-start', gap: space.md, paddingVertical: space.md, minHeight: 64, borderTopWidth: hair, borderTopColor: colors.border },
+  first: { borderTopWidth: 0 },
+  icon: { width: 44, height: 44, borderRadius: radius.button, borderWidth: line, borderColor: colors.ink, backgroundColor: colors.card, alignItems: 'center', justifyContent: 'center' },
+  foot: { gap: space.xxxl, marginTop: space.section },
 });

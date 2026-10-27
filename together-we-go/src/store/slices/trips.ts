@@ -72,7 +72,7 @@ export const createTripsSlice: Slice<TripsSlice> = (set, get) => {
         set((s) => {
           const t = s.trips.find((x) => x.id === local.id)!;
           t.members.push({ id: user, name: acct?.name ?? 'New member', email: acct?.email, avatar: acct?.avatar, role: 'Member', homeCity: acct?.homeCity });
-          t.messages.push({ id: uid('c-'), authorId: 'system', kind: 'system', text: `${acct?.name ?? 'Someone'} joined the trip 👋`, ts: Date.now() });
+          t.messages.push({ id: uid('c-'), authorId: 'system', kind: 'system', text: `${acct?.name ?? 'Someone'} joined the trip`, ts: Date.now() });
           s.activeTripId = t.id;
         });
         return { ok: true, tripId: local.id };
@@ -81,7 +81,7 @@ export const createTripsSlice: Slice<TripsSlice> = (set, get) => {
       if (!remote) return { ok: false, error: 'No trip found with that code. Check with your friend and try again.' };
       set((s) => {
         remote.members.push({ id: user, name: acct?.name ?? 'New member', email: acct?.email, avatar: acct?.avatar, role: 'Member', homeCity: acct?.homeCity });
-        remote.messages.push({ id: uid('c-'), authorId: 'system', kind: 'system', text: `${acct?.name ?? 'Someone'} joined the trip 👋`, ts: Date.now() });
+        remote.messages.push({ id: uid('c-'), authorId: 'system', kind: 'system', text: `${acct?.name ?? 'Someone'} joined the trip`, ts: Date.now() });
         s.trips.unshift(remote);
         s.activeTripId = remote.id;
       });

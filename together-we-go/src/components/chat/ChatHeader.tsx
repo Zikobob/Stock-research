@@ -38,7 +38,7 @@ export function ChatHeader({ trip, tab, onTab, synced, aiMode }: { trip: Trip; t
           <Press onPress={() => router.push('/settings')} style={styles.mode} accessibilityLabel="Assistant settings" scaleTo={0.99}>
             <Ionicons name={aiMode === 'claude' ? 'cloud-outline' : 'cloud-offline-outline'} size={16} color={colors.ink} />
             <T variant="kicker" color={colors.textSecondary} style={{ flex: 1 }}>
-              {aiMode === 'claude' ? 'Answers by Claude' : 'Answers from your trip data'}
+              {aiMode === 'claude' ? 'Answers by Claude' : 'Answers from trip data'}
             </T>
             <T variant="kicker" color={colors.ink}>
               Change

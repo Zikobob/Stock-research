@@ -6,15 +6,16 @@ import { Animated, Easing, ScrollView, StyleSheet, View, useWindowDimensions } f
 import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { Pick, Readout, Square, Switch } from '@/components/panorama/Chrome';
 import { headingOf, K, layout, PanoramaScene, posForHeading } from '@/components/panorama/Scene';
 import { timeOfDayAt } from '@/components/SkylineHero';
 import { toast } from '@/components/ui/feedback';
 import { nativeDriver, useMotion } from '@/components/ui/motion';
-import { Press, tap } from '@/components/ui/Press';
+import { tap } from '@/components/ui/Press';
 import { T } from '@/components/ui/T';
 import { useNow } from '@/hooks/useTrip';
 import { PANORAMAS, panoById } from '@/data/panoramas';
-import { MAX_WIDTH, colors } from '@/theme';
+import { MAX_WIDTH, colors, line, radius } from '@/theme';
 
 const WIND = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW'];
 const wind = (deg: number) => WIND[Math.round(deg / 22.5) % 16];
@@ -159,115 +160,83 @@ export default function PanoramaScreen() {
           dragRef.current = false;
         }}>
         <PanoramaScene key={pano.id} pano={pano} night={night} pos={pos} S={S} H={H} />
-        <LinearGradient pointerEvents="none" colors={['rgba(0,0,0,0.55)', 'rgba(0,0,0,0)']} style={[styles.fade, { top: 0, height: 200 }]} />
-        <LinearGradient pointerEvents="none" colors={['rgba(0,0,0,0)', 'rgba(0,0,0,0.7)']} style={[styles.fade, { bottom: 0, height: 330 }]} />
+        <LinearGradient pointerEvents="none" colors={['rgba(0,0,0,0.62)', 'rgba(0,0,0,0)']} style={[styles.fade, { top: 0, height: 270 }]} />
+        <LinearGradient pointerEvents="none" colors={['rgba(0,0,0,0)', 'rgba(0,0,0,0.72)']} style={[styles.fade, { bottom: 0, height: 360 }]} />
 
-        {/* Top bar */}
+        {/* Top bar: outlined squares on the scene */}
         <View style={[styles.top, { top }]}>
-          <Press onPress={() => (router.canGoBack() ? router.back() : router.replace('/(tabs)/explore'))} style={styles.round} accessibilityLabel="Go back">
-            <Ionicons name="chevron-back" size={20} color={colors.white} />
-          </Press>
+          <Square icon="arrow-back" label="Go back" onPress={() => (router.canGoBack() ? router.back() : router.replace('/(tabs)/explore'))} />
           <View style={{ flex: 1 }} />
-          <Press
+          <Switch
+            role="switch"
+            on={autoOn}
+            icon={autoOn ? 'sync' : 'pause'}
+            text={autoOn ? 'Auto' : 'Paused'}
+            label="Auto rotate"
             onPress={() => (motion ? setAuto((a) => !a) : toast('Animations are off, so the view only moves when you drag it', { icon: 'accessibility-outline' }))}
-            style={styles.chip}
-            accessibilityRole="switch"
-            accessibilityState={{ checked: autoOn }}
-            accessibilityLabel="Auto rotate">
-            <Ionicons name={autoOn ? 'sync' : 'pause'} size={14} color={colors.white} />
-            <T variant="micro" weight="bold" color={colors.white}>
-              {autoOn ? 'Auto' : 'Paused'}
-            </T>
-          </Press>
-          <Press
+          />
+          <Switch
+            icon={mode === 'night' ? 'moon' : 'sunny'}
+            text={mode === 'night' ? 'Night' : 'Day'}
+            label={mode === 'night' ? 'Night view. Switch to day' : 'Day view. Switch to night'}
+            hint="Long press to follow local time"
             onPress={() => {
               tap();
               setForced(mode === 'night' ? 'day' : 'night');
             }}
             onLongPress={() => setForced(null)}
-            style={[styles.chip, { backgroundColor: mode === 'night' ? '#1B2250' : 'rgba(255,255,255,0.28)' }]}
-            accessibilityLabel={mode === 'night' ? 'Night view. Switch to day' : 'Day view. Switch to night'}
-            accessibilityHint="Long press to follow local time">
-            <Ionicons name={mode === 'night' ? 'moon' : 'sunny'} size={15} color={mode === 'night' ? '#FFE9A8' : '#FFFFFF'} />
-            <T variant="micro" weight="bold" color={colors.white}>
-              {mode === 'night' ? 'Night' : 'Day'}
-            </T>
-          </Press>
+          />
         </View>
 
         {/* Title + compass */}
-        <View style={[styles.titleBlock, { top: top + 54 }]} pointerEvents="none">
-          <T variant="kicker" color="rgba(255,255,255,0.85)">
-            {pano.emoji} {pano.country}
+        <View style={[styles.titleBlock, { top: top + 62 }]} pointerEvents="none">
+          <T variant="kicker" color={colors.white}>
+            {pano.country}
           </T>
           <T variant="display" color={colors.white} style={styles.titleText} accessibilityRole="header">
             {pano.name}
           </T>
-          <View style={styles.compass}>
-            <Ionicons name="compass-outline" size={13} color={colors.white} />
-            <T variant="micro" weight="bold" color={colors.white}>
+          <View style={{ marginTop: 6 }}>
+            <Readout icon="compass-outline">
               360° · {wind(heading)} {heading}°
-            </T>
+            </Readout>
           </View>
         </View>
 
         {/* Arrows */}
-        <Press onPress={() => nudge(-1)} style={[styles.arrow, { left: 10 }]} accessibilityLabel="Look left">
-          <Ionicons name="chevron-back" size={22} color={colors.white} />
-        </Press>
-        <Press onPress={() => nudge(1)} style={[styles.arrow, { right: 10 }]} accessibilityLabel="Look right">
-          <Ionicons name="chevron-forward" size={22} color={colors.white} />
-        </Press>
+        <Square icon="chevron-back" label="Look left" onPress={() => nudge(-1)} style={[styles.arrow, { left: 10 }]} />
+        <Square icon="chevron-forward" label="Look right" onPress={() => nudge(1)} style={[styles.arrow, { right: 10 }]} />
 
         {/* Bottom: callout, landmark jumps, city picker */}
         <View style={[styles.bottom, { paddingBottom: insets.bottom + 12 }]}>
           <View style={styles.callout} accessibilityLiveRegion="polite">
             {near ? (
               <>
-                <T variant="title" weight="extrabold" color={colors.white}>
+                <T variant="title" weight="bold">
                   {near.name}
                 </T>
-                <T variant="small" color="rgba(255,255,255,0.9)">
+                <T variant="small" color={colors.textSecondary}>
                   {near.fact}
                 </T>
               </>
             ) : (
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                <Ionicons name="hand-left-outline" size={18} color={colors.white} />
-                <T variant="small" weight="semibold" color={colors.white} style={{ flex: 1 }}>
-                  Drag to look around — it wraps all the way back to where you started.
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                <Ionicons name="hand-left-outline" size={20} color={colors.ink} />
+                <T variant="small" weight="semibold" style={{ flex: 1 }}>
+                  Drag to look around. It wraps all the way back to where you started.
                 </T>
               </View>
             )}
           </View>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.row} style={{ flexGrow: 0 }}>
             {pano.landmarks.map((l) => (
-              <Press key={l.id} onPress={() => lookAt(l.heading)} style={[styles.lm, near?.id === l.id && { backgroundColor: colors.accent }]} accessibilityLabel={`Look at ${l.name}`}>
-                <Ionicons name="locate" size={13} color={near?.id === l.id ? colors.onAccent : colors.white} />
-                <T variant="micro" weight="bold" color={near?.id === l.id ? colors.onAccent : colors.white}>
-                  {l.name}
-                </T>
-              </Press>
+              <Pick key={l.id} text={l.name} icon="locate" label={`Look at ${l.name}`} on={near?.id === l.id} onPress={() => lookAt(l.heading)} />
             ))}
           </ScrollView>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.row} style={{ flexGrow: 0 }}>
-            {PANORAMAS.map((p) => {
-              const on = p.id === pano.id;
-              return (
-                <Press
-                  key={p.id}
-                  onPress={() => pick(p.id)}
-                  style={[styles.city, on && { backgroundColor: colors.white }]}
-                  accessibilityRole="button"
-                  accessibilityState={{ selected: on }}
-                  accessibilityLabel={`${p.name} 360 degree view`}>
-                  <T style={{ fontSize: 16, lineHeight: 20 }}>{p.emoji}</T>
-                  <T variant="small" weight="bold" color={on ? '#111111' : colors.white}>
-                    {p.name}
-                  </T>
-                </Press>
-              );
-            })}
+            {PANORAMAS.map((p) => (
+              <Pick key={p.id} text={p.name} label={`${p.name} 360 degree view`} on={p.id === pano.id} onPress={() => pick(p.id)} />
+            ))}
           </ScrollView>
         </View>
       </View>
@@ -275,20 +244,14 @@ export default function PanoramaScreen() {
   );
 }
 
-const glass = 'rgba(20,22,32,0.5)';
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: '#000', alignItems: 'center', overflow: 'hidden' },
   fade: { position: 'absolute', left: 0, right: 0 },
-  top: { position: 'absolute', left: 14, right: 14, flexDirection: 'row', alignItems: 'center', gap: 8 },
-  round: { width: 42, height: 42, borderRadius: 21, backgroundColor: glass, alignItems: 'center', justifyContent: 'center' },
-  chip: { flexDirection: 'row', alignItems: 'center', gap: 6, height: 38, paddingHorizontal: 12, borderRadius: 999, backgroundColor: glass },
+  top: { position: 'absolute', left: 14, right: 14, flexDirection: 'row', alignItems: 'center', gap: 10 },
   titleBlock: { position: 'absolute', left: 20, right: 20, gap: 2 },
-  titleText: { fontSize: 52, lineHeight: 56, textShadowColor: 'rgba(0,0,0,0.5)', textShadowRadius: 10 },
-  compass: { flexDirection: 'row', alignItems: 'center', gap: 5, alignSelf: 'flex-start', marginTop: 6, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 999, backgroundColor: glass },
-  arrow: { position: 'absolute', top: '46%', width: 40, height: 40, borderRadius: 20, backgroundColor: glass, alignItems: 'center', justifyContent: 'center' },
-  bottom: { position: 'absolute', left: 0, right: 0, bottom: 0, gap: 10 },
-  callout: { marginHorizontal: 16, padding: 14, borderRadius: 20, backgroundColor: glass, gap: 4, minHeight: 58, justifyContent: 'center' },
-  row: { gap: 8, paddingHorizontal: 16 },
-  lm: { flexDirection: 'row', alignItems: 'center', gap: 5, height: 34, paddingHorizontal: 12, borderRadius: 999, backgroundColor: glass },
-  city: { flexDirection: 'row', alignItems: 'center', gap: 6, height: 42, paddingHorizontal: 14, borderRadius: 999, backgroundColor: glass },
+  titleText: { fontSize: 52, lineHeight: 56 },
+  arrow: { position: 'absolute', top: '46%' },
+  bottom: { position: 'absolute', left: 0, right: 0, bottom: 0, gap: 12 },
+  callout: { marginHorizontal: 16, padding: 14, borderRadius: radius.card, borderWidth: line, borderColor: colors.ink, backgroundColor: colors.card, gap: 4, minHeight: 64, justifyContent: 'center' },
+  row: { gap: 10, paddingHorizontal: 16, paddingRight: 24, paddingBottom: 4 },
 });

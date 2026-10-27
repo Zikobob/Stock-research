@@ -17,7 +17,7 @@ import { useDraft } from '@/hooks/useDraft';
 import { useAppStore } from '@/store/useAppStore';
 import { colors, line, radius, space } from '@/theme';
 import { money } from '@/utils/format';
-import { addDays, dayLabel, daysBetween, todayInTz } from '@/utils/time';
+import { addDays, dayLabel, daysBetween, todayInTz, tzAbbrev, utcOffsetLabel } from '@/utils/time';
 import { firstError, maxLen, parseAmount, required, validateAmount, validateTripDates } from '@/utils/validation';
 
 /** Create a trip (or edit one with ?edit=<tripId>). A half-filled form is kept if the person leaves and comes back. */
@@ -117,13 +117,13 @@ export default function NewTrip() {
             <Input label="End date" value={dayLabel(end) + `, ${end.slice(0, 4)}`} onPressField={() => setPicker('end')} error={errors.end} containerStyle={{ flex: 1 }} />
           </View>
           <T variant="kicker" color={colors.textSecondary}>
-            {days} {days === 1 ? 'day' : 'days'} / local time in {dest.city} ({dest.tz.split('/').pop()?.replace('_', ' ')})
+            {days} {days === 1 ? 'day' : 'days'} / {dest.city} time, {tzAbbrev(dest.tz)} {utcOffsetLabel(dest.tz)}
           </T>
         </View>
 
         <View style={{ gap: 10 }}>
           <Input label="Group budget (USD)" placeholder={String(suggested)} value={budget} onChangeText={setBudget} keyboardType="decimal-pad" error={errors.budget} hint={`Tip: about ${money(dest.dailyCost)} a person a day in ${dest.city}. For 4 people including flights, around ${money(suggested)}.`} />
-          {!budget ? <Button label={`Use ${money(suggested)}`} variant="secondary" size="md" full={false} onPress={() => setBudget(String(suggested))} /> : null}
+          {!budget ? <Button label={`Use ${money(suggested)}`} variant="secondary" size="md" full={false} style={{ alignSelf: 'flex-start' }} onPress={() => setBudget(String(suggested))} /> : null}
         </View>
 
         {!editing ? (

@@ -118,7 +118,7 @@ function ChatInner() {
           data={data}
           keyExtractor={(m) => m.id}
           renderItem={({ item, index }) => <ChatBubble item={item} prev={data[index - 1]} next={data[index + 1]} trip={trip} userId={userId} />}
-          contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 4, paddingBottom: 16, flexGrow: 1 }}
+          contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 4, paddingBottom: 16, flexGrow: 1 }}
           onContentSizeChange={() => list.current?.scrollToEnd({ animated: true })}
           onLayout={() => list.current?.scrollToEnd({ animated: false })}
           keyboardShouldPersistTaps="handled"
@@ -135,7 +135,7 @@ function ChatInner() {
         />
 
         {isAi ? (
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} keyboardShouldPersistTaps="handled" contentContainerStyle={{ gap: 8, paddingHorizontal: 16, paddingBottom: 10 }} style={{ flexGrow: 0 }}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} keyboardShouldPersistTaps="handled" contentContainerStyle={{ gap: 8, paddingHorizontal: 20, paddingBottom: 10 }} style={{ flexGrow: 0 }}>
             {QUICK.map((k) => (
               <Chip key={k} small label={t(k)} onPress={() => submit(t(k))} />
             ))}

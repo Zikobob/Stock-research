@@ -1,10 +1,12 @@
 import { Ionicons } from '@expo/vector-icons';
 import * as Speech from 'expo-speech';
 import { useState } from 'react';
-import { ScrollView, StyleSheet, TextInput, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 
 import { Card, Chip, EmptyState } from '@/components/ui/bits';
 import { toast } from '@/components/ui/feedback';
+import { Input } from '@/components/ui/Input';
+import { PlatePress } from '@/components/ui/Plate';
 import { Press } from '@/components/ui/Press';
 import { Header, Screen } from '@/components/ui/Screen';
 import { T } from '@/components/ui/T';
@@ -12,7 +14,7 @@ import { destinationById } from '@/data/destinations';
 import { phrasebook } from '@/data/reference';
 import { copy } from '@/services/share';
 import { useActiveTrip } from '@/store/useAppStore';
-import { colors, fonts, radius } from '@/theme';
+import { colors, line, radius, space } from '@/theme';
 
 /** Offline phrasebook with native text-to-speech pronunciation. */
 export default function Phrasebook() {
@@ -41,52 +43,56 @@ export default function Phrasebook() {
   };
 
   return (
-    <Screen header={<Header title="Phrasebook" subtitle={`${book.phrases.length} ${book.lang} phrases · tap 🔊 to hear them`} />}>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6, paddingHorizontal: 20 }} style={{ marginHorizontal: -20 }}>
+    <Screen header={<Header kicker="Around town" title="Phrasebook" subtitle={`${book.phrases.length} ${book.lang} phrases. Tap the speaker to hear one.`} backLabel="More" />}>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips} style={styles.chipScroll}>
         {Object.keys(phrasebook).map((l) => (
           <Chip key={l} label={l} active={l === lang} onPress={() => setLang(l)} />
         ))}
       </ScrollView>
-      <View style={styles.search}>
-        <Ionicons name="search" size={17} color={colors.textMuted} />
-        <TextInput value={q} onChangeText={setQ} placeholder="Search phrases…" placeholderTextColor={colors.textMuted} style={styles.input} accessibilityLabel="Search phrases" />
-      </View>
+      <Input icon="search" value={q} onChangeText={setQ} placeholder="Search phrases…" accessibilityLabel="Search phrases" returnKeyType="search" autoCorrect={false} containerStyle={{ marginVertical: space.lg }} />
       {list.length ? (
-        <View style={{ gap: 10 }}>
-          {list.map((p) => (
-            <Card key={p.en} style={styles.row}>
-              <View style={{ flex: 1, gap: 2 }}>
-                <T variant="caption" color={colors.textSecondary}>
-                  {p.en}
-                </T>
-                <T variant="h3" selectable>
-                  {p.local}
-                </T>
-                {p.roman ? (
-                  <T variant="small" color={colors.primary} style={{ fontStyle: 'italic' }}>
-                    {p.roman}
+        <View style={{ gap: space.md }}>
+          {list.map((p) => {
+            const on = speaking === p.local;
+            return (
+              <Card key={p.en} style={styles.card}>
+                <View style={{ flex: 1, gap: 4 }}>
+                  <T variant="small" color={colors.textSecondary}>
+                    {p.en}
                   </T>
-                ) : null}
-              </View>
-              <Press onPress={() => copy(p.local, 'Phrase copied')} style={styles.iconBtn} accessibilityLabel={`Copy ${p.en}`}>
-                <Ionicons name="copy-outline" size={17} color={colors.primary} />
-              </Press>
-              <Press onPress={() => say(p.local)} style={[styles.iconBtn, speaking === p.local && { backgroundColor: colors.primary }]} accessibilityLabel={`Hear ${p.en} in ${book.lang}`}>
-                <Ionicons name="volume-high-outline" size={18} color={speaking === p.local ? colors.white : colors.primary} />
-              </Press>
-            </Card>
-          ))}
+                  <T variant="h2" selectable>
+                    {p.local}
+                  </T>
+                  {p.roman ? (
+                    <T variant="small" color={colors.accentText} style={{ fontStyle: 'italic' }}>
+                      {p.roman}
+                    </T>
+                  ) : null}
+                </View>
+                <View style={styles.buttons}>
+                  <Press onPress={() => copy(p.local, 'Phrase copied')} style={styles.copy} accessibilityLabel={`Copy ${p.en}`}>
+                    <Ionicons name="copy-outline" size={20} color={colors.ink} />
+                  </Press>
+                  <PlatePress onPress={() => say(p.local)} accessibilityLabel={`Hear ${p.en} in ${book.lang}`} offset={3} corner={radius.button} style={[styles.speak, on && { backgroundColor: colors.accent }]}>
+                    <Ionicons name={on ? 'volume-high' : 'volume-high-outline'} size={26} color={on ? colors.onAccent : colors.ink} />
+                  </PlatePress>
+                </View>
+              </Card>
+            );
+          })}
         </View>
       ) : (
-        <EmptyState icon="language-outline" title="No phrases match" />
+        <EmptyState icon="language-outline" title="No phrases match" body="Try a different word, or clear the search." />
       )}
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  search: { flexDirection: 'row', alignItems: 'center', gap: 8, height: 46, marginVertical: 14, paddingHorizontal: 14, borderRadius: radius.md, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.card },
-  input: { flex: 1, fontFamily: fonts.regular, fontSize: 15, color: colors.text, height: '100%', ...({ outlineStyle: 'none' } as object) },
-  row: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  iconBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: colors.primarySofter, alignItems: 'center', justifyContent: 'center' },
+  chipScroll: { marginHorizontal: -20, flexGrow: 0 },
+  chips: { gap: space.sm, paddingHorizontal: 20, paddingRight: 28 },
+  card: { flexDirection: 'row', alignItems: 'center', gap: space.md },
+  buttons: { flexDirection: 'row', alignItems: 'center', gap: space.xs },
+  speak: { width: 56, height: 56, borderRadius: radius.button, borderWidth: line, borderColor: colors.ink, backgroundColor: colors.card, alignItems: 'center', justifyContent: 'center' },
+  copy: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
 });

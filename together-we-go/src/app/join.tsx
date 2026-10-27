@@ -81,25 +81,27 @@ export default function Join() {
           Invite code
         </T>
         <Plate offset={4} corner={radius.button} color={error ? colors.red : focused ? colors.accent : colors.plate}>
-          <TextInput
-            value={code}
-            onChangeText={(v) => {
-              setCode(normalizeInvite(v));
-              setError(null);
-            }}
-            onFocus={() => setFocused(true)}
-            onBlur={() => setFocused(false)}
-            placeholder="ABC-1234"
-            placeholderTextColor={colors.borderStrong}
-            autoCapitalize="characters"
-            autoCorrect={false}
-            maxLength={8}
-            style={[styles.code, error && { backgroundColor: colors.redSoft, borderColor: colors.red }]}
-            accessibilityLabel="Invite code"
-            onSubmitEditing={submit}
-            returnKeyType="go"
-            testID="invite-code"
-          />
+          <View style={[styles.codeBox, error && { backgroundColor: colors.redSoft, borderColor: colors.red }]}>
+            <TextInput
+              value={code}
+              onChangeText={(v) => {
+                setCode(normalizeInvite(v));
+                setError(null);
+              }}
+              onFocus={() => setFocused(true)}
+              onBlur={() => setFocused(false)}
+              placeholder="ABC-1234"
+              placeholderTextColor={colors.borderStrong}
+              autoCapitalize="characters"
+              autoCorrect={false}
+              maxLength={8}
+              style={styles.code}
+              accessibilityLabel="Invite code"
+              onSubmitEditing={submit}
+              returnKeyType="go"
+              testID="invite-code"
+            />
+          </View>
         </Plate>
         {error ? (
           <T variant="small" color={colors.red} accessibilityLiveRegion="assertive">
@@ -132,7 +134,7 @@ export default function Join() {
           stub={
             <Press onPress={() => setCode('SEO-5521')} style={styles.stub} accessibilityLabel="Use demo code SEO-5521" scaleTo={0.99}>
               <View style={{ flex: 1 }}>
-                <T variant="kicker" color={colors.textSecondary} style={{ fontSize: 9.5 }}>
+                <T variant="kicker" color={colors.textSecondary}>
                   Demo code
                 </T>
                 <T variant="numeralSm">SEO-5521</T>
@@ -157,13 +159,10 @@ export default function Join() {
 
 const styles = StyleSheet.create({
   field: { gap: 8, marginTop: 4 },
+  // the outline sits on a View around the input (an input is not a positioned box on the web, so a plate drawn behind it would paint over it)
+  codeBox: { borderRadius: radius.button, borderWidth: line, borderColor: colors.ink, backgroundColor: colors.card, paddingHorizontal: 16 },
   code: {
-    height: 76,
-    borderRadius: radius.button,
-    borderWidth: line,
-    borderColor: colors.ink,
-    backgroundColor: colors.card,
-    paddingHorizontal: 16,
+    height: 72,
     fontFamily: fonts.mono,
     fontSize: 34,
     letterSpacing: 3,

@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, View, useWindowDimensions } from 'react-native';
 
 import { Button } from '@/components/ui/Button';
 import { IconButton } from '@/components/ui/bits';
@@ -43,6 +43,8 @@ export function InviteCard({ trip, owner, onShare }: { trip: Trip; owner: boolea
   const [qrOpen, setQrOpen] = useState(false);
   const dest = destinationById(trip.destinationId);
   const n = trip.members.length;
+  // on the narrowest phones the icon would squeeze "Invite friends" onto two lines
+  const narrow = useWindowDimensions().width < 360;
   return (
     <>
       <Ticket
@@ -84,7 +86,7 @@ export function InviteCard({ trip, owner, onShare }: { trip: Trip; owner: boolea
               <PlatePress onPress={() => setQrOpen(true)} testID="invite-qr" accessibilityLabel="QR code" corner={radius.button} style={styles.qr}>
                 <Ionicons name="qr-code-outline" size={24} color={colors.ink} />
               </PlatePress>
-              <Button label="Invite friends" icon="paper-plane-outline" onPress={onShare} style={styles.invite} />
+              <Button label="Invite friends" icon={narrow ? undefined : 'paper-plane-outline'} onPress={onShare} style={styles.invite} />
             </View>
           </View>
         }>

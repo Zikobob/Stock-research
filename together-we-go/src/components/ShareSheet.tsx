@@ -37,7 +37,7 @@ export function ShareSheet({ visible, onClose, title, message, preview }: { visi
               accessibilityLabel={`Share via ${s.label}`}>
               <Ionicons name={s.icon} size={24} color={colors.ink} />
             </PlatePress>
-            <T variant="kicker" color={colors.textSecondary} numberOfLines={1} style={{ fontSize: 10 }} importantForAccessibility="no">
+            <T variant="kicker" color={colors.textSecondary} numberOfLines={1} importantForAccessibility="no">
               {s.label}
             </T>
           </View>
