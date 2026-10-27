@@ -1,0 +1,13 @@
+node_modules
+dist
+dist-ssr
+coverage
+playwright-report
+test-results
+*.local
+.vite
+*.tsbuildinfo
+.DS_Store
+# Downloaded by scripts in Phase 7 (large model files)
+public/models/*.task
+public/mediapipe-wasm/
