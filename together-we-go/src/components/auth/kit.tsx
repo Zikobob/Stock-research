@@ -1,7 +1,7 @@
 /** The small parts the first-run, sign-in, sign-up and reset screens share. Everything is drawn from tokens, so it reads in light and dark. */
 import { Ionicons } from '@expo/vector-icons';
 import type { ReactNode, RefObject } from 'react';
-import { ScrollView, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
+import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 
 import { showLegal } from './legal';
 import { FadeIn } from '@/components/ui/motion';
@@ -14,24 +14,25 @@ import { colors, line, radius } from '@/theme';
 import { meterView, type MeterTone } from './logic';
 
 /**
- * The page of a form screen: paper, an optional header, and a scroll that is keyboard-safe (on iPhone the content gets the keyboard's
- * height as extra room and the field being typed in is scrolled into view; on Android the window resizes).
+ * The page of a form screen: paper, an optional header, and a scroll that keeps clear of the keyboard (on iPhone the page is lifted by the
+ * keyboard's height, as in Chat and Make it yours; on Android the window resizes).
  */
 export function AuthScreen({ header, children, scrollRef, top = 8 }: { header?: ReactNode; children: ReactNode; scrollRef?: RefObject<ScrollView | null>; top?: number }) {
   return (
     <Screen scroll={false} padded={false} bottomInset={0} header={header}>
-      <ScrollView
-        ref={scrollRef}
-        style={{ flex: 1 }}
-        contentContainerStyle={{ paddingHorizontal: 20, paddingTop: top, paddingBottom: 32 }}
-        keyboardShouldPersistTaps="handled"
-        keyboardDismissMode="on-drag"
-        automaticallyAdjustKeyboardInsets
-        showsVerticalScrollIndicator={false}>
-        <FadeIn duration={320} distance={10}>
-          {children}
-        </FadeIn>
-      </ScrollView>
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
+        <ScrollView
+          ref={scrollRef}
+          style={{ flex: 1 }}
+          contentContainerStyle={{ paddingHorizontal: 20, paddingTop: top, paddingBottom: 32 }}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
+          showsVerticalScrollIndicator={false}>
+          <FadeIn duration={320} distance={10}>
+            {children}
+          </FadeIn>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </Screen>
   );
 }

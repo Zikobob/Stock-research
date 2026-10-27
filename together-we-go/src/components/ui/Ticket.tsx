@@ -33,7 +33,7 @@ export function Ticket({ children, stub, plated = true, holeColor = colors.bg, t
         <>
           <View style={styles.tear}>
             <Notch side="left" holeColor={holeColor} />
-            <Perforation style={styles.dashes} color={tone === 'ink' ? colors.bg : colors.ink} />
+            <Perforation style={styles.dashes} color={tone === 'ink' ? colors.bg : tone === 'accent' ? colors.onAccent : colors.ink} />
             <Notch side="right" holeColor={holeColor} />
           </View>
           {stub}

@@ -170,6 +170,22 @@ const sticksOut = (p, vw) =>
     await ctx.close();
   }
 
+  // ------------------------------------------------------------------ an invited friend creates an account
+  {
+    const { ctx, p, errors } = await open({ width: 390, height: 844 });
+    await p.goto(BASE + '/sign-in', { waitUntil: 'networkidle' }); await p.waitForTimeout(1500);
+    await p.getByLabel('Join with a code').click(); await p.waitForTimeout(800);
+    await p.getByTestId('join-code').fill('seo5521'); await p.getByTestId('join-code-continue').click(); await p.waitForTimeout(800);
+    await p.getByRole('link', { name: 'Sign Up' }).click(); await p.waitForTimeout(1000);
+    check('the invite code follows you to sign-up', await vis(p.getByText('SEO-5521', { exact: true })));
+    await p.getByPlaceholder('e.g. Alex Rivera').fill('Casey Lee'); await p.getByPlaceholder('you@email.com').fill('casey@school.org');
+    await p.getByPlaceholder('At least 8 characters').first().fill('Trip2027go'); await p.getByPlaceholder('Re-enter password').fill('Trip2027go');
+    await p.getByRole('checkbox').click(); await p.getByRole('button', { name: 'Create account' }).click(); await p.waitForTimeout(3200);
+    check('a new account with an invite lands on the join page with the code filled in', (await p.getByTestId('invite-code').inputValue().catch(() => '')) === 'SEO-5521');
+    check('an invited sign-up logs no console errors', errors.length === 0, errors.join(' | '));
+    await ctx.close();
+  }
+
   // ------------------------------------------------------------------ reset password
   {
     const { ctx, p, errors } = await open({ width: 390, height: 844 });

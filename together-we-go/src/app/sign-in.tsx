@@ -221,6 +221,8 @@ export default function SignIn() {
           setInvite(code);
           setJoinOpen(false);
           tap('success');
+          toast(`Invite ${code} saved. Sign in or create an account`);
+          scroll.current?.scrollTo({ y: 0, animated: true });
         }}
       />
     </AuthScreen>
