@@ -1,6 +1,7 @@
 import { useFocusEffect } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { FlatList, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ChatBubble } from '@/components/chat/ChatBubble';
 import { ChatHeader, type ChatTab } from '@/components/chat/ChatHeader';
@@ -33,6 +34,7 @@ export default function Chat() {
 function ChatInner() {
   const t = useT();
   const trip = useActiveTrip()!;
+  const insets = useSafeAreaInsets();
   const userId = useAppStore((s) => s.session?.userId ?? '');
   const send = useAppStore((s) => s.sendMessage);
   const aiMode = useAppStore((s) => s.settings.aiMode);
@@ -106,7 +108,7 @@ function ChatInner() {
   const typingFor = typing === 'assistant' ? (isAi ? 'Scout AI' : null) : isAi ? null : typing ? trip.members.find((m) => m.id === typing)?.name.split(' ')[0] : null;
 
   return (
-    <View style={styles.root}>
+    <View style={[styles.root, { paddingTop: insets.top }]}>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.column}>
         <ChatHeader trip={trip} tab={tab} onTab={setTab} synced={synced} aiMode={aiMode} />
 
@@ -115,16 +117,16 @@ function ChatInner() {
           ref={list}
           data={data}
           keyExtractor={(m) => m.id}
-          renderItem={({ item, index }) => <ChatBubble item={item} prev={data[index - 1]} trip={trip} userId={userId} />}
-          contentContainerStyle={{ paddingHorizontal: 16, paddingVertical: 12, flexGrow: 1 }}
+          renderItem={({ item, index }) => <ChatBubble item={item} prev={data[index - 1]} next={data[index + 1]} trip={trip} userId={userId} />}
+          contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 4, paddingBottom: 16, flexGrow: 1 }}
           onContentSizeChange={() => list.current?.scrollToEnd({ animated: true })}
           onLayout={() => list.current?.scrollToEnd({ animated: false })}
           keyboardShouldPersistTaps="handled"
-          ListEmptyComponent={<EmptyChat ai={isAi} />}
+          ListEmptyComponent={<EmptyChat ai={isAi} onSay={isAi ? undefined : submit} />}
           ListFooterComponent={
             typingFor ? (
               <View style={styles.typing}>
-                <T variant="caption" color={colors.textMuted}>
+                <T variant="kicker" color={colors.textMuted}>
                   {t('chat.typing', { name: typingFor })}
                 </T>
               </View>
@@ -133,7 +135,7 @@ function ChatInner() {
         />
 
         {isAi ? (
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} keyboardShouldPersistTaps="handled" contentContainerStyle={{ gap: 6, paddingHorizontal: 16, paddingBottom: 8 }} style={{ flexGrow: 0 }}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} keyboardShouldPersistTaps="handled" contentContainerStyle={{ gap: 8, paddingHorizontal: 16, paddingBottom: 10 }} style={{ flexGrow: 0 }}>
             {QUICK.map((k) => (
               <Chip key={k} small label={t(k)} onPress={() => submit(t(k))} />
             ))}
@@ -151,5 +153,5 @@ function ChatInner() {
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.bg, alignItems: 'center' },
   column: { flex: 1, width: '100%', maxWidth: MAX_WIDTH },
-  typing: { paddingHorizontal: 44, paddingTop: 10 },
+  typing: { paddingLeft: 38, paddingTop: 12 },
 });

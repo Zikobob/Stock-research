@@ -5,15 +5,19 @@ import { Modal, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/ui/Button';
-import { Press } from '@/components/ui/Press';
+import { PlatePress } from '@/components/ui/Plate';
 import { T } from '@/components/ui/T';
-import { colors } from '@/theme';
+import { colors, line, radius } from '@/theme';
 
-/** Full-screen camera that reads one QR code and hands its text back. */
+/**
+ * Full-screen camera that reads one QR code and hands its text back. The controls over the picture are outlined paper squares
+ * (like the ones over the photo on Home); until the camera is allowed the screen is paper with a plain explanation.
+ */
 export function QrScanner({ visible, onClose, onScan }: { visible: boolean; onClose: () => void; onScan: (text: string) => void }) {
   const insets = useSafeAreaInsets();
   const [permission, requestPermission] = useCameraPermissions();
   const [done, setDone] = useState(false); // the camera reports the same code many times a second
+  const blocked = !!permission && !permission.canAskAgain;
 
   return (
     <Modal visible={visible} animationType="slide" onRequestClose={onClose} onShow={() => setDone(false)}>
@@ -31,20 +35,26 @@ export function QrScanner({ visible, onClose, onScan }: { visible: boolean; onCl
           />
         ) : (
           <View style={styles.ask}>
-            <Ionicons name="camera-outline" size={44} color="rgba(255,255,255,0.8)" />
-            <T variant="title" color={colors.white} center>
-              {permission && !permission.canAskAgain ? 'Camera access is turned off' : 'Allow the camera to scan'}
+            <View style={styles.askIcon}>
+              <Ionicons name="camera-outline" size={34} color={colors.ink} />
+            </View>
+            <T variant="headline" center>
+              {blocked ? 'Camera access is off' : 'Allow the camera to scan'}
             </T>
-            <T variant="small" color="rgba(255,255,255,0.75)" center>
-              {permission && !permission.canAskAgain ? 'Turn it on for TogetherWeGo in your phone’s settings, or type the invite code instead.' : 'It is only used to read the invite QR code your friend shows you.'}
+            <T variant="small" color={colors.textSecondary} center>
+              {blocked ? 'Turn it on for TogetherWeGo in your phone’s settings, or type the invite code instead.' : 'It is only used to read the invite QR code your friend shows you.'}
             </T>
-            {!permission || permission.canAskAgain ? <Button label="Allow camera" icon="camera-outline" onPress={() => requestPermission()} /> : null}
+            {!blocked ? (
+              <View style={{ alignSelf: 'stretch', marginTop: 8 }}>
+                <Button label="Allow camera" icon="camera-outline" onPress={() => requestPermission()} />
+              </View>
+            ) : null}
           </View>
         )}
         <View style={[styles.top, { paddingTop: insets.top + 8 }]}>
-          <Press onPress={onClose} style={styles.round} accessibilityLabel="Close scanner">
-            <Ionicons name="close" size={22} color={colors.white} />
-          </Press>
+          <PlatePress onPress={onClose} accessibilityLabel="Close scanner" offset={3} corner={radius.button} style={styles.close}>
+            <Ionicons name="close" size={22} color={colors.ink} />
+          </PlatePress>
         </View>
         {permission?.granted ? (
           <>
@@ -52,9 +62,11 @@ export function QrScanner({ visible, onClose, onScan }: { visible: boolean; onCl
               <View style={styles.frame} />
             </View>
             <View style={[styles.hint, { paddingBottom: insets.bottom + 24 }]} pointerEvents="none">
-              <T variant="small" weight="semibold" color={colors.white} center>
-                Point the camera at your friend’s invite QR code
-              </T>
+              <View style={styles.label}>
+                <T variant="small" weight="bold" center>
+                  Point the camera at your friend’s invite QR code
+                </T>
+              </View>
             </View>
           </>
         ) : null}
@@ -64,11 +76,14 @@ export function QrScanner({ visible, onClose, onScan }: { visible: boolean; onCl
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#0B0F0A' },
+  root: { flex: 1, backgroundColor: colors.bg },
   ask: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 12, padding: 32 },
+  askIcon: { width: 84, height: 84, borderRadius: 42, borderWidth: line, borderStyle: 'dashed', borderColor: colors.ink, backgroundColor: colors.accentSoft, alignItems: 'center', justifyContent: 'center', marginBottom: 4 },
   top: { position: 'absolute', top: 0, left: 0, right: 0, paddingHorizontal: 16 },
-  round: { width: 42, height: 42, borderRadius: 21, backgroundColor: 'rgba(0,0,0,0.45)', alignItems: 'center', justifyContent: 'center' },
+  close: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.card, borderWidth: line, borderColor: colors.ink, borderRadius: radius.button, alignSelf: 'flex-start' },
   middle: { position: 'absolute', top: 0, bottom: 0, left: 0, right: 0, alignItems: 'center', justifyContent: 'center' },
   hint: { position: 'absolute', bottom: 0, left: 0, right: 0, alignItems: 'center', paddingHorizontal: 24 },
-  frame: { width: 240, height: 240, borderRadius: 24, borderWidth: 3, borderColor: 'rgba(255,255,255,0.85)' },
+  // the frame over the camera picture is white: a white overlay on a photo is the one place a raw colour is fine
+  frame: { width: 240, height: 240, borderRadius: radius.card, borderWidth: 4, borderColor: colors.white },
+  label: { paddingHorizontal: 14, paddingVertical: 10, backgroundColor: colors.card, borderWidth: line, borderColor: colors.ink, borderRadius: radius.card },
 });

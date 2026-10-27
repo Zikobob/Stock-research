@@ -6,7 +6,6 @@ import { ScrollView, StyleSheet, View } from 'react-native';
 
 import { DatePickerSheet } from '@/components/pickers';
 import { Button } from '@/components/ui/Button';
-import { Card } from '@/components/ui/bits';
 import { toast } from '@/components/ui/feedback';
 import { Input } from '@/components/ui/Input';
 import { Press, tap } from '@/components/ui/Press';
@@ -14,13 +13,14 @@ import { Header, Screen } from '@/components/ui/Screen';
 import { T } from '@/components/ui/T';
 import { destinationById, destinations } from '@/data/destinations';
 import { imageSource } from '@/data/images';
+import { useDraft } from '@/hooks/useDraft';
 import { useAppStore } from '@/store/useAppStore';
-import { colors, radius } from '@/theme';
+import { colors, line, radius, space } from '@/theme';
 import { money } from '@/utils/format';
 import { addDays, dayLabel, daysBetween, todayInTz } from '@/utils/time';
 import { firstError, maxLen, parseAmount, required, validateAmount, validateTripDates } from '@/utils/validation';
 
-/** Create a trip (or edit one with ?edit=<tripId>). */
+/** Create a trip (or edit one with ?edit=<tripId>). A half-filled form is kept if the person leaves and comes back. */
 export default function NewTrip() {
   const params = useLocalSearchParams<{ edit?: string; destination?: string }>();
   const editing = useAppStore((s) => (params.edit ? s.trips.find((t) => t.id === params.edit) : undefined));
@@ -29,11 +29,12 @@ export default function NewTrip() {
   const today = todayInTz('UTC');
 
   const initialDest = editing?.destinationId ?? params.destination ?? 'tokyo';
+  const key = editing ? `edit-trip-${editing.id}` : 'new-trip';
   const [destId, setDestId] = useState(initialDest);
-  const [name, setName] = useState(editing?.name ?? '');
-  const [start, setStart] = useState(editing?.startDate ?? addDays(today, 30));
-  const [end, setEnd] = useState(editing?.endDate ?? addDays(today, 36));
-  const [budget, setBudget] = useState(editing ? String(editing.budget) : '');
+  const [name, setName, clearName] = useDraft(`${key}-name`, editing?.name ?? '');
+  const [start, setStart, clearStart] = useDraft(`${key}-start`, editing?.startDate ?? addDays(today, 30));
+  const [end, setEnd, clearEnd] = useDraft(`${key}-end`, editing?.endDate ?? addDays(today, 36));
+  const [budget, setBudget, clearBudget] = useDraft(`${key}-budget`, editing ? String(editing.budget) : '');
   const [q, setQ] = useState('');
   const [picker, setPicker] = useState<'start' | 'end' | null>(null);
   const [errors, setErrors] = useState<Record<string, string | null | undefined>>({});
@@ -57,70 +58,84 @@ export default function NewTrip() {
     if (editing) {
       updateTrip(editing.id, { name: name.trim(), startDate: start, endDate: end, budget: b, destinationId: destId, cover: destId !== editing.destinationId ? dest.image : editing.cover });
       toast('Trip updated');
+      [clearName, clearStart, clearEnd, clearBudget].forEach((c) => c());
       router.back();
     } else {
       createTrip({ name, destinationId: destId, startDate: start, endDate: end, budget: b });
       tap('success');
-      toast('Trip created 🎉 — share the invite code with your group');
+      toast('Trip created. Share the invite code with your group');
+      [clearName, clearStart, clearEnd, clearBudget].forEach((c) => c());
       router.dismissAll?.();
       router.replace('/crew');
     }
   };
 
   return (
-    <Screen header={<Header title={editing ? 'Edit trip' : 'New trip'} subtitle={editing ? editing.name : 'Where is the group headed?'} />}>
-      <View style={{ gap: 16 }}>
-        <View style={{ gap: 8 }}>
-          <T variant="small" weight="semibold">
+    <Screen header={<Header kicker="Group trip" title={editing ? 'Edit trip' : 'New trip'} subtitle={editing ? editing.name : 'Where is the group headed?'} />} bottomInset={30}>
+      <View style={{ gap: space.xxl }}>
+        <View style={{ gap: 10 }}>
+          <T variant="kicker" color={colors.ink}>
             Destination
           </T>
-          <Input placeholder="Search destinations…" icon="search" value={q} onChangeText={setQ} />
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 10, paddingHorizontal: 20 }} style={{ marginHorizontal: -20 }}>
-            {filtered.map((d) => {
-              const on = d.id === destId;
-              return (
-                <Press key={d.id} onPress={() => setDestId(d.id)} style={[styles.dest, on && styles.destOn]} accessibilityState={{ selected: on }} accessibilityLabel={`${d.city}, ${d.country}`}>
-                  <Image source={imageSource(d.image)} style={styles.destImg} contentFit="cover" />
-                  {on ? (
-                    <View style={styles.check}>
-                      <Ionicons name="checkmark" size={14} color={colors.white} />
+          <Input placeholder="Search destinations…" icon="search" value={q} onChangeText={setQ} accessibilityLabel="Search destinations" />
+          {filtered.length ? (
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12, paddingHorizontal: 20, paddingBottom: 4 }} style={{ marginHorizontal: -20 }}>
+              {filtered.map((d) => {
+                const on = d.id === destId;
+                return (
+                  <Press key={d.id} onPress={() => setDestId(d.id)} scaleTo={0.97} style={[styles.dest, on && { backgroundColor: colors.accent }]} accessibilityState={{ selected: on }} accessibilityLabel={`${d.city}, ${d.country}`}>
+                    <Image source={imageSource(d.image)} style={styles.destImg} contentFit="cover" />
+                    {on ? (
+                      <View style={styles.check}>
+                        <Ionicons name="checkmark" size={16} color={colors.onAccent} />
+                      </View>
+                    ) : null}
+                    <View style={styles.destText}>
+                      <T variant="caption" weight="bold" color={on ? colors.onAccent : colors.text} numberOfLines={1}>
+                        {d.city}
+                      </T>
+                      <T variant="micro" color={on ? colors.onAccent : colors.textSecondary} numberOfLines={1}>
+                        {d.country}
+                      </T>
                     </View>
-                  ) : null}
-                  <T variant="caption" weight="semibold" numberOfLines={1} style={{ marginTop: 6 }}>
-                    {d.city}
-                  </T>
-                  <T variant="micro" color={colors.textMuted} numberOfLines={1}>
-                    {d.country}
-                  </T>
-                </Press>
-              );
-            })}
-          </ScrollView>
+                  </Press>
+                );
+              })}
+            </ScrollView>
+          ) : (
+            <T variant="small" color={colors.textSecondary}>
+              No destination matches “{q}”.
+            </T>
+          )}
         </View>
 
-        <Input label="Trip name" placeholder={`e.g. ${dest.city} with the crew`} value={name} onChangeText={setName} error={errors.name} maxLength={45} icon="create-outline" />
+        <Input label="Trip name" placeholder={`e.g. ${dest.city} with the crew`} value={name} onChangeText={setName} error={errors.name} maxLength={45} />
 
-        <View style={{ flexDirection: 'row', gap: 10 }}>
-          <Input label="Start date" icon="calendar-outline" value={dayLabel(start) + `, ${start.slice(0, 4)}`} onPressField={() => setPicker('start')} error={errors.start} containerStyle={{ flex: 1 }} />
-          <Input label="End date" icon="calendar-outline" value={dayLabel(end) + `, ${end.slice(0, 4)}`} onPressField={() => setPicker('end')} error={errors.end} containerStyle={{ flex: 1 }} />
+        <View style={{ gap: 10 }}>
+          <View style={{ flexDirection: 'row', gap: 12 }}>
+            <Input label="Start date" value={dayLabel(start) + `, ${start.slice(0, 4)}`} onPressField={() => setPicker('start')} error={errors.start} containerStyle={{ flex: 1 }} />
+            <Input label="End date" value={dayLabel(end) + `, ${end.slice(0, 4)}`} onPressField={() => setPicker('end')} error={errors.end} containerStyle={{ flex: 1 }} />
+          </View>
+          <T variant="kicker" color={colors.textSecondary}>
+            {days} {days === 1 ? 'day' : 'days'} / local time in {dest.city} ({dest.tz.split('/').pop()?.replace('_', ' ')})
+          </T>
         </View>
-        <T variant="caption" color={colors.textSecondary}>
-          {days} day{days === 1 ? '' : 's'} · local time in {dest.city} ({dest.tz.split('/').pop()?.replace('_', ' ')})
-        </T>
 
-        <Input label="Group budget (USD)" placeholder={String(suggested)} value={budget} onChangeText={setBudget} keyboardType="decimal-pad" error={errors.budget} icon="wallet-outline" hint={`Tip: ~${money(dest.dailyCost)}/person/day in ${dest.city}. For 4 people incl. flights ≈ ${money(suggested)}.`} />
-        {!budget ? <Button label={`Use suggested ${money(suggested)}`} variant="soft" size="sm" onPress={() => setBudget(String(suggested))} /> : null}
+        <View style={{ gap: 10 }}>
+          <Input label="Group budget (USD)" placeholder={String(suggested)} value={budget} onChangeText={setBudget} keyboardType="decimal-pad" error={errors.budget} hint={`Tip: about ${money(dest.dailyCost)} a person a day in ${dest.city}. For 4 people including flights, around ${money(suggested)}.`} />
+          {!budget ? <Button label={`Use ${money(suggested)}`} variant="secondary" size="md" full={false} onPress={() => setBudget(String(suggested))} /> : null}
+        </View>
 
         {!editing ? (
-          <Card style={{ flexDirection: 'row', gap: 10, alignItems: 'center' }}>
-            <Ionicons name="key-outline" size={18} color={colors.primary} />
+          <View style={styles.note}>
+            <Ionicons name="key-outline" size={18} color={colors.ink} />
             <T variant="caption" color={colors.textSecondary} style={{ flex: 1 }}>
-              We’ll generate an invite code like <T variant="caption" weight="bold">{dest.city.slice(0, 3).toUpperCase()}-1234</T> so friends can join instantly.
+              You’ll get an invite code like <T variant="caption" weight="bold">{dest.city.slice(0, 3).toUpperCase()}-1234</T> to share, so friends can join in a tap.
             </T>
-          </Card>
+          </View>
         ) : null}
 
-        <Button label={editing ? 'Save changes' : 'Create trip'} icon={editing ? 'checkmark' : 'airplane'} onPress={save} />
+        <Button label={editing ? 'Save changes' : 'Create trip'} icon={editing ? 'checkmark' : 'airplane-outline'} onPress={save} />
       </View>
 
       <DatePickerSheet visible={picker === 'start'} value={start} title="Start date" onClose={() => setPicker(null)} onChange={(v) => {
@@ -133,8 +148,9 @@ export default function NewTrip() {
 }
 
 const styles = StyleSheet.create({
-  dest: { width: 104, padding: 6, borderRadius: radius.md, borderWidth: 2, borderColor: 'transparent' },
-  destOn: { borderColor: colors.primary, backgroundColor: colors.primarySofter },
-  destImg: { width: '100%', height: 76, borderRadius: radius.sm },
-  check: { position: 'absolute', top: 10, right: 10, width: 22, height: 22, borderRadius: 11, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' },
+  dest: { width: 120, borderRadius: radius.card, borderWidth: line, borderColor: colors.ink, backgroundColor: colors.card, overflow: 'hidden' },
+  destImg: { width: '100%', height: 84, borderBottomWidth: line, borderBottomColor: colors.ink },
+  destText: { paddingHorizontal: 10, paddingVertical: 8, minHeight: 50 },
+  check: { position: 'absolute', top: 8, right: 8, width: 26, height: 26, borderRadius: radius.xs, borderWidth: line, borderColor: colors.ink, backgroundColor: colors.accent, alignItems: 'center', justifyContent: 'center' },
+  note: { flexDirection: 'row', alignItems: 'center', gap: 12 },
 });

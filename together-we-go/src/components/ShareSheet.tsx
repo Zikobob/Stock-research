@@ -2,14 +2,17 @@ import { Ionicons } from '@expo/vector-icons';
 import { StyleSheet, View } from 'react-native';
 
 import { copy, shareText, shareTo, socialTargets } from '@/services/share';
-import { colors, radius } from '@/theme';
+import { colors, line, radius } from '@/theme';
 
 import { Button } from './ui/Button';
-import { Press } from './ui/Press';
+import { PlatePress } from './ui/Plate';
 import { Sheet } from './ui/Sheet';
 import { T } from './ui/T';
 
-/** Social share picker: direct deep links into social apps + the OS share sheet. */
+/**
+ * Share picker: the message on a dashed paper slip, then a square tile for each app that can be opened straight from here
+ * (the tiles are ink on paper like everything else; the icons say which app), then Copy and the phone's own share sheet.
+ */
 export function ShareSheet({ visible, onClose, title, message, preview }: { visible: boolean; onClose: () => void; title: string; message: string; preview?: string }) {
   return (
     <Sheet visible={visible} onClose={onClose} title={title} subtitle="Send it straight to your group’s favourite app">
@@ -22,24 +25,25 @@ export function ShareSheet({ visible, onClose, title, message, preview }: { visi
       ) : null}
       <View style={styles.grid}>
         {socialTargets.map((s) => (
-          <Press
-            key={s.key}
-            onPress={() => {
-              onClose();
-              shareTo(s.key, message);
-            }}
-            style={styles.item}
-            accessibilityLabel={`Share via ${s.label}`}>
-            <View style={[styles.icon, { backgroundColor: s.color }]}>
-              <Ionicons name={s.icon} size={22} color={colors.white} />
-            </View>
-            <T variant="micro" weight="medium">
+          <View key={s.key} style={styles.item}>
+            <PlatePress
+              onPress={() => {
+                onClose();
+                shareTo(s.key, message);
+              }}
+              offset={3}
+              corner={radius.button}
+              style={styles.tile}
+              accessibilityLabel={`Share via ${s.label}`}>
+              <Ionicons name={s.icon} size={24} color={colors.ink} />
+            </PlatePress>
+            <T variant="kicker" color={colors.textSecondary} numberOfLines={1} style={{ fontSize: 10 }} importantForAccessibility="no">
               {s.label}
             </T>
-          </Press>
+          </View>
         ))}
       </View>
-      <View style={{ flexDirection: 'row', gap: 8 }}>
+      <View style={{ flexDirection: 'row', gap: 12 }}>
         <Button label="Copy" variant="secondary" icon="copy-outline" size="md" onPress={() => copy(message)} style={{ flex: 1 }} />
         <Button
           label="More apps"
@@ -57,8 +61,8 @@ export function ShareSheet({ visible, onClose, title, message, preview }: { visi
 }
 
 const styles = StyleSheet.create({
-  preview: { backgroundColor: colors.cardMuted, borderRadius: radius.md, padding: 12, borderWidth: 1, borderColor: colors.border },
-  grid: { flexDirection: 'row', flexWrap: 'wrap', rowGap: 16 },
-  item: { width: '25%', alignItems: 'center', gap: 6 },
-  icon: { width: 52, height: 52, borderRadius: 26, alignItems: 'center', justifyContent: 'center' },
+  preview: { backgroundColor: colors.bgAlt, borderRadius: radius.chip, padding: 12, borderWidth: line, borderStyle: 'dashed', borderColor: colors.ink },
+  grid: { flexDirection: 'row', flexWrap: 'wrap', rowGap: 18 },
+  item: { width: '25%', alignItems: 'center', gap: 8 },
+  tile: { width: 56, height: 56, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.card, borderWidth: line, borderColor: colors.ink, borderRadius: radius.button },
 });

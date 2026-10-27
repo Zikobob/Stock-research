@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import Svg, { Path, Rect } from 'react-native-svg';
 
+import { colors } from '@/theme';
 import { qrMatrix, qrPath } from '@/utils/qr';
 
 const QUIET = 4; // squares of empty border all around; scanners need it to find the code
@@ -14,8 +15,8 @@ export function QrCode({ value, size = 220, accessibilityLabel }: { value: strin
   const px = Math.max(1, Math.floor(size / total)) * total; // a whole number of screen points per square keeps the edges sharp
   return (
     <Svg width={px} height={px} viewBox={`${-QUIET} ${-QUIET} ${total} ${total}`} accessibilityRole="image" accessibilityLabel={accessibilityLabel}>
-      <Rect x={-QUIET} y={-QUIET} width={total} height={total} fill="#FFFFFF" />
-      <Path d={path} fill="#000000" />
+      <Rect x={-QUIET} y={-QUIET} width={total} height={total} fill={colors.white} />
+      <Path d={path} fill={colors.black} />
     </Svg>
   );
 }

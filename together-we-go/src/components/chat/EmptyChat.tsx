@@ -1,34 +1,19 @@
-import { Ionicons } from '@expo/vector-icons';
-import { StyleSheet, View } from 'react-native';
+import { View } from 'react-native';
 
-import { Card } from '@/components/ui/bits';
-import { T } from '@/components/ui/T';
-import { colors } from '@/theme';
+import { Button } from '@/components/ui/Button';
+import { EmptyState } from '@/components/ui/bits';
 
-/** What an empty Crew chat or an empty Scout AI thread shows. */
-export function EmptyChat({ ai }: { ai: boolean }) {
+/** What an empty Crew chat or an empty Scout AI thread shows: an invitation to write the first line. */
+export function EmptyChat({ ai, onSay }: { ai: boolean; onSay?: (text: string) => void }) {
   return ai ? (
-    <Card style={styles.intro}>
-      <View style={styles.introIcon}>
-        <Ionicons name="sparkles" size={20} color={colors.white} />
-      </View>
-      <T variant="headline">Scout AI</T>
-      <T variant="small" color={colors.textSecondary} center>
-        Scout AI knows your trip — budget, weather, food nearby, who owes who, flights… Ask away or tap a question below.
-      </T>
-    </Card>
+    <EmptyState icon="compass-outline" title="Ask Scout" body="Scout knows your budget, the weather, food nearby, who owes who and your flights. Ask anything, or tap a question below." />
   ) : (
-    <View style={{ alignItems: 'center', padding: 30, gap: 6 }}>
-      <Ionicons name="chatbubbles-outline" size={34} color={colors.textMuted} />
-      <T variant="title">Say hi to your crew 👋</T>
-      <T variant="small" color={colors.textSecondary} center>
-        Messages here are shared with everyone on the trip. Switch to Scout AI to ask the assistant.
-      </T>
-    </View>
+    <EmptyState icon="chatbubbles-outline" title="Say hi to the crew" body="Messages here are shared with everyone on the trip. Switch to Scout AI to ask the assistant.">
+      {onSay ? (
+        <View style={{ alignItems: 'center' }}>
+          <Button label="Say hi" icon="hand-left-outline" variant="secondary" size="md" full={false} onPress={() => onSay('Hi, crew')} />
+        </View>
+      ) : null}
+    </EmptyState>
   );
 }
-
-const styles = StyleSheet.create({
-  intro: { alignItems: 'center', gap: 8, paddingVertical: 24, marginTop: 8 },
-  introIcon: { width: 48, height: 48, borderRadius: 24, backgroundColor: colors.black, alignItems: 'center', justifyContent: 'center' },
-});

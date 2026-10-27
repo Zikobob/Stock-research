@@ -1,51 +1,74 @@
 import { Ionicons } from '@expo/vector-icons';
-import { StyleSheet, TextInput, View } from 'react-native';
+import { useState } from 'react';
+import { Platform, StyleSheet, TextInput, View } from 'react-native';
 
-import { Press } from '@/components/ui/Press';
-import { colors, fonts } from '@/theme';
+import { Plate, PlatePress } from '@/components/ui/Plate';
+import { Rule } from '@/components/ui/Rule';
+import { useAppStore } from '@/store/useAppStore';
+import { colors, fonts, line, radius } from '@/theme';
 
-/** The message box and send button at the bottom of the chat. */
+/** The message box and send button at the bottom of the chat: an outlined field and a plated square, on a ruled strip of paper. */
 export function Composer({ value, onChange, onSend, placeholder }: { value: string; onChange: (v: string) => void; onSend: () => void; placeholder: string }) {
+  const [focused, setFocused] = useState(false);
+  const scale = useAppStore((s) => s.settings.textScale);
+  const empty = !value.trim();
   return (
-    <View style={styles.inputBar}>
-      <TextInput
-        value={value}
-        onChangeText={onChange}
-        placeholder={placeholder}
-        placeholderTextColor={colors.textMuted}
-        style={styles.input}
-        multiline
-        maxLength={1000}
-        accessibilityLabel="Message"
-        onSubmitEditing={onSend}
-        submitBehavior="submit"
-        returnKeyType="send"
-        testID="chat-input"
-      />
-      <Press onPress={onSend} style={[styles.send, !value.trim() && { opacity: 0.4 }]} disabled={!value.trim()} accessibilityLabel="Send message" testID="chat-send">
-        <Ionicons name="arrow-up" size={20} color={colors.white} />
-      </Press>
+    <View style={styles.wrap}>
+      <Rule />
+      <View style={styles.bar}>
+        <View style={{ flex: 1 }}>
+          <Plate offset={3} corner={radius.button} color={focused ? colors.accent : 'transparent'}>
+            <TextInput
+              value={value}
+              onChangeText={onChange}
+              onFocus={() => setFocused(true)}
+              onBlur={() => setFocused(false)}
+              placeholder={placeholder}
+              placeholderTextColor={colors.textMuted}
+              style={[styles.input, { fontSize: 15 * scale }]}
+              multiline
+              maxLength={1000}
+              accessibilityLabel="Message"
+              onSubmitEditing={onSend}
+              submitBehavior="submit"
+              returnKeyType="send"
+              testID="chat-input"
+            />
+          </Plate>
+        </View>
+        <PlatePress
+          onPress={onSend}
+          disabled={empty}
+          accessibilityLabel="Send message"
+          testID="chat-send"
+          offset={3}
+          corner={radius.button}
+          color={colors.accent}
+          wrapperStyle={empty && { opacity: 0.45 }}
+          style={styles.send}>
+          <Ionicons name="arrow-up" size={22} color={colors.onPrimary} />
+        </PlatePress>
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  inputBar: { flexDirection: 'row', alignItems: 'flex-end', gap: 8, paddingHorizontal: 16, paddingTop: 6, paddingBottom: 10 },
+  wrap: { backgroundColor: colors.bg },
+  bar: { flexDirection: 'row', alignItems: 'flex-end', gap: 12, paddingHorizontal: 16, paddingTop: 12, paddingBottom: 14 },
   input: {
-    flex: 1,
-    minHeight: 44,
+    minHeight: 48,
     maxHeight: 120,
-    borderRadius: 22,
+    borderRadius: radius.button,
     backgroundColor: colors.card,
-    borderWidth: 1,
-    borderColor: colors.border,
-    paddingHorizontal: 18,
-    paddingTop: 12,
-    paddingBottom: 12,
+    borderWidth: line,
+    borderColor: colors.ink,
+    paddingHorizontal: 14,
+    paddingTop: Platform.OS === 'ios' ? 13 : 11,
+    paddingBottom: Platform.OS === 'ios' ? 13 : 11,
     fontFamily: fonts.regular,
-    fontSize: 15,
     color: colors.text,
-    ...({ outlineStyle: 'none' } as object),
+    ...(Platform.OS === 'web' ? ({ outlineStyle: 'none' } as object) : null),
   },
-  send: { width: 44, height: 44, borderRadius: 22, backgroundColor: colors.black, alignItems: 'center', justifyContent: 'center' },
+  send: { width: 48, height: 48, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.primary, borderWidth: line, borderColor: colors.ink, borderRadius: radius.button },
 });

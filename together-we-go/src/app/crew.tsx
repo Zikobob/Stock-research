@@ -1,4 +1,3 @@
-import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
@@ -14,17 +13,13 @@ import { RoleSheet } from '@/components/crew/RoleSheet';
 import { SyncTripCard } from '@/components/sync/SyncTripCard';
 import { MemberPickerSheet } from '@/components/trip/MemberPickerSheet';
 import { NoTrip } from '@/components/trip/NoTrip';
-import { Card, Pill } from '@/components/ui/bits';
+import { AvatarStack, Card, ListRow } from '@/components/ui/bits';
 import { toast, confirmAction } from '@/components/ui/feedback';
-import { Press } from '@/components/ui/Press';
 import { Header, Screen } from '@/components/ui/Screen';
-import { T } from '@/components/ui/T';
-import { destinationById } from '@/data/destinations';
 import { inviteMessage } from '@/services/share';
-import { tripStatus, useActiveTrip, useAppStore, useMyTrips } from '@/store/useAppStore';
+import { useActiveTrip, useAppStore, useMyTrips } from '@/store/useAppStore';
 import type { Member } from '@/store/types';
-import { colors } from '@/theme';
-import { rangeLabel } from '@/utils/time';
+import { space } from '@/theme';
 
 export default function Crew() {
   const trip = useActiveTrip();
@@ -32,7 +27,7 @@ export default function Crew() {
   return <Hub key={trip.id} />;
 }
 
-/** Crew & roles: who is on the trip, the invite (code, QR, sync), polls, the shared checklist and documents. */
+/** The crew: the invitation, who is on the trip, polls, the shared checklist, and sharing the trip across phones. */
 function Hub() {
   const trip = useActiveTrip()!;
   const myTrips = useMyTrips();
@@ -40,7 +35,6 @@ function Hub() {
   // Actions are stable references, so read them without subscribing to the whole store.
   const s = useAppStore.getState();
   const owner = trip.ownerId === userId;
-  const dest = destinationById(trip.destinationId);
 
   const [shareOpen, setShareOpen] = useState(false);
   const [roleFor, setRoleFor] = useState<Member | null>(null);
@@ -48,38 +42,29 @@ function Hub() {
   const [pollOpen, setPollOpen] = useState(false);
   const [assignTaskId, setAssignTaskId] = useState<string | null>(null);
 
-  const status = tripStatus(trip);
   const assignee = trip.tasks.find((k) => k.id === assignTaskId)?.assignee;
 
   return (
-    <Screen header={<Header title="Crew & roles" subtitle="Invite code, roles, votes and checklist" backLabel="More" />} bottomInset={30}>
-      {/* Trip switcher */}
-      <Card padded={false}>
-        <Press onPress={() => router.push('/trips')} style={styles.tripRow} accessibilityLabel="Switch trip">
-          <View style={styles.tripIcon}>
-            <Ionicons name="airplane" size={18} color={colors.white} />
-          </View>
-          <View style={{ flex: 1 }}>
-            <T variant="title" numberOfLines={1}>
-              {trip.name}
-            </T>
-            <T variant="caption" color={colors.textSecondary} numberOfLines={1}>
-              {dest?.city} · {rangeLabel(trip.startDate, trip.endDate)}
-            </T>
-          </View>
-          <Pill label={status === 'planning' ? 'Planning' : status === 'active' ? 'In progress' : 'Completed'} tone={status === 'active' ? 'green' : status === 'planning' ? 'blue' : 'gray'} />
-          <T variant="caption" weight="semibold" color={colors.textSecondary}>
-            {myTrips.length > 1 ? `+${myTrips.length - 1}` : ''}
-          </T>
-          <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />
-        </Press>
-      </Card>
-
+    <Screen
+      header={<Header kicker={trip.name} title="The crew" backLabel="More" right={<AvatarStack people={trip.members} max={3} size={34} />} />}
+      bottomInset={30}>
       <InviteCard trip={trip} owner={owner} onShare={() => setShareOpen(true)} />
-      <SyncTripCard trip={trip} />
-      <MembersSection trip={trip} userId={userId} onPick={setRoleFor} onAdd={() => setAddOpen(true)} />
-      <PollsSection trip={trip} userId={userId} owner={owner} onNew={() => setPollOpen(true)} />
-      <ChecklistSection trip={trip} onAssign={setAssignTaskId} />
+
+      <View style={styles.block}>
+        <MembersSection trip={trip} userId={userId} onPick={setRoleFor} onAdd={() => setAddOpen(true)} />
+      </View>
+      <View style={styles.block}>
+        <PollsSection trip={trip} userId={userId} owner={owner} onNew={() => setPollOpen(true)} />
+      </View>
+      <View style={styles.block}>
+        <ChecklistSection trip={trip} onAssign={setAssignTaskId} />
+      </View>
+      <View style={[styles.block, { marginTop: space.section - 14 }]}>
+        <SyncTripCard trip={trip} />
+      </View>
+      <Card padded={false} style={[styles.switch, { paddingHorizontal: 14 }]}>
+        <ListRow icon="swap-horizontal" label="Switch trip" sub={myTrips.length > 1 ? `${myTrips.length} trips` : 'All your trips, or start a new one'} onPress={() => router.push('/trips')} />
+      </Card>
 
       <ShareSheet visible={shareOpen} onClose={() => setShareOpen(false)} title="Invite your group" message={inviteMessage(trip.name, trip.inviteCode)} preview={inviteMessage(trip.name, trip.inviteCode)} />
 
@@ -128,6 +113,6 @@ function Hub() {
 }
 
 const styles = StyleSheet.create({
-  tripRow: { flexDirection: 'row', alignItems: 'center', gap: 10, padding: 14 },
-  tripIcon: { width: 40, height: 40, borderRadius: 20, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' },
+  block: { marginTop: space.section },
+  switch: { marginTop: space.section },
 });
