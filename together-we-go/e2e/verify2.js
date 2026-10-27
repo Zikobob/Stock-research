@@ -58,6 +58,26 @@ const go = async (p, r) => { await p.goto(BASE + '/' + r, { waitUntil: 'networki
   await p.getByRole('tab', { name: 'Inicio' }).waitFor({ timeout: 3000 }).then(() => check('language switches tabs', true)).catch(() => check('language switches tabs', false));
   await go(p, 'settings');
   await p.getByRole('button', { name: /English/ }).click().catch(() => {}); await p.waitForTimeout(600);
+  // ---- Settings: look and feel, and the Home layout
+  await go(p, 'settings');
+  check('Look and feel offers the six themes', (await p.getByRole('radio', { name: / theme$/ }).count()) === 6);
+  check('no Apply look button until something is changed', !(await vis(p.getByRole('button', { name: 'Apply look' }), 600)));
+  await p.getByRole('radio', { name: 'Tomato theme' }).click(); await p.waitForTimeout(300);
+  check('choosing a theme offers Apply look', await vis(p.getByRole('button', { name: 'Apply look' })));
+  await p.getByRole('radio', { name: 'Limoncello theme' }).click(); await p.waitForTimeout(300);
+  check('choosing the current theme again takes Apply look away', !(await vis(p.getByRole('button', { name: 'Apply look' }), 600)));
+  await p.getByRole('button', { name: 'Chill', exact: true }).click(); await p.waitForTimeout(300);
+  check('Effects Chill is chosen at once', (await p.getByRole('button', { name: 'Chill', exact: true }).getAttribute('aria-selected')) === 'true');
+  await p.getByRole('button', { name: 'Lively', exact: true }).click(); await p.waitForTimeout(300);
+  await p.getByRole('button', { name: 'Money', exact: true }).click(); await p.waitForTimeout(300);
+  check('a Home layout preset is chosen', (await p.getByRole('button', { name: 'Money', exact: true }).getAttribute('aria-selected')) === 'true');
+  await p.getByLabel('Arrange blocks').click(); await p.waitForTimeout(300);
+  await p.getByLabel('Move Weather up').click(); await p.waitForTimeout(300);
+  check('moving a block by hand makes the layout Custom', await vis(p.getByLabel('Custom', { exact: true })));
+  await p.getByLabel('Show Weather on Home').click({ force: true }).catch(() => {}); await p.waitForTimeout(300);
+  await p.getByRole('button', { name: 'Planner', exact: true }).click(); await p.waitForTimeout(300);
+  check('picking a preset starts over', (await p.getByRole('button', { name: 'Planner', exact: true }).getAttribute('aria-selected')) === 'true');
+  check('Make it yours again is in Settings', await vis(p.getByLabel('Make it yours again')));
   // ---- Demo timeline: in progress -> Today card
   await go(p, 'settings');
   await p.getByLabel('Advanced settings').click(); await p.waitForTimeout(400); // the demo timeline is folded under Advanced
@@ -65,7 +85,7 @@ const go = async (p, r) => { await p.goto(BASE + '/' + r, { waitUntil: 'networki
   await p.getByRole('button', { name: /in progress/i }).first().click().catch(() => {}); await p.waitForTimeout(500);
   await p.getByRole('button', { name: /Rebuild|Reset|Confirm|Apply/ }).last().click().catch(() => {}); await p.waitForTimeout(800);
   await go(p, '');
-  check('active trip headline', await vis(p.getByText(/living it/i)));
+  check('active trip headline', await vis(p.getByRole('heading', { name: /^(Day \d of 6|Today is the first day of your 6 day trip)$/ })));
   check('today card on home', await vis(p.getByText(/Today · Day \d of 6/)));
   // ---- Join
   await go(p, 'join');

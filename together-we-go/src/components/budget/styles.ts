@@ -1,44 +1,15 @@
 import { StyleSheet } from 'react-native';
 
-import { colors, fonts, radius } from '@/theme';
+import { colors, hair, line, radius } from '@/theme';
 
-/** Styles shared by the Budget screen and its parts. */
+/** Styles shared by the parts of the Budget screen. */
 export const styles = StyleSheet.create({
-  head: { flexDirection: 'row', alignItems: 'flex-end', gap: 12, marginTop: 12, marginBottom: 14 },
-  plus: { width: 44, height: 44, borderRadius: 22, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center', marginBottom: 4 },
-  card: { borderRadius: radius.xl },
-  donutRow: { flexDirection: 'row', alignItems: 'center', gap: 18 },
-  legendRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  dot: { width: 9, height: 9, borderRadius: 5 },
-  tinyKicker: { fontSize: 10.5, letterSpacing: 0.6 },
-  tiles: { flexDirection: 'row', gap: 12, marginTop: 12 },
-  tile: { flex: 1, gap: 4, paddingHorizontal: 16, paddingVertical: 14 },
-  sectionRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 8, marginTop: 24, marginBottom: 12 },
-  section: { marginTop: 24, marginBottom: 12 },
+  /** The title row of a block: a serif headline with something small on the right, above an ink rule. */
+  sectionTop: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', gap: 8, minHeight: 36, marginBottom: 8 },
+  /** A line of a ledger: the next row gets a hairline above it. */
+  ledgerRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 12 },
+  ledgerDivider: { borderTopWidth: hair, borderTopColor: colors.border },
+  /** A square outlined icon, like the stamp box in a ticket's corner. */
+  iconBox: { width: 40, height: 40, borderRadius: radius.button, borderWidth: line, borderColor: colors.ink, backgroundColor: colors.card, alignItems: 'center', justifyContent: 'center' },
   rowBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 8 },
-  balRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingVertical: 13 },
-  balDivider: { borderTopWidth: 1, borderTopColor: colors.border },
-  nameWrap: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 8 },
-  badge: { backgroundColor: colors.accent, borderRadius: 999, paddingHorizontal: 8, paddingVertical: 2 },
-  dailyRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  dailyInput: { width: 96, height: 46, borderRadius: radius.md, backgroundColor: colors.bgAlt, paddingHorizontal: 14, fontFamily: fonts.semibold, fontSize: 17, color: colors.text, ...({ outlineStyle: 'none' } as object) },
-  splitRow: { flexDirection: 'row', justifyContent: 'space-between' },
-  splitCell: { alignItems: 'center', gap: 2 },
-  fit: { flexDirection: 'row', gap: 8, alignItems: 'center', padding: 12, borderRadius: radius.md },
-  findRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 4 },
-  findIcon: { width: 30, height: 30, borderRadius: 15, backgroundColor: colors.bgAlt, alignItems: 'center', justifyContent: 'center' },
-  capBox: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  capInput: { width: 80, height: 34, borderRadius: 999, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.card, textAlign: 'center', fontFamily: fonts.bold, fontSize: 13, color: colors.text, ...({ outlineStyle: 'none' } as object) },
-  expense: { flexDirection: 'row', alignItems: 'center', gap: 12, borderRadius: radius.lg, paddingHorizontal: 16, paddingVertical: 14 },
-  expenseDot: { width: 11, height: 11, borderRadius: 6 },
-  titleRow: { flexDirection: 'row', alignItems: 'center', gap: 5 },
-  curToggle: { flexDirection: 'row', height: 50, borderRadius: radius.md, padding: 4, gap: 4, backgroundColor: colors.bgAlt },
-  curBtn: { paddingHorizontal: 12, borderRadius: radius.sm, justifyContent: 'center' },
-  curOn: { backgroundColor: colors.primary },
-  receiptRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  thumb: { width: 64, height: 64, borderRadius: radius.sm, backgroundColor: colors.bgAlt },
-  thumbX: { position: 'absolute', top: -6, right: -6, width: 20, height: 20, borderRadius: 10, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center', borderWidth: 1.5, borderColor: colors.white },
-  receiptSmall: { width: 96, height: 96, borderRadius: radius.md, backgroundColor: colors.bgAlt },
-  receiptBig: { width: '100%', height: 380, borderRadius: radius.md, backgroundColor: colors.bgAlt },
-  settleRow: { flexDirection: 'row', alignItems: 'center', gap: 8, padding: 12, borderRadius: radius.md, backgroundColor: colors.bgAlt },
 });

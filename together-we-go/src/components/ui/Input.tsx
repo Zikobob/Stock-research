@@ -71,7 +71,7 @@ export const Input = forwardRef<TextInput, InputProps>(function Input(
           }}
           style={[
             styles.input,
-            { fontSize: 16 * scale },
+            { fontSize: 16 * scale, minHeight: 44 },
             multiline && { minHeight: 64, textAlignVertical: 'top' },
             Platform.OS === 'web' && ({ outlineStyle: 'none' } as object),
             style,
@@ -79,8 +79,8 @@ export const Input = forwardRef<TextInput, InputProps>(function Input(
         />
       </View>
       {secureToggle && (
-        <Press accessibilityLabel={hidden ? 'Show password' : 'Hide password'} onPress={() => setHidden((h) => !h)} hitSlop={10}>
-          <Ionicons name={hidden ? 'eye-outline' : 'eye-off-outline'} size={19} color={colors.textMuted} />
+        <Press accessibilityLabel={hidden ? 'Show password' : 'Hide password'} onPress={() => setHidden((h) => !h)} style={{ width: 44, height: 44, alignItems: 'center', justifyContent: 'center', marginRight: -10 }}>
+          <Ionicons name={hidden ? 'eye-outline' : 'eye-off-outline'} size={20} color={colors.ink} />
         </Press>
       )}
       {right}

@@ -74,7 +74,7 @@ export function celebrate(message?: string, level?: Effects) {
   const count = PIECES[level ?? personal.effects] ?? PIECES.lively;
   const canMove = effectiveMotion(personal.motion, useOsReduceMotion.getState().on);
   if (count > 0 && canMove) useBurst.setState({ burst: { id: Date.now(), count } });
-  if (message) toast(message, { icon: 'sparkles' });
+  if (message) toast(message, { icon: 'checkmark-circle' });
   return count > 0 && canMove;
 }
 

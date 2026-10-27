@@ -1,173 +1,118 @@
 /**
- * Building blocks of "Make it yours" (and of the Look and Home-layout cards in Settings).
+ * Building blocks of "Make it yours" (and of the Look card in Settings).
  * Everything here draws itself with a palette object (`pal`) instead of the global colours, so the survey can repaint itself
  * live in a theme that is not applied yet. In Settings, pass the app's own `colors` as `pal`.
  */
 import { Ionicons } from '@expo/vector-icons';
-import { Image } from 'expo-image';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect, useMemo, useState } from 'react';
 import { Animated, StyleSheet, Switch, View } from 'react-native';
 
 import type { IconName } from '@/components/ui/bits';
 import { nativeDriver, useMotion } from '@/components/ui/motion';
+import { Plate } from '@/components/ui/Plate';
 import { Press } from '@/components/ui/Press';
-import { T, type TProps } from '@/components/ui/T';
-import { photos } from '@/data/images';
+import { T } from '@/components/ui/T';
 import { LAYOUTS, layoutAnswers, visibleSections, type Preset } from '@/data/layouts';
-import type { Personal } from '@/store/types';
-import { radius, themes, timing, type ModePref, type ThemeKey } from '@/theme';
+import type { Effects, Personal } from '@/store/types';
+import { hair, line, radius, themes, type ModePref, type ThemeKey } from '@/theme';
 
+import { CheckBadge, PalSegmented, Tx, switchThumb } from './kit';
 import { BLOCK_SHORT, MODES } from './options';
 import { paletteOf, type Pal } from './palette';
 
 /** Updates part of the survey answers. */
 export type SetPersonal = (patch: Partial<Personal>) => void;
 
-type Tone = 'text' | 'secondary' | 'muted' | 'accent';
-
-/** Text in the survey's palette (not the app's). */
-export function Tx({ pal, tone = 'text', ...rest }: TProps & { pal: Pal; tone?: Tone }) {
-  const color = tone === 'text' ? pal.text : tone === 'secondary' ? pal.textSecondary : tone === 'muted' ? pal.textMuted : pal.accentText;
-  return <T color={color} {...rest} />;
+/** The small line over a step's title: a bullet in the accent, then "02 / 05 · Look" in mono caps. */
+export function StepKicker({ pal, text }: { pal: Pal; text: string }) {
+  return (
+    <View style={styles.kickerRow}>
+      <View style={[styles.bullet, { backgroundColor: pal.accent, borderColor: pal.ink }]} />
+      <Tx pal={pal} tone="secondary" variant="kicker">
+        {text}
+      </Tx>
+    </View>
+  );
 }
 
-/** The question of a step in display type, with one line under it. */
-export function StepHeading({ pal, title, sub }: { pal: Pal; title: string; sub: string }) {
+/** A step's title in heavy serif, with its kicker above and one line under it. */
+export function StepHeading({ pal, kicker, title, sub }: { pal: Pal; kicker: string; title: string; sub: string }) {
   return (
-    <View style={{ gap: 8 }}>
+    <View style={{ gap: 10 }}>
+      <StepKicker pal={pal} text={kicker} />
       <T variant="display" color={pal.text} accessibilityRole="header">
         {title}
       </T>
-      <T variant="body" color={pal.textSecondary}>
+      <Tx pal={pal} tone="secondary" variant="body">
         {sub}
-      </T>
+      </Tx>
     </View>
   );
 }
 
-/** The big button at the bottom of a step: black (white in the dark mode), 56 high, full width. */
-export function PalButton({ pal, label, onPress, icon, iconRight, variant = 'primary', disabled, testID, accessibilityLabel }: { pal: Pal; label: string; onPress: () => void; icon?: IconName; iconRight?: IconName; variant?: 'primary' | 'secondary'; disabled?: boolean; testID?: string; accessibilityLabel?: string }) {
-  const primary = variant === 'primary';
-  const fg = primary ? pal.onPrimary : pal.text;
-  return (
-    <Press
-      testID={testID}
-      onPress={onPress}
-      disabled={disabled}
-      accessibilityLabel={accessibilityLabel ?? label}
-      accessibilityState={{ disabled: !!disabled }}
-      style={[styles.button, { backgroundColor: primary ? pal.primary : 'transparent', borderColor: primary ? pal.primary : pal.borderStrong }, disabled && { opacity: 0.45 }]}>
-      {icon ? <Ionicons name={icon} size={19} color={fg} /> : null}
-      <T variant="title" weight="bold" color={fg}>
-        {label}
-      </T>
-      {iconRight ? <Ionicons name={iconRight} size={19} color={fg} /> : null}
-    </Press>
-  );
-}
-
-/** A pill-shaped choice between a few options (Light / Dark / System): the chosen one is filled black (white in the dark mode). */
-export function PalSegmented<K extends string>({ pal, options, value, onChange, label }: { pal: Pal; options: { key: K; label: string; icon?: IconName }[]; value: K; onChange: (k: K) => void; label?: string }) {
-  return (
-    <View accessibilityRole="radiogroup" accessibilityLabel={label} style={[styles.segTrack, { backgroundColor: pal.bgAlt }]}>
-      {options.map((o) => {
-        const on = o.key === value;
-        const fg = on ? pal.onPrimary : pal.textSecondary;
-        return (
-          <Press key={o.key} onPress={() => onChange(o.key)} accessibilityRole="radio" accessibilityState={{ checked: on }} accessibilityLabel={o.label} scaleTo={0.98} style={[styles.segItem, { backgroundColor: on ? pal.primary : 'transparent' }]}>
-            {o.icon ? <Ionicons name={o.icon} size={16} color={fg} /> : null}
-            <T variant="small" weight="bold" color={fg}>
-              {o.label}
-            </T>
-          </Press>
-        );
-      })}
-    </View>
-  );
-}
-
-/** Light / Dark / System. */
-export function ModePicker({ pal, value, onChange }: { pal: Pal; value: ModePref; onChange: (m: ModePref) => void }) {
-  return <PalSegmented pal={pal} options={MODES} value={value} onChange={onChange} label="Light or dark" />;
-}
-
-/** One bar of the progress indicator; it fills with a short slide. */
-function Seg({ pal, on }: { pal: Pal; on: boolean }) {
-  const motion = useMotion();
-  const [v] = useState(() => new Animated.Value(on ? 1 : 0));
-  useEffect(() => {
-    if (!motion) {
-      v.setValue(on ? 1 : 0);
-      return;
-    }
-    const a = Animated.timing(v, { toValue: on ? 1 : 0, duration: timing.base, useNativeDriver: nativeDriver });
-    a.start();
-    return () => a.stop();
-  }, [on, motion, v]);
-  return (
-    <View style={[styles.seg, { backgroundColor: pal.border }]}>
-      <Animated.View style={[styles.segFill, { backgroundColor: pal.primary, transform: [{ scaleX: v }], transformOrigin: 'left center' }]} />
-    </View>
-  );
-}
-
-/** "Step 2 of 5" as five bars (goal-gradient: the person sees how close the end is). */
+/** "Step 2 of 5" as five ticket stubs in a row: done ones are inked, the one you are on is the accent (goal-gradient: the end is in sight). */
 export function StepBar({ pal, step, total }: { pal: Pal; step: number; total: number }) {
   const now = Math.min(step + 1, total);
   return (
-    <View accessibilityRole="progressbar" accessibilityLabel={`Step ${now} of ${total}`} accessibilityValue={{ min: 1, max: total, now }} style={{ flexDirection: 'row', gap: 6 }}>
+    <View accessibilityRole="progressbar" accessibilityLabel={`Step ${now} of ${total}`} accessibilityValue={{ min: 1, max: total, now }} style={{ flexDirection: 'row', gap: 5 }}>
       {Array.from({ length: total }, (_, i) => (
-        <Seg key={i} pal={pal} on={i <= step} />
+        <View key={i} style={[styles.seg, { borderColor: pal.ink, backgroundColor: i < step || step >= total ? pal.ink : i === step ? pal.accent : 'transparent' }]} />
       ))}
     </View>
   );
 }
 
+/** Three dashes and a block: a tiny boarding pass drawn in one theme's own colours. */
+export function MiniTicket({ tp }: { tp: Pal }) {
+  return (
+    <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={[styles.mini, { backgroundColor: tp.card, borderColor: tp.ink }]}>
+      <View style={styles.miniRow}>
+        <View style={{ flex: 1, gap: 4 }}>
+          <View style={{ height: 5, width: '72%', backgroundColor: tp.ink }} />
+          <View style={{ height: 5, width: '44%', backgroundColor: tp.textMuted }} />
+        </View>
+        <View style={[styles.miniStamp, { backgroundColor: tp.accent, borderColor: tp.ink }]} />
+      </View>
+      <View style={styles.miniDashes}>
+        {Array.from({ length: 12 }, (_, i) => (
+          <View key={i} style={{ width: 5, height: 2, backgroundColor: tp.ink }} />
+        ))}
+      </View>
+      <View style={[styles.miniBar, { borderColor: tp.ink, backgroundColor: tp.card }]}>
+        <View style={{ width: '58%', height: '100%', backgroundColor: tp.accent }} />
+      </View>
+    </View>
+  );
+}
+
 /**
- * One theme as a swatch: a tiny Home hero (photo, the days to go, the accent) in that theme's own colours, with a quiet wash behind it.
- * Chosen = a black (white) ring and a tick, so the state is not told by colour alone.
+ * One theme as a swatch: a flat field of its accent colour with a tiny ticket lying on it, in that theme's own paper and ink,
+ * and the name under it. The chosen one stands up on a plate and gets a tick (so it is not told by colour alone).
  */
-export function ThemeCard({ pal, theme, mode, selected, onPress }: { pal: Pal; theme: ThemeKey; mode: ModePref; selected: boolean; onPress: () => void }) {
+export function ThemeTile({ pal, theme, mode, selected, onPress }: { pal: Pal; theme: ThemeKey; mode: ModePref; selected: boolean; onPress: () => void }) {
   const tp = useMemo(() => paletteOf(theme, mode), [theme, mode]);
   const t = themes[theme];
   return (
-    <Press
-      onPress={onPress}
-      accessibilityRole="radio"
-      accessibilityState={{ checked: selected }}
-      accessibilityLabel={`${t.name} theme`}
-      accessibilityHint={t.vibe}
-      scaleTo={0.97}
-      style={[styles.themeCard, { borderColor: selected ? pal.primary : pal.border, backgroundColor: tp.card }]}>
-      <LinearGradient colors={[tp.washFrom, tp.washTo, tp.bg]} style={styles.themeTop}>
-        <View style={styles.themeHero}>
-          <Image source={photos.amalfi} style={StyleSheet.absoluteFill} contentFit="cover" />
-          <LinearGradient colors={['rgba(0,0,0,0)', 'rgba(0,0,0,0.7)']} style={StyleSheet.absoluteFill} />
-          <View style={styles.themeHeroRow}>
-            <T variant="numeralSm" color={tp.white}>
-              3
-            </T>
-            <View style={[styles.themeAccentPill, { backgroundColor: tp.accent }]} />
-          </View>
+    <Plate corner={radius.card} color={selected ? pal.plate : 'transparent'} style={{ flex: 1 }}>
+      <Press
+        onPress={onPress}
+        accessibilityRole="radio"
+        accessibilityState={{ checked: selected }}
+        accessibilityLabel={`${t.name} theme`}
+        accessibilityHint={t.vibe}
+        scaleTo={0.97}
+        style={[styles.themeTile, { borderColor: pal.ink, backgroundColor: pal.card }]}>
+        <View style={[styles.themeField, { backgroundColor: tp.accent, borderBottomColor: pal.ink }]}>
+          <MiniTicket tp={tp} />
         </View>
-        <View style={styles.themeRow}>
-          <View style={[styles.themeStub, { backgroundColor: tp.primary }]} />
-          <View style={[styles.themeBar, { backgroundColor: tp.border }]}>
-            <View style={{ width: '62%', height: '100%', backgroundColor: tp.accent }} />
-          </View>
+        <View style={styles.themeFoot}>
+          <T variant="title" weight="bold" color={pal.text} numberOfLines={1} style={{ flex: 1 }}>
+            {t.name}
+          </T>
+          {selected ? <CheckBadge pal={pal} size={24} /> : null}
         </View>
-      </LinearGradient>
-      <View style={[styles.themeFoot, { backgroundColor: tp.card }]}>
-        <T style={{ fontSize: 18, lineHeight: 22 }} accessibilityElementsHidden importantForAccessibility="no">
-          {t.emoji}
-        </T>
-        <T variant="title" weight="bold" color={tp.text} numberOfLines={1} style={{ flex: 1 }}>
-          {t.name}
-        </T>
-        {selected ? <Ionicons name="checkmark-circle" size={22} color={tp.text} /> : null}
-      </View>
-    </Press>
+      </Press>
+    </Plate>
   );
 }
 
@@ -177,13 +122,11 @@ export function ThemeGrid({ pal, theme, mode, onPick }: { pal: Pal; theme: Theme
   const rows: ThemeKey[][] = [];
   for (let i = 0; i < keys.length; i += 2) rows.push(keys.slice(i, i + 2));
   return (
-    <View accessibilityRole="radiogroup" accessibilityLabel="Colour theme" style={{ gap: 12 }}>
+    <View accessibilityRole="radiogroup" accessibilityLabel="Colour theme" style={{ gap: 10 }}>
       {rows.map((row) => (
-        <View key={row.join()} style={{ flexDirection: 'row', gap: 12 }}>
+        <View key={row.join()} style={{ flexDirection: 'row', gap: 10 }}>
           {row.map((k) => (
-            <View key={k} style={{ flex: 1 }}>
-              <ThemeCard pal={pal} theme={k} mode={mode} selected={theme === k} onPress={() => onPick(k)} />
-            </View>
+            <ThemeTile key={k} pal={pal} theme={k} mode={mode} selected={theme === k} onPress={() => onPick(k)} />
           ))}
         </View>
       ))}
@@ -191,14 +134,42 @@ export function ThemeGrid({ pal, theme, mode, onPick }: { pal: Pal; theme: Theme
   );
 }
 
-/** A tiny drawing of the Home order: the first block is the loud one (accent), the rest are flat grey boxes with their names. */
-export function HomeWire({ pal, order, sections }: { pal: Pal; order: ReturnType<typeof layoutAnswers>['order']; sections: ReturnType<typeof layoutAnswers>['sections'] }) {
-  const blocks = visibleSections({ order, sections }).slice(0, 6);
+/** A flat square of one theme's accent colour (for Settings): 44 x 44, with a tick when chosen. */
+export function ThemeSwatch({ pal, theme, mode, selected, onPress }: { pal: Pal; theme: ThemeKey; mode: ModePref; selected: boolean; onPress: () => void }) {
+  const tp = useMemo(() => paletteOf(theme, mode), [theme, mode]);
+  const t = themes[theme];
   return (
-    <View style={[styles.wire, { backgroundColor: pal.bgAlt }]} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+    <Plate offset={3} corner={radius.button} color={selected ? pal.plate : 'transparent'}>
+      <Press
+        onPress={onPress}
+        accessibilityRole="radio"
+        accessibilityState={{ checked: selected }}
+        accessibilityLabel={`${t.name} theme`}
+        accessibilityHint={t.vibe}
+        scaleTo={0.94}
+        style={[styles.swatch, { backgroundColor: tp.accent, borderColor: pal.ink }]}>
+        {selected ? <Ionicons name="checkmark" size={24} color={tp.onAccent} /> : null}
+      </Press>
+    </Plate>
+  );
+}
+
+/** Light / Dark / System. */
+export function ModePicker({ pal, value, onChange }: { pal: Pal; value: ModePref; onChange: (m: ModePref) => void }) {
+  return <PalSegmented pal={pal} options={MODES} value={value} onChange={onChange} label="Light or dark" />;
+}
+
+/** A tiny drawing of the Home order: the boarding pass on top (always there), then the blocks. The first block is the loud one (accent). */
+export function HomeWire({ pal, order, sections }: { pal: Pal; order: ReturnType<typeof layoutAnswers>['order']; sections: ReturnType<typeof layoutAnswers>['sections'] }) {
+  const blocks = visibleSections({ order, sections }).slice(0, 4);
+  return (
+    <View style={styles.wire} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+      <View style={[styles.wireHero, { backgroundColor: pal.ink }]}>
+        <View style={{ width: 22, height: 8, backgroundColor: pal.bg }} />
+      </View>
       {blocks.map((k, i) => (
-        <View key={k} style={[styles.wireBlock, { height: i === 0 ? 34 : 24, backgroundColor: i === 0 ? pal.accent : pal.card, borderColor: i === 0 ? pal.accent : pal.border }]}>
-          <T variant="micro" weight="bold" color={i === 0 ? pal.onAccent : pal.textSecondary} numberOfLines={1}>
+        <View key={k} style={[styles.wireBlock, { backgroundColor: i === 0 ? pal.accent : pal.card, borderColor: pal.ink }]}>
+          <T variant="micro" weight="bold" color={i === 0 ? pal.onAccent : pal.text} numberOfLines={1}>
             {BLOCK_SHORT[k]}
           </T>
         </View>
@@ -207,100 +178,125 @@ export function HomeWire({ pal, order, sections }: { pal: Pal; order: ReturnType
   );
 }
 
-/** One ready-made Home layout, as a thumbnail of its order. */
+/** One ready-made Home layout, as a thumbnail of its order. The chosen one stands up on a plate, its name is highlighted and it has a tick. */
 export function LayoutCard({ pal, preset, selected, onPress }: { pal: Pal; preset: Preset; selected: boolean; onPress: () => void }) {
   const l = LAYOUTS[preset];
   const a = useMemo(() => layoutAnswers(preset), [preset]);
   return (
-    <Press
-      onPress={onPress}
-      accessibilityRole="radio"
-      accessibilityState={{ checked: selected }}
-      accessibilityLabel={`${l.name} layout`}
-      accessibilityHint={l.blurb}
-      scaleTo={0.97}
-      style={[styles.layoutCard, { backgroundColor: pal.card, borderColor: selected ? pal.primary : pal.border }]}>
-      <HomeWire pal={pal} order={a.order} sections={a.sections} />
-      <View style={styles.layoutFoot}>
-        <T style={{ fontSize: 16, lineHeight: 20 }} accessibilityElementsHidden importantForAccessibility="no">
-          {l.emoji}
-        </T>
-        <T variant="small" weight="bold" color={pal.text}>
-          {l.name}
-        </T>
-        {selected ? <Ionicons name="checkmark-circle" size={18} color={pal.text} /> : null}
-      </View>
-    </Press>
+    <Plate corner={radius.card} color={selected ? pal.plate : 'transparent'} style={{ flex: 1 }}>
+      <Press
+        onPress={onPress}
+        accessibilityRole="radio"
+        accessibilityState={{ checked: selected }}
+        accessibilityLabel={`${l.name} layout`}
+        accessibilityHint={l.blurb}
+        scaleTo={0.97}
+        style={[styles.layoutCard, { backgroundColor: pal.card, borderColor: pal.ink }]}>
+        <HomeWire pal={pal} order={a.order} sections={a.sections} />
+        {selected ? (
+          <View style={styles.layoutTick}>
+            <CheckBadge pal={pal} size={20} />
+          </View>
+        ) : null}
+        <View style={[styles.layoutFoot, { borderTopColor: pal.ink, backgroundColor: selected ? pal.accent : pal.card }]}>
+          <T variant="small" weight="bold" color={selected ? pal.onAccent : pal.text} numberOfLines={1}>
+            {l.name}
+          </T>
+        </View>
+      </Press>
+    </Plate>
   );
 }
 
-/** A big choice with a picture (emoji), a name and one line: the chosen one has a black (white) ring and a tick. */
-export function OptionRow({ pal, on, emoji, label, sub, onPress }: { pal: Pal; on: boolean; emoji: string; label: string; sub: string; onPress: () => void }) {
+/** Three bars that rise, with `lit` of them filled: how big the celebrations are, drawn instead of an emoji. */
+export function Meter({ pal, lit }: { pal: Pal; lit: number }) {
   return (
-    <Press
-      onPress={onPress}
-      accessibilityRole="radio"
-      accessibilityState={{ checked: on }}
-      accessibilityLabel={label}
-      accessibilityHint={sub}
-      scaleTo={0.98}
-      style={[styles.option, { backgroundColor: pal.card, borderColor: on ? pal.primary : pal.border }]}>
-      <T style={{ fontSize: 30, lineHeight: 36 }} accessibilityElementsHidden importantForAccessibility="no">
-        {emoji}
-      </T>
-      <View style={{ flex: 1 }}>
-        <T variant="title" weight="bold" color={pal.text}>
-          {label}
-        </T>
-        <T variant="small" color={pal.textSecondary}>
-          {sub}
-        </T>
-      </View>
-      <Ionicons name={on ? 'checkmark-circle' : 'ellipse-outline'} size={24} color={on ? pal.text : pal.borderStrong} />
-    </Press>
-  );
-}
-
-/** A card with one switch (a daily reminder). The thumb flips with the track so it is seen in both modes. */
-export function SwitchRow({ pal, icon, label, sub, value, onChange }: { pal: Pal; icon: IconName; label: string; sub: string; value: boolean; onChange: (v: boolean) => void }) {
-  return (
-    <View style={[styles.switchRow, { backgroundColor: pal.card, borderColor: pal.border }]}>
-      <View style={[styles.switchIcon, { backgroundColor: pal.bgAlt }]}>
-        <Ionicons name={icon} size={20} color={pal.text} />
-      </View>
-      <View style={{ flex: 1 }}>
-        <T variant="title" weight="bold" color={pal.text}>
-          {label}
-        </T>
-        <T variant="small" color={pal.textSecondary}>
-          {sub}
-        </T>
-      </View>
-      <Switch accessibilityLabel={label} value={value} onValueChange={onChange} trackColor={{ false: pal.borderStrong, true: pal.primary }} thumbColor={value ? pal.onPrimary : pal.white} {...({ activeThumbColor: pal.onPrimary } as object)} />
+    <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={styles.meter}>
+      {[0, 1, 2].map((i) => (
+        <View key={i} style={{ width: 9, height: 10 + i * 8, borderWidth: line, borderColor: pal.ink, backgroundColor: i < lit ? pal.accent : 'transparent' }} />
+      ))}
     </View>
   );
 }
 
-/** One answer on the last page. Tapping the row opens the step where it can be changed. */
-export function SummaryRow({ pal, icon, label, value, onPress, last }: { pal: Pal; icon: IconName; label: string; value: string; onPress: () => void; last?: boolean }) {
+/** One Effects setting: its meter, a name and one line. The chosen one stands up on a plate with a tick. */
+export function EffectRow({ pal, level, on, bars, label, sub, onPress }: { pal: Pal; level: Effects; on: boolean; bars: number; label: string; sub: string; onPress: () => void }) {
   return (
-    <Press onPress={onPress} scaleTo={0.99} accessibilityLabel={`Change ${label.toLowerCase()}, now ${value}`} style={[styles.summary, !last && { borderBottomWidth: 1, borderBottomColor: pal.border }]}>
-      <View style={[styles.summaryIcon, { backgroundColor: pal.bgAlt }]}>
-        <Ionicons name={icon} size={18} color={pal.text} />
+    <Plate corner={radius.card} color={on ? pal.plate : 'transparent'}>
+      <Press
+        onPress={onPress}
+        testID={`effects-${level}`}
+        accessibilityRole="radio"
+        accessibilityState={{ checked: on }}
+        accessibilityLabel={label}
+        accessibilityHint={sub}
+        scaleTo={0.98}
+        style={[styles.option, { backgroundColor: pal.card, borderColor: pal.ink }]}>
+        <Meter pal={pal} lit={bars} />
+        <View style={{ flex: 1 }}>
+          <T variant="title" weight="bold" color={pal.text}>
+            {label}
+          </T>
+          <Tx pal={pal} tone="secondary" variant="small">
+            {sub}
+          </Tx>
+        </View>
+        {on ? <CheckBadge pal={pal} /> : <View style={[styles.emptyBox, { borderColor: pal.textMuted }]} />}
+      </Press>
+    </Plate>
+  );
+}
+
+/** A flat card with one switch (a daily reminder). */
+export function SwitchRow({ pal, icon, label, sub, value, onChange }: { pal: Pal; icon: IconName; label: string; sub: string; value: boolean; onChange: (v: boolean) => void }) {
+  return (
+    <View style={[styles.switchRow, { backgroundColor: pal.card, borderColor: pal.ink }]}>
+      <View style={[styles.switchIcon, { borderColor: pal.ink, backgroundColor: pal.bgAlt }]}>
+        <Ionicons name={icon} size={20} color={pal.ink} />
       </View>
-      <T variant="small" color={pal.textSecondary} style={{ width: 92 }} numberOfLines={2}>
-        {label}
-      </T>
-      <T variant="small" weight="bold" color={pal.text} style={{ flex: 1, textAlign: 'right' }} numberOfLines={2}>
-        {value}
-      </T>
-      <Ionicons name="create-outline" size={18} color={pal.textMuted} />
+      <View style={{ flex: 1 }}>
+        <T variant="title" weight="bold" color={pal.text}>
+          {label}
+        </T>
+        <Tx pal={pal} tone="secondary" variant="small">
+          {sub}
+        </Tx>
+      </View>
+      <Switch
+        accessibilityLabel={label}
+        value={value}
+        onValueChange={onChange}
+        trackColor={{ false: pal.borderStrong, true: pal.ink }}
+        thumbColor={switchThumb(pal)}
+        {...({ activeThumbColor: pal.accent } as object)}
+      />
+    </View>
+  );
+}
+
+/** One answer on the last page: a small caps label over the answer. Tapping the row opens the step where it can be changed. */
+export function SummaryRow({ pal, label, value, onPress, last }: { pal: Pal; label: string; value: string; onPress: () => void; last?: boolean }) {
+  return (
+    <Press
+      onPress={onPress}
+      scaleTo={0.99}
+      accessibilityLabel={`Change ${label.toLowerCase()}, now ${value}`}
+      style={[styles.summary, !last && { borderBottomWidth: hair, borderBottomColor: pal.border }]}>
+      <View style={{ flex: 1, gap: 2 }}>
+        <Tx pal={pal} tone="secondary" variant="kicker">
+          {label}
+        </Tx>
+        <T variant="title" weight="bold" color={pal.text} numberOfLines={2}>
+          {value}
+        </T>
+      </View>
+      <Ionicons name="create-outline" size={20} color={pal.ink} />
     </Press>
   );
 }
 
 /**
- * Hides the hard cut when the survey repaints in a new theme: the old page colours sit on top for an instant and fade away
+ * Hides the hard cut when the survey repaints in a new theme: the old page colour sits on top for an instant and fades away
  * (opacity only, 240 ms), so the screen dissolves into the new look instead of jumping. It never takes a tap.
  */
 export function PaletteVeil({ pal, signature }: { pal: Pal; signature: string }) {
@@ -313,42 +309,39 @@ export function PaletteVeil({ pal, signature }: { pal: Pal; signature: string })
 
   useEffect(() => {
     if (!motion || n === 0) return;
-    v.setValue(0.8);
+    v.setValue(0.85);
     const a = Animated.timing(v, { toValue: 0, duration: 240, useNativeDriver: nativeDriver });
     a.start();
     return () => a.stop();
   }, [n, motion, v]);
 
   if (!motion || !state.prev) return null;
-  return (
-    <Animated.View pointerEvents="none" style={[StyleSheet.absoluteFill, { opacity: v }]}>
-      <LinearGradient colors={[state.prev.washFrom, state.prev.washTo, state.prev.bg]} locations={[0, 0.5, 1]} style={StyleSheet.absoluteFill} />
-    </Animated.View>
-  );
+  return <Animated.View pointerEvents="none" style={[StyleSheet.absoluteFill, { opacity: v, backgroundColor: state.prev.bg }]} />;
 }
 
 const styles = StyleSheet.create({
-  button: { height: 56, borderRadius: radius.button, borderWidth: 1.5, alignSelf: 'stretch', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingHorizontal: 22 },
-  segTrack: { flexDirection: 'row', borderRadius: radius.pill, padding: 4 },
-  segItem: { flex: 1, height: 44, borderRadius: radius.pill, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6 },
-  seg: { flex: 1, height: 6, borderRadius: 3, overflow: 'hidden' },
-  segFill: { flex: 1, borderRadius: 3 },
-  themeCard: { borderRadius: radius.card, borderWidth: 2, overflow: 'hidden' },
-  themeTop: { padding: 8 },
-  themeHero: { height: 58, borderRadius: radius.button, overflow: 'hidden', justifyContent: 'flex-end' },
-  themeHeroRow: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', paddingHorizontal: 8, paddingBottom: 4 },
-  themeAccentPill: { width: 36, height: 14, borderRadius: 7, marginBottom: 6 },
-  themeRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 8 },
-  themeStub: { width: 46, height: 14, borderRadius: 5 },
-  themeBar: { flex: 1, height: 6, borderRadius: 3, overflow: 'hidden' },
-  themeFoot: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 10, minHeight: 44 },
-  wire: { padding: 6, gap: 4, borderRadius: radius.button },
-  wireBlock: { borderRadius: 5, borderWidth: 1, justifyContent: 'center', paddingHorizontal: 6 },
-  layoutCard: { flex: 1, borderRadius: radius.card, borderWidth: 2, padding: 6, gap: 6 },
-  layoutFoot: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, minHeight: 36 },
-  option: { flexDirection: 'row', alignItems: 'center', gap: 14, paddingHorizontal: 16, paddingVertical: 14, minHeight: 76, borderRadius: radius.card, borderWidth: 2 },
-  switchRow: { flexDirection: 'row', alignItems: 'center', gap: 14, paddingHorizontal: 16, paddingVertical: 14, minHeight: 76, borderRadius: radius.card, borderWidth: 1 },
-  switchIcon: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
-  summary: { flexDirection: 'row', alignItems: 'center', gap: 10, minHeight: 60, paddingVertical: 8 },
-  summaryIcon: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
+  kickerRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  bullet: { width: 10, height: 10, borderWidth: 1.5 },
+  seg: { flex: 1, height: 14, borderWidth: line, borderRadius: 2 },
+  mini: { borderWidth: line, borderRadius: radius.xs + 2, padding: 6, gap: 5 },
+  miniRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  miniStamp: { width: 20, height: 14, borderWidth: 1.5 },
+  miniDashes: { flexDirection: 'row', justifyContent: 'space-between', overflow: 'hidden' },
+  miniBar: { height: 7, borderWidth: 1.5, overflow: 'hidden' },
+  themeTile: { borderWidth: line, borderRadius: radius.card, overflow: 'hidden' },
+  themeField: { padding: 10, borderBottomWidth: line },
+  themeFoot: { flexDirection: 'row', alignItems: 'center', gap: 8, minHeight: 44, paddingHorizontal: 10 },
+  swatch: { width: 44, height: 44, borderRadius: radius.button, borderWidth: line, alignItems: 'center', justifyContent: 'center' },
+  wire: { padding: 8, gap: 4 },
+  wireHero: { height: 24, borderRadius: radius.xs, alignItems: 'flex-start', justifyContent: 'flex-end', padding: 4 },
+  wireBlock: { height: 26, borderWidth: 1.5, borderRadius: radius.xs, justifyContent: 'center', paddingHorizontal: 6 },
+  layoutCard: { borderWidth: line, borderRadius: radius.card, overflow: 'hidden' },
+  layoutFoot: { alignItems: 'center', justifyContent: 'center', minHeight: 44, paddingHorizontal: 6, borderTopWidth: line },
+  layoutTick: { position: 'absolute', top: 12, right: 12 },
+  meter: { flexDirection: 'row', alignItems: 'flex-end', gap: 3, height: 34, width: 39 },
+  option: { flexDirection: 'row', alignItems: 'center', gap: 14, paddingHorizontal: 16, paddingVertical: 14, minHeight: 76, borderRadius: radius.card, borderWidth: line },
+  emptyBox: { width: 26, height: 26, borderRadius: radius.xs, borderWidth: line },
+  switchRow: { flexDirection: 'row', alignItems: 'center', gap: 14, paddingHorizontal: 16, paddingVertical: 14, minHeight: 76, borderRadius: radius.card, borderWidth: line },
+  switchIcon: { width: 40, height: 40, borderRadius: radius.button, borderWidth: line, alignItems: 'center', justifyContent: 'center' },
+  summary: { flexDirection: 'row', alignItems: 'center', gap: 10, minHeight: 64, paddingVertical: 10 },
 });

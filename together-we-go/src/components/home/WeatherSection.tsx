@@ -2,102 +2,122 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { ScrollView, StyleSheet, View } from 'react-native';
 
-import { Card, SectionHeader } from '@/components/ui/bits';
+import { SectionHeader } from '@/components/ui/bits';
 import { Press } from '@/components/ui/Press';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { T } from '@/components/ui/T';
 import { useWeather } from '@/hooks/useTrip';
 import { weatherInfo } from '@/services/weather';
-import { colors, radius } from '@/theme';
+import { colors, isDark, line, radius } from '@/theme';
 import { dayLabel, deviceTimeZone, weekdayShort } from '@/utils/time';
 
-import { timeLine, typicalIcon, weatherView, type WeatherDay } from './logic';
+import { clockPair, typicalIcon, weatherView, type WeatherDay } from './logic';
 import type { TripCtx } from './useHomeContext';
 
-const TILE = 64;
+/** The board is black with paper-coloured print in the light mode; at night it is the dark card with cream print and a cream outline. */
+const BOARD = isDark ? { bg: colors.card, fg: colors.ink } : { bg: colors.ink, fg: colors.bg };
 
-function DayTile({ d, first }: { d: WeatherDay; first: boolean }) {
+/** Today's column is lit in the accent; in the Ink theme the accent is the board's own colour, so it is lit in paper instead. */
+const LIT = colors.accent === BOARD.bg ? { bg: BOARD.fg, fg: BOARD.bg } : { bg: colors.accent, fg: colors.onAccent };
+
+/** One trip day as a column of the board: the weekday, the date, an icon, the high and the low. Today is the highlighted column. */
+function DayColumn({ d, today }: { d: WeatherDay; today: boolean }) {
   const icon = d.code === null ? typicalIcon(d.max) : weatherInfo(d.code).icon;
+  const fg = today ? LIT.fg : BOARD.fg;
   return (
-    <View style={[styles.tile, first && { backgroundColor: colors.accentSoft }]} accessible accessibilityLabel={`${weekdayShort(d.date)} ${dayLabel(d.date)}: high ${d.max}, low ${d.min}`}>
-      <T variant="caption" weight="bold" color={colors.textSecondary}>
-        {weekdayShort(d.date)} {Number(d.date.slice(8))}
+    <View style={[styles.col, today && { backgroundColor: LIT.bg }]} accessible accessibilityLabel={`${weekdayShort(d.date)} ${dayLabel(d.date)}: high ${d.max}, low ${d.min}`}>
+      <T variant="kicker" color={fg}>
+        {weekdayShort(d.date)}
       </T>
-      <Ionicons name={icon} size={26} color={colors.text} />
-      <T variant="title" weight="bold">
+      <T variant="kicker" color={fg} style={{ opacity: 0.7 }}>
+        {Number(d.date.slice(8))}
+      </T>
+      <Ionicons name={icon} size={24} color={fg} style={{ marginVertical: 8 }} />
+      <T variant="numeralSm" color={fg}>
         {d.max}°
       </T>
-      <T variant="small" color={colors.textMuted}>
+      <T variant="kicker" color={fg} style={{ opacity: 0.7, fontSize: 13, lineHeight: 18 }}>
         {d.min}°
       </T>
     </View>
   );
 }
 
-/** A tile-shaped grey block per day while the forecast loads, so nothing moves when it arrives. */
-function WeatherSkeleton() {
+/** The same size as the board, so nothing jumps when the forecast arrives. */
+function BoardSkeleton() {
   return (
-    <View accessibilityLabel="Loading the forecast" style={{ gap: 12 }}>
-      <Skeleton width={150} height={14} corner={7} />
-      <View style={{ flexDirection: 'row', gap: 8 }}>
-        {[0, 1, 2, 3, 4].map((i) => (
-          <Skeleton key={i} width={TILE} height={116} corner={radius.card} />
-        ))}
-      </View>
-      <Skeleton width={220} height={14} corner={7} />
+    <View accessibilityLabel="Loading the forecast">
+      <Skeleton height={188} corner={radius.card} />
     </View>
   );
 }
 
-/** One card: the trip’s days with icon and high / low, and the time there and at home. Before the forecast reaches the trip it says "Typical weather". */
+/**
+ * Weather as a departures board: a dark panel with one column per day of the trip (weekday, icon, high and low, today lit in
+ * the accent), scrolling sideways when the trip is long, and the time there and at home in mono along the bottom.
+ * Before the forecast reaches the trip it says "Typical weather", and says why.
+ */
 export function WeatherSection({ ctx }: { ctx: TripCtx }) {
   const { trip, dest, today, now, tz } = ctx;
   const snapshot = useWeather(dest?.id);
   const city = dest?.city ?? 'your destination';
   const view = snapshot ? weatherView({ startDate: trip.startDate, endDate: trip.endDate, today, lat: dest?.lat ?? 0, snapshot }) : null;
+  const clocks = clockPair(now, tz, deviceTimeZone());
+  const open = () => router.push('/weather');
   return (
     <View>
-      <SectionHeader title="Weather" action="Details" onAction={() => router.push('/weather')} />
-      <Card padded={false}>
-        <Press onPress={() => router.push('/weather')} scaleTo={0.99} style={styles.body} accessibilityLabel={view ? `${view.title} in ${city}. Open the weather` : `Weather in ${city}. Loading`}>
-          {view ? (
-            <>
-              <View style={styles.titleRow}>
-                <T variant="kicker" color={colors.textSecondary}>
-                  {view.title} · {city}
+      <SectionHeader title="Weather" action="Details" onAction={open} />
+      {view ? (
+        <>
+          <Press onPress={open} scaleTo={0.99} style={styles.board} accessibilityLabel={`${view.title} in ${city}. Open the weather`}>
+            <View style={styles.boardHead}>
+              <View style={styles.bullet} />
+              <T variant="kicker" color={BOARD.fg} numberOfLines={1} style={{ flex: 1 }}>
+                {view.title} · {city}
+              </T>
+            </View>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.cols}>
+              {view.days.map((d) => (
+                <DayColumn key={d.date} d={d} today={d.date === today} />
+              ))}
+            </ScrollView>
+            <View style={styles.clocks}>
+              <View accessible accessibilityLabel={`${clocks.there} in ${city}`}>
+                <T variant="kicker" color={BOARD.fg} style={{ opacity: 0.7, fontSize: 9.5 }}>
+                  {city}
+                </T>
+                <T variant="numeralSm" color={BOARD.fg} style={{ fontSize: 17, lineHeight: 22 }}>
+                  {clocks.there}
                 </T>
               </View>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.days} contentContainerStyle={styles.daysInner}>
-                {view.days.map((d, i) => (
-                  <DayTile key={d.date} d={d} first={i === 0 && d.date === today} />
-                ))}
-              </ScrollView>
-              {view.kind === 'typical' ? (
-                <T variant="caption" color={colors.textSecondary}>
-                  {view.note}
+              <View accessible accessibilityLabel={clocks.same ? `${clocks.home} at home, the same time` : `${clocks.home} at home`}>
+                <T variant="kicker" color={BOARD.fg} style={{ opacity: 0.7, fontSize: 9.5, textAlign: 'right' }}>
+                  Home
                 </T>
-              ) : null}
-            </>
-          ) : (
-            <WeatherSkeleton />
-          )}
-          <View style={styles.clock}>
-            <Ionicons name="time-outline" size={16} color={colors.textSecondary} />
-            <T variant="small" weight="semibold" color={colors.textSecondary} numberOfLines={2} style={{ flex: 1 }}>
-              {timeLine(now, tz, deviceTimeZone(), city)}
+                <T variant="numeralSm" color={BOARD.fg} style={{ fontSize: 17, lineHeight: 22, textAlign: 'right' }}>
+                  {clocks.home}
+                </T>
+              </View>
+            </View>
+          </Press>
+          {view.kind === 'typical' ? (
+            <T variant="caption" color={colors.textSecondary} style={{ marginTop: 10 }}>
+              {view.note}
             </T>
-          </View>
-        </Press>
-      </Card>
+          ) : null}
+        </>
+      ) : (
+        <BoardSkeleton />
+      )}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  body: { padding: 16, gap: 12 },
-  titleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  days: { marginHorizontal: -16 },
-  daysInner: { gap: 8, paddingHorizontal: 16 },
-  tile: { width: TILE, minHeight: 116, borderRadius: radius.card, backgroundColor: colors.bgAlt, alignItems: 'center', justifyContent: 'center', gap: 4, paddingVertical: 10 },
-  clock: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingTop: 12, borderTopWidth: 1, borderTopColor: colors.border },
+  board: { backgroundColor: BOARD.bg, borderRadius: radius.card, borderWidth: line, borderColor: colors.ink, paddingTop: 14, paddingBottom: 12, overflow: 'hidden' },
+  boardHead: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 14, paddingBottom: 12 },
+  bullet: { width: 10, height: 10, backgroundColor: LIT.bg },
+  cols: { flexGrow: 1, paddingHorizontal: 8, gap: 2 },
+  col: { flex: 1, minWidth: 50, alignItems: 'center', paddingVertical: 10, borderRadius: radius.chip },
+  clocks: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', paddingHorizontal: 14, paddingTop: 12, marginTop: 8, borderTopWidth: 1, borderTopColor: colors.textMuted },
 });

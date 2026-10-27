@@ -4,14 +4,14 @@ import { Animated, Modal, ScrollView, StyleSheet, View, useWindowDimensions } fr
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useAppStore } from '@/store/useAppStore';
-import { MAX_WIDTH, colors, radius, shadow } from '@/theme';
+import { MAX_WIDTH, colors, line, radius } from '@/theme';
 
-import { LogoMark } from './Logo';
 import { Button } from './ui/Button';
 import type { IconName } from './ui/bits';
 import { FadeIn, nativeDriver, useMotion } from './ui/motion';
 import { Press } from './ui/Press';
 import { T } from './ui/T';
+import { Ticket } from './ui/Ticket';
 
 const STEPS: { icon: IconName; tab: string; title: string; body: string; points: string[] }[] = [
   { icon: 'home-outline', tab: 'Home', title: 'Your trip at a glance', body: 'The moment you open the app you see the hero photo, invite code, weather and your group budget.', points: ['Up next and countdown', 'Weather and local time', 'Budget progress'] },
@@ -21,7 +21,7 @@ const STEPS: { icon: IconName; tab: string; title: string; body: string; points:
   { icon: 'grid-outline', tab: 'More', title: 'Everything else', body: 'Offline documents, the trip map, a packing list, the photo dump, a trip quiz and more live here.', points: ['Offline docs', 'Trip map', 'Packing, photos and quiz'] },
 ];
 
-/** First-run walkthrough: five swipeable cards, one per tab. Marks the tour as seen when it closes. */
+/** First-run walkthrough: five swipeable boarding passes, one per tab. Marks the tour as seen when it closes. */
 export function GuidedTour({ visible, onClose }: { visible: boolean; onClose: () => void }) {
   const setToured = useAppStore((s) => s.setToured);
   const finish = () => {
@@ -43,26 +43,25 @@ function TourBody({ onFinish }: { onFinish: () => void }) {
   const scroller = useRef<ScrollView>(null);
   const [index, setIndex] = useState(0);
   const [scrollX] = useState(() => new Animated.Value(0));
+  // the height the pages may use, so each ticket sits in the middle of it
+  const [pageH, setPageH] = useState(0);
   const last = index === STEPS.length - 1;
 
   const goTo = (i: number) => {
     setIndex(i);
-    scroller.current?.scrollTo({ x: i * pageW, animated: true });
+    scroller.current?.scrollTo({ x: i * pageW, animated: motion });
   };
 
   return (
     <View style={[styles.root, { paddingTop: insets.top + 8, paddingBottom: Math.max(insets.bottom, 16) }]}>
       <View style={[styles.column, { width: pageW }]}>
         <View style={styles.top}>
-          <View style={styles.brand}>
-            <LogoMark size={30} />
-            <T variant="small" weight="extrabold">
-              TogetherWeGo
-            </T>
-          </View>
+          <T variant="kicker" color={colors.textSecondary} accessibilityLiveRegion="polite">
+            Step {index + 1} of {STEPS.length}
+          </T>
           {last ? null : (
-            <Press onPress={onFinish} hitSlop={10} accessibilityLabel="Skip the tour">
-              <T variant="small" weight="semibold" color={colors.textSecondary}>
+            <Press onPress={onFinish} accessibilityLabel="Skip the tour" style={styles.skip}>
+              <T variant="small" weight="bold" style={{ textDecorationLine: 'underline' }}>
                 Skip
               </T>
             </Press>
@@ -80,40 +79,49 @@ function TourBody({ onFinish }: { onFinish: () => void }) {
               useNativeDriver: nativeDriver,
               listener: (e: { nativeEvent: { contentOffset: { x: number } } }) => setIndex(Math.max(0, Math.min(STEPS.length - 1, Math.round(e.nativeEvent.contentOffset.x / pageW)))),
             })}
+            onLayout={(e) => setPageH(e.nativeEvent.layout.height)}
             style={{ flex: 1 }}>
             {STEPS.map((s, i) => {
               const range = [(i - 1) * pageW, i * pageW, (i + 1) * pageW];
-              const pop = motion ? { opacity: scrollX.interpolate({ inputRange: range, outputRange: [0.45, 1, 0.45], extrapolate: 'clamp' }), transform: [{ scale: scrollX.interpolate({ inputRange: range, outputRange: [0.92, 1, 0.92], extrapolate: 'clamp' }) }] } : null;
+              const pop = motion ? { opacity: scrollX.interpolate({ inputRange: range, outputRange: [0.5, 1, 0.5], extrapolate: 'clamp' }), transform: [{ scale: scrollX.interpolate({ inputRange: range, outputRange: [0.94, 1, 0.94], extrapolate: 'clamp' }) }] } : null;
               return (
-                <View key={s.tab} style={[styles.page, { width: pageW }]} accessible accessibilityLabel={`Step ${i + 1} of ${STEPS.length}. ${s.tab}. ${s.title}. ${s.body}`}>
-                  <Animated.View style={[styles.card, pop]}>
-                    <T variant="display" color={colors.bgAlt} style={styles.number}>
-                      {`0${i + 1}`}
-                    </T>
-                    <View style={styles.icon}>
-                      <Ionicons name={s.icon} size={30} color={colors.onAccent} />
-                    </View>
-                    <T variant="kicker" color={colors.textSecondary} style={{ marginTop: 22 }}>
-                      {s.tab}
-                    </T>
-                    <T variant="display" style={{ fontSize: 34, lineHeight: 38, marginTop: 4 }}>
-                      {s.title}
-                    </T>
-                    <T variant="body" color={colors.textSecondary} style={{ marginTop: 10 }}>
-                      {s.body}
-                    </T>
-                    <View style={{ gap: 10, marginTop: 20 }}>
-                      {s.points.map((p) => (
-                        <View key={p} style={styles.point}>
-                          <View style={styles.tick}>
-                            <Ionicons name="checkmark" size={13} color={colors.onAccent} />
-                          </View>
-                          <T variant="bodySm" weight="semibold">
-                            {p}
-                          </T>
+                <View key={s.tab} style={[styles.page, { width: pageW, height: pageH || undefined }]} accessible accessibilityLabel={`Step ${i + 1} of ${STEPS.length}. ${s.tab}. ${s.title}. ${s.body}. ${s.points.join('. ')}`}>
+                  <Animated.View style={pop}>
+                    <Ticket
+                      stub={
+                        <View style={styles.points}>
+                          {s.points.map((p) => (
+                            <View key={p} style={styles.point}>
+                              <View style={styles.tick}>
+                                <Ionicons name="checkmark" size={14} color={colors.onAccent} />
+                              </View>
+                              <T variant="bodySm" weight="semibold" style={{ flex: 1 }}>
+                                {p}
+                              </T>
+                            </View>
+                          ))}
                         </View>
-                      ))}
-                    </View>
+                      }>
+                      <View style={styles.main}>
+                        <View style={styles.row}>
+                          <View style={styles.icon}>
+                            <Ionicons name={s.icon} size={28} color={colors.onAccent} />
+                          </View>
+                          <View style={{ flex: 1 }}>
+                            <T variant="kicker" color={colors.textSecondary}>
+                              Tab
+                            </T>
+                            <T variant="h2">{s.tab}</T>
+                          </View>
+                        </View>
+                        <T variant="display" style={{ fontSize: 34, lineHeight: 38 }}>
+                          {s.title}
+                        </T>
+                        <T variant="body" color={colors.textSecondary}>
+                          {s.body}
+                        </T>
+                      </View>
+                    </Ticket>
                   </Animated.View>
                 </View>
               );
@@ -121,10 +129,10 @@ function TourBody({ onFinish }: { onFinish: () => void }) {
           </Animated.ScrollView>
         </FadeIn>
 
-        <View style={styles.dots} accessibilityRole="tablist">
+        <View style={styles.steps} accessibilityRole="tablist">
           {STEPS.map((s, i) => (
-            <Press key={s.tab} onPress={() => goTo(i)} hitSlop={8} haptic={false} accessibilityRole="tab" accessibilityState={{ selected: i === index }} accessibilityLabel={`Step ${i + 1} of ${STEPS.length}: ${s.tab}`}>
-              <View style={[styles.dot, i === index && styles.dotOn]} />
+            <Press key={s.tab} onPress={() => goTo(i)} haptic={false} scaleTo={1} style={styles.stepHit} accessibilityRole="tab" accessibilityState={{ selected: i === index }} accessibilityLabel={`Step ${i + 1} of ${STEPS.length}: ${s.tab}`}>
+              <View style={[styles.step, i <= index && { backgroundColor: colors.accent }]} />
             </Press>
           ))}
         </View>
@@ -139,15 +147,16 @@ function TourBody({ onFinish }: { onFinish: () => void }) {
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.bg, alignItems: 'center' },
   column: { flex: 1 },
-  top: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, height: 44 },
-  brand: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  top: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, height: 48 },
+  skip: { minWidth: 64, height: 44, alignItems: 'flex-end', justifyContent: 'center' },
   page: { paddingHorizontal: 20, justifyContent: 'center' },
-  card: { backgroundColor: colors.card, borderRadius: 28, padding: 24, borderWidth: 1, borderColor: colors.border, ...shadow },
-  number: { position: 'absolute', top: 14, right: 20, fontSize: 64, lineHeight: 68 },
-  icon: { width: 64, height: 64, borderRadius: 32, backgroundColor: colors.accent, alignItems: 'center', justifyContent: 'center' },
-  point: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  tick: { width: 22, height: 22, borderRadius: 11, backgroundColor: colors.accent, alignItems: 'center', justifyContent: 'center' },
-  dots: { flexDirection: 'row', alignSelf: 'center', alignItems: 'center', gap: 8, paddingVertical: 18 },
-  dot: { width: 8, height: 8, borderRadius: radius.pill, backgroundColor: colors.borderStrong },
-  dotOn: { width: 24, backgroundColor: colors.primary },
+  main: { padding: 20, gap: 14 },
+  row: { flexDirection: 'row', alignItems: 'center', gap: 14 },
+  icon: { width: 56, height: 56, borderRadius: radius.button, borderWidth: line, borderColor: colors.ink, backgroundColor: colors.accent, alignItems: 'center', justifyContent: 'center' },
+  points: { gap: 12, paddingHorizontal: 20, paddingBottom: 18, paddingTop: 4 },
+  point: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  tick: { width: 24, height: 24, borderRadius: radius.xs, borderWidth: line, borderColor: colors.ink, backgroundColor: colors.accent, alignItems: 'center', justifyContent: 'center' },
+  steps: { flexDirection: 'row', gap: 8, paddingHorizontal: 20, paddingTop: 8, paddingBottom: 4 },
+  stepHit: { flex: 1, height: 44, justifyContent: 'center' },
+  step: { height: 12, borderRadius: radius.xs, borderWidth: line, borderColor: colors.ink, backgroundColor: colors.card },
 });

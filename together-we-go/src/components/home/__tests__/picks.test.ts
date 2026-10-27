@@ -51,9 +51,10 @@ describe('picked for you', () => {
     expect(avgPrice('saver')).toBeLessThanOrEqual(avgPrice('treat'));
   });
 
-  it('explains each pick with the interest emoji and the country', () => {
+  it('explains each pick in words (the interest and the country), without emoji', () => {
     const [first] = pickedForYou(personal({ interests: ['food'] }));
-    expect(first.why).toContain('🍜');
+    expect(first.why).toContain('Food');
     expect(first.why).toContain(first.d.country);
+    expect(first.why).not.toMatch(/\p{Extended_Pictographic}/u);
   });
 });

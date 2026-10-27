@@ -7,21 +7,29 @@ import {
   blockHasContent,
   budgetView,
   celebrateKey,
+  checklistProgress,
+  clockPair,
   countdownView,
   crewCounts,
   crewCue,
+  dateKicker,
   mapsUrl,
   nextPlanned,
   nextToVote,
   ordinal,
   oweLine,
+  podiumSlots,
   podiumView,
   shouldCelebrateOneDay,
   startsIn,
-  timeLine,
+  startsSoon,
+  streakLabel,
+  timeParts,
   todaysChecklist,
   typicalDay,
   typicalIcon,
+  voteLine,
+  voteLocks,
   voteTally,
   votingCount,
   weatherView,
@@ -330,18 +338,98 @@ describe('weather', () => {
   });
 });
 
-describe('the clock line', () => {
+describe('the clocks', () => {
   it('shows the time there and at home', () => {
     const at = Date.UTC(2026, 9, 20, 13, 41);
-    expect(timeLine(at, 'Europe/Rome', 'America/New_York', 'Positano')).toBe('3:41 PM in Positano · 9:41 AM at home');
+    expect(clockPair(at, 'Europe/Rome', 'America/New_York')).toEqual({ there: '3:41 PM', home: '9:41 AM', same: false });
   });
 
   it('says so when it is the same time', () => {
     const at = Date.UTC(2026, 9, 20, 13, 41);
-    expect(timeLine(at, 'Europe/Rome', 'Europe/Paris', 'Positano')).toContain('same as at home');
+    expect(clockPair(at, 'Europe/Rome', 'Europe/Paris').same).toBe(true);
   });
 
   it('uses the destination’s own date for "today"', () => {
     expect(todayInTz('Europe/Rome')).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+  });
+});
+
+describe('the ticket print', () => {
+  it('splits a time into the clock and AM or PM', () => {
+    expect(timeParts('19:30')).toEqual({ clock: '7:30', suffix: 'PM' });
+    expect(timeParts('00:05')).toEqual({ clock: '12:05', suffix: 'AM' });
+    expect(timeParts('12:00')).toEqual({ clock: '12:00', suffix: 'PM' });
+  });
+
+  it('writes the date line of a ticket', () => {
+    expect(dateKicker('2026-10-23')).toBe('Fri 23 Oct');
+    expect(dateKicker('2026-01-05')).toBe('Mon 5 Jan');
+  });
+
+  it('counts the ticked-off things of the day', () => {
+    expect(checklistProgress([])).toEqual({ done: 0, total: 0 });
+    expect(checklistProgress([{ done: true }, {}, { done: false }])).toEqual({ done: 1, total: 3 });
+  });
+
+  it('gives the countdown the accent only in the last three hours', () => {
+    expect(startsSoon(2 * 3600000)).toBe(true);
+    expect(startsSoon(0)).toBe(true);
+    expect(startsSoon(3 * 3600000)).toBe(false);
+    expect(startsSoon(3 * 86400000)).toBe(false);
+  });
+});
+
+describe('a vote on Home', () => {
+  const voting = (votes: Activity['votes']) => act({ status: 'voting', votes });
+
+  it('words the tally', () => {
+    expect(voteLine(voting({}), 5)).toBe('0 of 3 yes votes to lock it in');
+    expect(voteLine(voting({ a: 1, b: 1 }), 5)).toBe('2 of 3 yes votes to lock it in');
+    expect(voteLine(voting({ a: 1, b: 1, c: 1 }), 5)).toBe('3 yes, enough to lock it in');
+  });
+
+  it('locks in when this yes makes a majority, the same rule as the store', () => {
+    expect(voteLocks(voting({ a: 1, b: 1 }), 'me', 5, 1)).toBe(true);
+    expect(voteLocks(voting({ a: 1 }), 'me', 5, 1)).toBe(false);
+    expect(voteLocks(voting({ a: 1, b: -1, c: 1 }), 'me', 4, 1)).toBe(true);
+    expect(voteLocks(voting({ a: 1 }), 'me', 2, 1)).toBe(true);
+  });
+
+  it('never locks on a no, on something already decided, or on a vote that is taken back', () => {
+    expect(voteLocks(voting({ a: 1, b: 1 }), 'me', 5, -1)).toBe(false);
+    expect(voteLocks(act({ status: 'confirmed', votes: { a: 1, b: 1 } }), 'me', 5, 1)).toBe(false);
+    expect(voteLocks(voting({ me: 1, a: 1 }), 'me', 3, 1)).toBe(false);
+  });
+
+  it('does not count the voter twice when they change their mind', () => {
+    expect(voteLocks(voting({ me: -1, a: 1 }), 'me', 3, 1)).toBe(true);
+    expect(voteLocks(voting({ me: -1, a: 1 }), 'me', 5, 1)).toBe(false);
+  });
+});
+
+describe('the podium', () => {
+  const ranked = (n: number) => Array.from({ length: n }, (_, i) => ({ memberId: `m${i}`, name: `P${i}`, points: 100 - i * 10, rank: i + 1 }));
+
+  it('puts first in the middle, second on the left and third on the right', () => {
+    expect(podiumSlots(ranked(3)).map((s) => s.rank)).toEqual([2, 1, 3]);
+  });
+
+  it('makes the winner the tallest and third the shortest', () => {
+    const [second, first, third] = podiumSlots(ranked(3));
+    expect(first.height).toBeGreaterThan(second.height);
+    expect(second.height).toBeGreaterThan(third.height);
+  });
+
+  it('still works with only two people', () => {
+    expect(podiumSlots(ranked(2)).map((s) => s.rank)).toEqual([2, 1]);
+    expect(podiumSlots([])).toEqual([]);
+  });
+});
+
+describe('the quiz streak', () => {
+  it('has words only when there is a streak', () => {
+    expect(streakLabel(0)).toBeNull();
+    expect(streakLabel(1)).toBe('1 day streak');
+    expect(streakLabel(4)).toBe('4 day streak');
   });
 });

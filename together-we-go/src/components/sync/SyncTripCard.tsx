@@ -27,7 +27,7 @@ export function SyncTripCard({ trip }: { trip: Trip }) {
     setBusy(true);
     let r = await shareTrip(trip.id);
     setBusy(false);
-    if (r.ok) return toast('Sharing! Friends can now join with the invite code 🎉');
+    if (r.ok) return toast('Sharing! Friends can now join with the invite code');
     if (r.reason === 'code-taken') {
       return confirmAction(
         'Invite code already in use',
@@ -46,9 +46,9 @@ export function SyncTripCard({ trip }: { trip: Trip }) {
   };
 
   return (
-    <Card style={{ gap: 10, marginTop: 14 }}>
+    <Card style={{ gap: 12, marginTop: 14 }}>
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
-        <T variant="title" weight="bold" style={{ flex: 1 }}>
+        <T variant="kicker" color={colors.textSecondary} accessibilityRole="header" style={{ flex: 1 }}>
           Sync across phones
         </T>
         <SyncBadge tripId={trip.id} />
@@ -59,7 +59,7 @@ export function SyncTripCard({ trip }: { trip: Trip }) {
             Chat, votes, the plan and expenses now update live on every phone in this trip. Changes made offline are sent when you are back online.
           </T>
           {error ? (
-            <T variant="caption" color={colors.orange}>
+            <T variant="caption" color={colors.warn}>
               {error}. Your changes are saved here and will sync when the server is back.
             </T>
           ) : null}

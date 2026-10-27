@@ -1,6 +1,6 @@
 import { photos } from '../images';
 import { destinations } from '../destinations';
-import { INTERESTS, INTEREST_GOAL, TRIVIA_REMINDER, interestHint } from '../personal';
+import { INTERESTS, INTEREST_GOAL, TRIVIA_REMINDER, interestHint, interestNames } from '../personal';
 
 describe('interests in Make it yours', () => {
   it('offers the eight tiles, each once', () => {
@@ -8,11 +8,12 @@ describe('interests in Make it yours', () => {
     expect(new Set(INTERESTS.map((i) => i.key)).size).toBe(INTERESTS.length);
   });
 
-  it('gives every tile a real photo, a label and an emoji', () => {
+  it('gives every tile a real photo, a label and a line icon (no emoji)', () => {
     for (const i of INTERESTS) {
       expect(i.image in photos).toBe(true);
       expect(i.label.length).toBeGreaterThan(2);
-      expect(i.emoji).toBeTruthy();
+      expect(i.icon).toMatch(/-outline$/);
+      expect(Object.keys(i)).not.toContain('emoji');
     }
   });
 
@@ -28,6 +29,14 @@ describe('interests in Make it yours', () => {
   });
 });
 
+describe('naming the picks for a summary line', () => {
+  it('lists them in the order of the tiles, and says so when nothing is picked', () => {
+    expect(interestNames(['chill', 'food', 'beach'])).toBe('Food, Beaches, Chill');
+    expect(interestNames([])).toBe('A bit of everything');
+    expect(interestNames(['not-a-tag'])).toBe('A bit of everything');
+  });
+});
+
 describe('the daily trivia reminder', () => {
   it('is a valid time of day with words for the notification', () => {
     expect(TRIVIA_REMINDER.hour).toBeGreaterThanOrEqual(0);
@@ -36,5 +45,7 @@ describe('the daily trivia reminder', () => {
     expect(TRIVIA_REMINDER.minute).toBeLessThan(60);
     expect(TRIVIA_REMINDER.title).toMatch(/trivia/i);
     expect(TRIVIA_REMINDER.body.length).toBeGreaterThan(10);
+    // no emoji in the words (the look has none)
+    expect(`${TRIVIA_REMINDER.title}${TRIVIA_REMINDER.body}`).not.toMatch(/\p{Extended_Pictographic}/u);
   });
 });

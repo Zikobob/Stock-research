@@ -44,7 +44,18 @@ const { BASE, ROUTES, start, nestedControls } = require('./lib');
   await p.getByLabel('Advanced settings').click();
   await expect('Test connection');
   await audit(p, 'Settings with Advanced open');
+  await open('settings');
+  await p.getByLabel('Arrange blocks').click();
+  await expect('Move Weather up');
+  await audit(p, 'Settings with the Home blocks open');
   await open('personalize');
+  await expect('Let’s go');
+  await audit(p, 'Make it yours: welcome');
+  for (const [button, where] of [['Let’s go', 'look'], ['Continue', 'interests'], ['Continue', 'layout'], ['Continue', 'vibe']]) {
+    await p.getByRole('button', { name: button, exact: true }).click();
+    await p.waitForTimeout(500);
+    await audit(p, `Make it yours: ${where}`);
+  }
   await p.getByLabel('Skip to the end').click();
   await expect('Apply my style');
   await audit(p, 'the last page of Make it yours');
@@ -52,6 +63,33 @@ const { BASE, ROUTES, start, nestedControls } = require('./lib');
   for (let i = 0; i < 5; i++) { await p.locator('button').filter({ hasText: /\p{Extended_Pictographic}/u }).first().click(); await p.waitForTimeout(250); }
   await p.getByText('Your matches').first().waitFor({ state: 'visible', timeout: 5000 });
   await audit(p, 'the survey matches');
+  // Budget: the sheets and the folded tools
+  await open('budget');
+  await p.getByTestId('add-expense-open').click();
+  await expect('Change who paid, the split or the category');
+  await audit(p, 'the Add expense sheet');
+  await p.getByLabel('Change who paid, the split or the category').click();
+  await expect('Split just for me');
+  await audit(p, 'the Add expense sheet with the details open');
+  await open('budget');
+  await p.getByRole('button', { name: 'Settle up', exact: true }).first().click();
+  await expect('Mark paid');
+  await audit(p, 'the Settle up sheet');
+  await open('budget');
+  await p.getByLabel(/^Villa Margherita/).click();
+  await expect('Delete expense');
+  await audit(p, 'an expense opened on Budget');
+  await open('budget');
+  await p.getByTestId('budget-cap-open').click();
+  await expect('Save budget');
+  await audit(p, 'the budget sheet');
+  await open('budget');
+  await p.getByLabel('More budget tools').click();
+  await expect('Swap currencies');
+  await audit(p, 'Budget with the converter and planner open');
+  await p.getByLabel(/^Change from currency/).click();
+  await expect('Search currency');
+  await audit(p, 'the currency picker');
 
   console.log(failures.length ? failures.join('\n') : `PASS  no button or link sits inside another one (${screens} screens and states checked)`);
 

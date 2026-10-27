@@ -12,8 +12,10 @@ export function DemoCard() {
   const timeline = useAppStore((s) => s.demoTimeline);
 
   return (
-    <Card style={{ marginTop: 14, gap: 10 }}>
-      <T variant="title">Demo timeline</T>
+    <Card style={{ marginTop: 14, gap: 12 }}>
+      <T variant="kicker" color={colors.textSecondary} accessibilityRole="header">
+        Demo timeline
+      </T>
       <T variant="caption" color={colors.textSecondary}>
         Re-create the sample Amalfi Squad trip as upcoming, in progress or finished to show every stage from planning through completion.
       </T>

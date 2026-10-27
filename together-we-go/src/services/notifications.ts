@@ -98,7 +98,7 @@ export function activityStartUtc(trip: Trip, a: Activity): number {
 
 export function reminderBody(trip: Trip, a: Activity, lead: number) {
   return {
-    title: `⏰ ${a.title} in ${lead} min`,
+    title: `${a.title} in ${lead} min`,
     body: `${time12(a.time)} · ${a.location} — ${trip.name}`,
   };
 }
@@ -154,7 +154,7 @@ export async function sendTestReminder(seconds = 5) {
   const s = useAppStore.getState();
   const trip = s.trips.find((x) => x.id === s.activeTripId);
   const a = trip?.activities.find((x) => x.reminder) ?? trip?.activities[0];
-  const title = a ? `⏰ ${a.title} starts soon` : '⏰ Test reminder';
+  const title = a ? `${a.title} starts soon` : 'Test reminder';
   const body = a && trip ? `${time12(a.time)} · ${a.location} — ${trip.name}` : 'Reminders are working!';
   await ensurePermission();
   if (isNative) {

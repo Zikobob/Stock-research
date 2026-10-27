@@ -4,22 +4,24 @@ import { celebrate } from '@/components/ui/Confetti';
 import { TRIVIA_REMINDER } from '@/data/personal';
 import type { Personal } from '@/store/types';
 
+import { Tx } from '../kit';
 import { EFFECT_OPTIONS } from '../options';
 import type { Pal } from '../palette';
-import { OptionRow, StepHeading, SwitchRow, Tx, type SetPersonal } from '../parts';
+import { EffectRow, StepHeading, SwitchRow, type SetPersonal } from '../parts';
 
 /** Step 5: how big the celebrations are (tap to try one) and the daily trivia reminder. */
 export function StepVibe({ pal, p, set, onTrivia }: { pal: Pal; p: Personal; set: SetPersonal; onTrivia: (on: boolean) => void }) {
   return (
     <View style={{ gap: 20 }}>
-      <StepHeading pal={pal} title="Set the vibe" sub="How big should celebrations be? Tap one to try it." />
-      <View accessibilityRole="radiogroup" accessibilityLabel="Effects" style={{ gap: 10 }}>
+      <StepHeading pal={pal} kicker="05 / 05 · Vibe" title="Set the vibe" sub="How big should celebrations be? Tap one to try it." />
+      <View accessibilityRole="radiogroup" accessibilityLabel="Effects" style={{ gap: 12 }}>
         {EFFECT_OPTIONS.map((o) => (
-          <OptionRow
+          <EffectRow
             key={o.key}
             pal={pal}
+            level={o.key}
             on={p.effects === o.key}
-            emoji={o.emoji}
+            bars={o.bars}
             label={o.label}
             sub={o.sub}
             onPress={() => {
@@ -31,7 +33,14 @@ export function StepVibe({ pal, p, set, onTrivia }: { pal: Pal; p: Personal; set
         ))}
       </View>
       <View style={{ gap: 8 }}>
-        <SwitchRow pal={pal} icon="notifications-outline" label="Daily trivia reminder" sub={`One question a day at ${TRIVIA_REMINDER.timeLabel}. Keep your streak going.`} value={p.triviaReminder} onChange={onTrivia} />
+        <SwitchRow
+          pal={pal}
+          icon="notifications-outline"
+          label="Daily trivia reminder"
+          sub={`One question a day at ${TRIVIA_REMINDER.timeLabel}. Keep your streak going.`}
+          value={p.triviaReminder}
+          onChange={onTrivia}
+        />
         <Tx pal={pal} tone="muted" variant="caption">
           Off by default. You can change both in Settings.
         </Tx>

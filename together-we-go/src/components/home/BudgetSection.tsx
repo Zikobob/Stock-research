@@ -4,23 +4,33 @@ import { StyleSheet, View } from 'react-native';
 
 import { ProgressBar, SectionHeader, type IconName } from '@/components/ui/bits';
 import { Press } from '@/components/ui/Press';
+import { Stamp, type StampTone } from '@/components/ui/Stamp';
 import { T } from '@/components/ui/T';
 import { totalSpent } from '@/store/useAppStore';
-import { colors, radius, shadow } from '@/theme';
+import { colors } from '@/theme';
 import { money } from '@/utils/format';
 
 import { budgetView, oweLine, type BudgetTone } from './logic';
+import { MonoAmount } from './MonoAmount';
 import type { TripCtx } from './useHomeContext';
 
-const TONE: Record<BudgetTone, { color: string; icon: IconName }> = {
-  ok: { color: colors.positive, icon: 'checkmark-circle' },
-  warn: { color: colors.warn, icon: 'warning' },
-  over: { color: colors.red, icon: 'alert-circle' },
+/** The bar is the accent while things are fine and turns amber, then red; the stamp always says the state in words. */
+const TONE: Record<BudgetTone, { bar: string; stamp: StampTone }> = {
+  ok: { bar: colors.accent, stamp: 'positive' },
+  warn: { bar: colors.warn, stamp: 'warn' },
+  over: { bar: colors.red, stamp: 'danger' },
+};
+
+const OWE_ICON: Record<'owe' | 'owed' | 'square' | 'other', IconName> = {
+  owe: 'arrow-up-outline',
+  owed: 'arrow-down-outline',
+  square: 'checkmark-circle-outline',
+  other: 'swap-horizontal',
 };
 
 /**
- * What the group has spent, as the biggest number in the block, with a bar that is green, amber or red AND says so in words,
- * and one line about who owes whom. The whole card opens the Budget tab.
+ * What the group has spent: one big mono number sitting open on the paper, the limit beside it, a chunky bar in the state's colour
+ * with a stamp that says the state, and one line about who owes whom. The whole block opens the Budget tab.
  */
 export function BudgetSection({ ctx }: { ctx: TripCtx }) {
   const { trip, userId } = ctx;
@@ -28,42 +38,30 @@ export function BudgetSection({ ctx }: { ctx: TripCtx }) {
   const v = budgetView(spent, trip.budget);
   const tone = TONE[v.tone];
   const owe = oweLine(trip, userId);
-  const square = owe.tone === 'square';
+  const open = () => router.navigate('/(tabs)/budget');
   return (
     <View>
-      <SectionHeader title="Group budget" action="Open" onAction={() => router.navigate('/(tabs)/budget')} />
-      <Press
-        onPress={() => router.navigate('/(tabs)/budget')}
-        scaleTo={0.99}
-        style={styles.card}
-        accessibilityLabel={`Group budget. ${money(spent)} of ${money(trip.budget)} spent. ${v.word}, ${v.detail}. ${owe.text}. Open budget`}>
-        <View style={styles.amount}>
-          <T variant="numeral" style={styles.big}>
-            {money(spent)}
-          </T>
-          <T variant="small" color={colors.textSecondary} style={{ marginBottom: 8 }}>
-            of {money(trip.budget)}
-          </T>
-        </View>
-        <ProgressBar value={v.ratio} color={tone.color} height={12} />
-        <View style={styles.state}>
-          <Ionicons name={tone.icon} size={18} color={tone.color} />
-          <T variant="small" style={{ flex: 1 }}>
-            <T variant="small" weight="extrabold" color={tone.color}>
-              {v.word}
+      <SectionHeader title="Group budget" action="Open" onAction={open} />
+      <Press onPress={open} scaleTo={0.99} style={styles.body} accessibilityLabel={`Group budget. ${money(spent)} of ${money(trip.budget)} spent. ${v.word}, ${v.detail}. ${owe.text}. Open budget`}>
+        <View style={styles.top}>
+          <View style={styles.amount}>
+            <MonoAmount text={money(spent)} size={56} />
+            <T variant="small" color={colors.textSecondary} style={{ marginBottom: 8 }}>
+              of {money(trip.budget)}
             </T>
-            {'  '}
-            <T variant="small" color={colors.textSecondary}>
-              {v.detail}
-            </T>
-          </T>
+          </View>
+          <Stamp label={v.word} tone={tone.stamp} />
         </View>
+        <ProgressBar value={v.ratio} color={tone.bar} height={18} />
+        <T variant="kicker" color={colors.textSecondary}>
+          {v.detail}
+        </T>
         <View style={styles.owe}>
-          <Ionicons name={square ? 'checkmark-circle' : 'swap-horizontal'} size={18} color={square ? colors.positive : colors.textSecondary} />
+          <Ionicons name={OWE_ICON[owe.tone]} size={18} color={owe.tone === 'owed' || owe.tone === 'square' ? colors.positive : colors.ink} />
           <T variant="bodySm" weight="semibold" style={{ flex: 1 }}>
             {owe.text}
           </T>
-          <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />
+          <Ionicons name="arrow-forward" size={16} color={colors.ink} />
         </View>
       </Press>
     </View>
@@ -71,9 +69,8 @@ export function BudgetSection({ ctx }: { ctx: TripCtx }) {
 }
 
 const styles = StyleSheet.create({
-  card: { padding: 16, gap: 12, backgroundColor: colors.card, borderRadius: radius.card, borderWidth: 1, borderColor: colors.border, ...shadow },
-  amount: { flexDirection: 'row', alignItems: 'flex-end', gap: 8 },
-  big: { fontSize: 64, lineHeight: 68 },
-  state: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  owe: { flexDirection: 'row', alignItems: 'center', gap: 8, minHeight: 44, borderTopWidth: 1, borderTopColor: colors.border, paddingTop: 8, marginBottom: -4 },
+  body: { gap: 10 },
+  top: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 },
+  amount: { flexDirection: 'row', alignItems: 'flex-end', flexWrap: 'wrap', columnGap: 8, flexShrink: 1 },
+  owe: { flexDirection: 'row', alignItems: 'center', gap: 10, minHeight: 48, borderTopWidth: 1, borderTopColor: colors.border },
 });

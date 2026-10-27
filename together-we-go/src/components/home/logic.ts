@@ -7,7 +7,7 @@ import type { Activity, HomeSection, Member, Trip, WeatherSnapshot } from '@/sto
 import { money, countdownLabel } from '@/utils/format';
 import { settlePlan } from '@/utils/money';
 import type { Standing } from '@/utils/points';
-import { daysBetween, partsInTz, time12, tripDays, zonedToUtc } from '@/utils/time';
+import { dayLabel, daysBetween, partsInTz, time12, tripDays, weekdayShort, zonedToUtc } from '@/utils/time';
 
 export type HeroStatus = 'planning' | 'active' | 'completed' | null;
 
@@ -111,6 +111,27 @@ export function todaysChecklist(activities: Activity[], today: string): Activity
   return activities.filter((a) => a.date === today && a.status !== 'voting').sort((a, b) => a.time.localeCompare(b.time));
 }
 
+/** How many of today's things are ticked off. */
+export function checklistProgress(items: Pick<Activity, 'done'>[]): { done: number; total: number } {
+  return { done: items.filter((a) => a.done).length, total: items.length };
+}
+
+/** "7:30 PM" as the pieces a departures board prints separately: the clock and AM or PM. */
+export function timeParts(hhmm: string): { clock: string; suffix: string } {
+  const [clock, suffix] = time12(hhmm).split(' ');
+  return { clock, suffix };
+}
+
+/** "FRI 23 OCT": the small caps line above a ticket (the kicker uppercases it, so this is plain text). */
+export function dateKicker(ymd: string): string {
+  return `${weekdayShort(ymd)} ${Number(ymd.slice(8))} ${dayLabel(ymd).split(' ')[0]}`;
+}
+
+/** True when the countdown is worth the accent: it starts within three hours (or has begun). */
+export function startsSoon(ms: number): boolean {
+  return ms < 3 * 3600000;
+}
+
 // ---------------------------------------------------------------------------------------------
 // Budget
 
@@ -212,6 +233,39 @@ export function voteTally(a: Pick<Activity, 'votes'>, memberCount: number) {
   return { ups, downs, needed: Math.floor(memberCount / 2) + 1 };
 }
 
+/** What the tally says under a vote: "1 of 3 yes votes needed to lock it in", or that it is already enough. */
+export function voteLine(a: Pick<Activity, 'votes'>, memberCount: number): string {
+  const { ups, needed } = voteTally(a, memberCount);
+  return ups >= needed ? `${ups} yes, enough to lock it in` : `${ups} of ${needed} yes votes to lock it in`;
+}
+
+/** Would this vote lock the activity in? The store locks an item once more than half the group says yes. */
+export function voteLocks(a: Pick<Activity, 'votes' | 'status'>, userId: string, memberCount: number, value: 1 | -1): boolean {
+  if (a.status !== 'voting' || value !== 1 || a.votes[userId] === 1) return false;
+  const others = Object.entries(a.votes).filter(([id, v]) => id !== userId && v === 1).length;
+  return others + 1 > memberCount / 2;
+}
+
+/** How tall each step of the podium is, by place. */
+export const PODIUM_HEIGHT: Record<1 | 2 | 3, number> = { 1: 120, 2: 92, 3: 68 };
+
+export interface PodiumSlot extends Ranked {
+  /** Height of this person's block. */
+  height: number;
+}
+
+/** The podium left to right as on a real one: second, first, third (just second and first when only two people play). */
+export function podiumSlots(top: Ranked[]): PodiumSlot[] {
+  const slot = (r: Ranked): PodiumSlot => ({ ...r, height: PODIUM_HEIGHT[Math.min(3, r.rank) as 1 | 2 | 3] });
+  const [first, second, third] = top;
+  return [second, first, third].filter((r): r is Ranked => !!r).map(slot);
+}
+
+/** "3 day streak", or nothing when there is no streak. */
+export function streakLabel(streak: number): string | null {
+  return streak > 0 ? `${streak} day streak` : null;
+}
+
 /** How an answer button looks once today's question is answered. */
 export function answerState(index: number, answer: number, picked: number | null): 'open' | 'right' | 'wrong' | 'reveal' | 'dim' {
   if (picked === null) return 'open';
@@ -284,9 +338,9 @@ export function typicalIcon(max: number): 'sunny' | 'partly-sunny' | 'cloud-outl
   return 'cloud-outline';
 }
 
-/** "3:41 PM in Positano · 9:41 AM at home". */
-export function timeLine(now: number, tz: string, homeTz: string, city: string): string {
+/** The two clocks on the weather board: "3:41 PM" there and "9:41 AM" at home, and whether they are the same. */
+export function clockPair(now: number, tz: string, homeTz: string): { there: string; home: string; same: boolean } {
   const there = time12(partsInTz(now, tz).hhmm);
   const home = time12(partsInTz(now, homeTz).hhmm);
-  return there === home ? `${there} in ${city}, same as at home` : `${there} in ${city} · ${home} at home`;
+  return { there, home, same: there === home };
 }

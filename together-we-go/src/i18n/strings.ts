@@ -77,7 +77,7 @@ const en = {
   'itin.pending': 'Pending',
   'itin.perPerson': '/person',
 
-  'add.title': 'Add Activity',
+  'add.title': 'Add activity',
   'add.subtitle': 'Search for a place, then pick a day and time.',
   'add.type': 'Activity Type',
   'add.time': 'Time',

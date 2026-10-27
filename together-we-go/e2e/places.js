@@ -46,7 +46,8 @@ const openAdd = async (p) => {
   check('picking a place shows its address and distance', await vis(p.getByText(/Viale Pasitea, Positano · [\d,]+ km from you/)));
   check('the box now holds the place name', (await p.getByTestId('activity-name').inputValue()) === 'Da Vincenzo');
   await p.getByTestId('add-activity-submit').click(); await p.waitForTimeout(900);
-  check('the picked place is added to the plan', await vis(p.getByLabel('Delete Da Vincenzo')));
+  check('the picked place is added to the plan', await vis(p.getByLabel(/^Da Vincenzo, /)));
+  await p.getByLabel(/^Da Vincenzo, /).click(); await p.waitForTimeout(400); // open the new stop to reach Delete
   await p.getByLabel('Delete Da Vincenzo').click(); await p.waitForTimeout(400);
   await p.getByRole('button', { name: 'Delete', exact: true }).last().click(); await p.waitForTimeout(500);
 
@@ -62,6 +63,7 @@ const openAdd = async (p) => {
   check('using the typed words hides the list', !(await vis(p.getByLabel('Use Sunset picnic as typed'), 600)));
   await p.getByTestId('add-activity-submit').click(); await p.waitForTimeout(900);
   check('a place typed by hand is added', await vis(p.getByText('Sunset picnic')));
+  await p.getByLabel(/^Sunset picnic, /).click(); await p.waitForTimeout(400);
   await p.getByLabel('Delete Sunset picnic').click(); await p.waitForTimeout(400);
   await p.getByRole('button', { name: 'Delete', exact: true }).last().click(); await p.waitForTimeout(500);
   await b.close();

@@ -1,30 +1,38 @@
 /** Cross-platform time & date pickers (identical on iOS, Android and web). */
 import { Ionicons } from '@expo/vector-icons';
 import { useMemo, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, View, useWindowDimensions } from 'react-native';
 
-import { colors, radius } from '@/theme';
+import { colors, line, radius } from '@/theme';
 import { addDays, daysBetween, parseYMD, time12, ymdFromUtcDate } from '@/utils/time';
 
 import { Button } from './ui/Button';
 import { Chip } from './ui/bits';
+import { PlatePress } from './ui/Plate';
 import { Press } from './ui/Press';
 import { Sheet } from './ui/Sheet';
+import { SplitFlap } from './ui/SplitFlap';
 import { T } from './ui/T';
 
-function Stepper({ label, value, onUp, onDown }: { label: string; value: string; onUp: () => void; onDown: () => void }) {
+/** A square button with a plate: the arrows above and below the time, and the month arrows. */
+function ArrowButton({ icon, label, onPress }: { icon: 'chevron-up' | 'chevron-down' | 'chevron-back' | 'chevron-forward'; label: string; onPress: () => void }) {
+  return (
+    <PlatePress onPress={onPress} accessibilityLabel={label} offset={3} corner={radius.button} style={styles.arrow}>
+      <Ionicons name={icon} size={22} color={colors.ink} />
+    </PlatePress>
+  );
+}
+
+/** Hours or minutes on departure-board tiles, with an arrow above and below to change them. */
+function Stepper({ label, value, size, onUp, onDown }: { label: string; value: string; size: number; onUp: () => void; onDown: () => void }) {
   return (
     <View style={styles.stepper}>
-      <Press onPress={onUp} accessibilityLabel={`Increase ${label}`} style={styles.stepBtn}>
-        <Ionicons name="chevron-up" size={22} color={colors.primary} />
-      </Press>
-      <T variant="display" style={{ fontSize: 40, lineHeight: 48 }} accessibilityLabel={`${label} ${value}`}>
-        {value}
-      </T>
-      <Press onPress={onDown} accessibilityLabel={`Decrease ${label}`} style={styles.stepBtn}>
-        <Ionicons name="chevron-down" size={22} color={colors.primary} />
-      </Press>
-      <T variant="caption" color={colors.textMuted}>
+      <ArrowButton icon="chevron-up" label={`Increase ${label}`} onPress={onUp} />
+      <View accessible accessibilityLabel={`${label} ${value}`} style={{ alignItems: 'center' }}>
+        <SplitFlap value={value} size={size} />
+      </View>
+      <ArrowButton icon="chevron-down" label={`Decrease ${label}`} onPress={onDown} />
+      <T variant="kicker" color={colors.textSecondary} style={{ alignSelf: 'center' }}>
         {label}
       </T>
     </View>
@@ -34,6 +42,8 @@ function Stepper({ label, value, onUp, onDown }: { label: string; value: string;
 export function TimePickerSheet({ visible, value, onClose, onChange }: { visible: boolean; value: string; onClose: () => void; onChange: (v: string) => void }) {
   const [h, setH] = useState(10);
   const [m, setM] = useState(0);
+  const { width } = useWindowDimensions();
+  const size = width >= 380 ? 72 : width >= 340 ? 62 : 50;
   // Re-sync with the field each time the sheet opens (derived during render, no effect needed).
   const [openedWith, setOpenedWith] = useState<string | null>(null);
   const openKey = visible ? value : null;
@@ -47,6 +57,7 @@ export function TimePickerSheet({ visible, value, onClose, onChange }: { visible
   }
   const hhmm = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
   const pm = h >= 12;
+  const hour12 = h % 12 === 0 ? 12 : h % 12;
   const presets = ['07:00', '09:00', '12:30', '15:00', '18:00', '19:30', '21:00'];
 
   return (
@@ -65,12 +76,13 @@ export function TimePickerSheet({ visible, value, onClose, onChange }: { visible
         />
       }>
       <View style={styles.timeRow}>
-        <Stepper label="hour" value={String(h % 12 === 0 ? 12 : h % 12)} onUp={() => setH((x) => (x + 1) % 24)} onDown={() => setH((x) => (x + 23) % 24)} />
-        <T variant="display" style={{ fontSize: 40, lineHeight: 48, marginTop: -18 }}>
-          :
-        </T>
-        <Stepper label="minute" value={String(m).padStart(2, '0')} onUp={() => setM((x) => (x + 5) % 60)} onDown={() => setM((x) => (x + 55) % 60)} />
-        <View style={{ gap: 8, marginLeft: 6 }}>
+        <Stepper label="hour" value={String(hour12).padStart(2, '0')} size={size} onUp={() => setH((x) => (x + 1) % 24)} onDown={() => setH((x) => (x + 23) % 24)} />
+        <View style={styles.colon} accessibilityElementsHidden importantForAccessibility="no">
+          <View style={styles.dot} />
+          <View style={styles.dot} />
+        </View>
+        <Stepper label="minute" value={String(m).padStart(2, '0')} size={size} onUp={() => setM((x) => (x + 5) % 60)} onDown={() => setM((x) => (x + 55) % 60)} />
+        <View style={{ gap: 8, marginLeft: 4 }}>
           <Chip label="AM" active={!pm} onPress={() => pm && setH((x) => x - 12)} small />
           <Chip label="PM" active={pm} onPress={() => !pm && setH((x) => x + 12)} small />
         </View>
@@ -138,20 +150,21 @@ export function DatePickerSheet({
   return (
     <Sheet visible={visible} onClose={onClose} title={title}>
       <View style={styles.monthRow}>
-        <Press onPress={() => shiftMonth(-1)} accessibilityLabel="Previous month" style={styles.monthBtn}>
-          <Ionicons name="chevron-back" size={18} color={colors.text} />
-        </Press>
-        <T variant="title">
-          {MONTHS[m - 1]} {y}
-        </T>
-        <Press onPress={() => shiftMonth(1)} accessibilityLabel="Next month" style={styles.monthBtn}>
-          <Ionicons name="chevron-forward" size={18} color={colors.text} />
-        </Press>
+        <ArrowButton icon="chevron-back" label="Previous month" onPress={() => shiftMonth(-1)} />
+        <View style={{ alignItems: 'center' }} accessible accessibilityLabel={`${MONTHS[m - 1]} ${y}`}>
+          <T variant="headline" importantForAccessibility="no">
+            {MONTHS[m - 1]}
+          </T>
+          <T variant="kicker" color={colors.textSecondary} importantForAccessibility="no">
+            {y}
+          </T>
+        </View>
+        <ArrowButton icon="chevron-forward" label="Next month" onPress={() => shiftMonth(1)} />
       </View>
       <View style={styles.grid}>
         {WD.map((w, i) => (
-          <View key={`w${i}`} style={styles.cell}>
-            <T variant="caption" color={colors.textMuted} weight="semibold">
+          <View key={`w${i}`} style={styles.head}>
+            <T variant="kicker" color={colors.textSecondary}>
               {w}
             </T>
           </View>
@@ -167,10 +180,13 @@ export function DatePickerSheet({
               }}
               accessibilityLabel={d}
               accessibilityState={{ selected: d === value, disabled: !!disabled(d) }}
-              style={[styles.cell, styles.day, d === value && styles.daySel, disabled(d) && { opacity: 0.3 }]}>
-              <T variant="bodySm" weight={d === value ? 'bold' : 'regular'} color={d === value ? colors.white : colors.text}>
-                {parseYMD(d).d}
-              </T>
+              scaleTo={0.94}
+              style={[styles.cell, disabled(d) && { opacity: 0.3 }]}>
+              <View style={[styles.day, d === value && styles.daySel]}>
+                <T variant="numeralSm" color={d === value ? colors.onAccent : colors.text} importantForAccessibility="no">
+                  {parseYMD(d).d}
+                </T>
+              </View>
             </Press>
           ) : (
             <View key={`e${i}`} style={styles.cell} />
@@ -187,14 +203,16 @@ export function DatePickerSheet({
 }
 
 const styles = StyleSheet.create({
-  timeRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 8 },
-  stepper: { alignItems: 'center', width: 76 },
-  stepBtn: { width: 44, height: 36, borderRadius: radius.sm, backgroundColor: colors.primarySofter, alignItems: 'center', justifyContent: 'center' },
+  arrow: { height: 44, minWidth: 44, alignSelf: 'stretch', borderRadius: radius.button, borderWidth: line, borderColor: colors.ink, backgroundColor: colors.card, alignItems: 'center', justifyContent: 'center' },
+  timeRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 4 },
+  stepper: { alignItems: 'stretch', gap: 8 },
+  colon: { gap: 14, marginTop: -4 },
+  dot: { width: 8, height: 8, backgroundColor: colors.ink },
   wrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   monthRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  monthBtn: { width: 36, height: 36, borderRadius: 18, borderWidth: 1, borderColor: colors.border, alignItems: 'center', justifyContent: 'center' },
   grid: { flexDirection: 'row', flexWrap: 'wrap' },
-  cell: { width: `${100 / 7}%`, aspectRatio: 1, alignItems: 'center', justifyContent: 'center' },
-  day: { borderRadius: 999 },
-  daySel: { backgroundColor: colors.primary },
+  head: { width: `${100 / 7}%`, height: 28, alignItems: 'center', justifyContent: 'center' },
+  cell: { width: `${100 / 7}%`, aspectRatio: 1, padding: 2 },
+  day: { flex: 1, alignItems: 'center', justifyContent: 'center', borderRadius: radius.chip, borderWidth: line, borderColor: 'transparent' },
+  daySel: { backgroundColor: colors.accent, borderColor: colors.ink },
 });

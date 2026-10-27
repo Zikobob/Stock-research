@@ -1,18 +1,19 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
-import { ActivityIndicator, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 import { Input } from '@/components/ui/Input';
 import { Press } from '@/components/ui/Press';
+import { Skeleton } from '@/components/ui/Skeleton';
 import { T } from '@/components/ui/T';
 import { destinationById } from '@/data/destinations';
 import { useMyLocation, usePlaceSearch } from '@/hooks/usePlaceSearch';
 import { normalizeQuery, type PlaceHit } from '@/services/placeSearch';
 import type { Trip } from '@/store/types';
-import { colors, radius } from '@/theme';
+import { colors, hair, line, radius } from '@/theme';
 import { distanceKm, kmLabel, type LatLng } from '@/utils/geo';
 
-import { typeEmoji } from './meta';
+import { typeIcon } from './meta';
 
 interface Props {
   trip: Trip;
@@ -49,10 +50,10 @@ export function PlaceSearch({ trip, visible, value, onChangeText, picked, onPick
   const away = (p: LatLng) => (from ? kmLabel(distanceKm(from, p)) : '');
 
   return (
-    <View style={{ gap: 8 }}>
+    <View style={{ gap: 10 }}>
       <Input
         label="Where do you want to go?"
-        placeholder="Search a place, or type what you will do"
+        placeholder="Search a place or type an idea"
         icon="search"
         value={value}
         onChangeText={(t) => {
@@ -64,6 +65,7 @@ export function PlaceSearch({ trip, visible, value, onChangeText, picked, onPick
         maxLength={70}
         autoCorrect={false}
         testID="activity-name"
+        style={styles.typing}
         right={
           value ? (
             <Press
@@ -72,9 +74,9 @@ export function PlaceSearch({ trip, visible, value, onChangeText, picked, onPick
                 setAsTyped(false);
                 onClear();
               }}
-              hitSlop={10}
+              style={styles.clear}
               accessibilityLabel="Clear the place">
-              <Ionicons name="close-circle" size={19} color={colors.textMuted} />
+              <Ionicons name="close" size={20} color={colors.ink} />
             </Press>
           ) : null
         }
@@ -82,15 +84,17 @@ export function PlaceSearch({ trip, visible, value, onChangeText, picked, onPick
 
       {picked ? (
         <View style={styles.picked}>
-          <Ionicons name="checkmark-circle" size={16} color={colors.primary} />
-          <T variant="caption" color={colors.textSecondary} style={{ flex: 1 }} numberOfLines={2}>
+          <View style={styles.tick}>
+            <Ionicons name="checkmark" size={14} color={colors.onAccent} />
+          </View>
+          <T variant="small" color={colors.textSecondary} style={{ flex: 1 }} numberOfLines={2}>
             {[picked.detail, from ? `${away(picked)} ${fromLabel}` : ''].filter(Boolean).join(' · ')}
           </T>
         </View>
       ) : null}
 
       {!picked && !open && !value ? (
-        <T variant="caption" color={colors.textMuted}>
+        <T variant="small" color={colors.textMuted}>
           Try “museum”, “pizza” or the name of a place.
         </T>
       ) : null}
@@ -100,7 +104,7 @@ export function PlaceSearch({ trip, visible, value, onChangeText, picked, onPick
           {hits.map((h, i) => (
             <Press key={h.id} onPress={() => onPick(h)} style={[styles.row, i > 0 && styles.divider]} accessibilityLabel={[h.name, h.detail, from ? `${away(h)} ${fromLabel}` : ''].filter(Boolean).join(', ')}>
               <View style={styles.icon}>
-                <T style={{ fontSize: 17, lineHeight: 22 }}>{typeEmoji[h.type]}</T>
+                <Ionicons name={typeIcon(h.type)} size={20} color={colors.ink} />
               </View>
               <View style={{ flex: 1 }}>
                 <T variant="bodySm" weight="semibold" numberOfLines={1}>
@@ -114,7 +118,7 @@ export function PlaceSearch({ trip, visible, value, onChangeText, picked, onPick
               </View>
               {from ? (
                 <View style={{ alignItems: 'flex-end' }}>
-                  <T variant="small" weight="bold">
+                  <T variant="kicker" color={colors.ink} style={{ textTransform: 'none' }}>
                     {away(h)}
                   </T>
                   <T variant="micro" color={colors.textMuted}>
@@ -125,16 +129,17 @@ export function PlaceSearch({ trip, visible, value, onChangeText, picked, onPick
             </Press>
           ))}
           {loading ? (
-            <View style={[styles.row, hits.length > 0 && styles.divider]}>
-              <ActivityIndicator size="small" color={colors.textMuted} />
-              <T variant="small" color={colors.textSecondary}>
-                Searching…
-              </T>
+            <View style={[styles.row, hits.length > 0 && styles.divider]} accessibilityLabel="Searching">
+              <Skeleton width={40} height={40} corner={radius.button} />
+              <View style={{ flex: 1, gap: 8 }}>
+                <Skeleton width="62%" height={14} corner={radius.xs} />
+                <Skeleton width="38%" height={11} corner={radius.xs} />
+              </View>
             </View>
           ) : null}
           <Press onPress={() => setAsTyped(true)} style={[styles.row, (hits.length > 0 || loading) && styles.divider]} accessibilityLabel={`Use ${value.trim()} as typed`}>
             <View style={styles.icon}>
-              <Ionicons name="create-outline" size={17} color={colors.textSecondary} />
+              <Ionicons name="create-outline" size={20} color={colors.ink} />
             </View>
             <T variant="bodySm" weight="semibold" style={{ flex: 1 }} numberOfLines={1}>
               Use “{value.trim()}”
@@ -156,10 +161,14 @@ export function PlaceSearch({ trip, visible, value, onChangeText, picked, onPick
 }
 
 const styles = StyleSheet.create({
-  picked: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 2 },
-  list: { backgroundColor: colors.card, borderRadius: radius.md, borderWidth: 1, borderColor: colors.border, overflow: 'hidden' },
-  row: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 10, paddingHorizontal: 12 },
-  divider: { borderTopWidth: 1, borderTopColor: colors.border },
-  icon: { width: 34, height: 34, borderRadius: 17, backgroundColor: colors.bgAlt, alignItems: 'center', justifyContent: 'center' },
-  note: { paddingHorizontal: 12, paddingBottom: 8, paddingTop: 2 },
+  // the text box itself is as tall as a fingertip, not only the outlined field around it
+  typing: { minHeight: 44 },
+  clear: { width: 44, height: 44, marginRight: -10, alignItems: 'center', justifyContent: 'center' },
+  picked: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  tick: { width: 22, height: 22, borderRadius: radius.xs, borderWidth: line, borderColor: colors.ink, backgroundColor: colors.accent, alignItems: 'center', justifyContent: 'center' },
+  list: { backgroundColor: colors.card, borderRadius: radius.card, borderWidth: line, borderColor: colors.ink, overflow: 'hidden' },
+  row: { flexDirection: 'row', alignItems: 'center', gap: 12, minHeight: 60, paddingVertical: 10, paddingHorizontal: 12 },
+  divider: { borderTopWidth: hair, borderTopColor: colors.border },
+  icon: { width: 40, height: 40, borderRadius: radius.button, borderWidth: line, borderColor: colors.ink, backgroundColor: colors.bgAlt, alignItems: 'center', justifyContent: 'center' },
+  note: { paddingHorizontal: 12, paddingBottom: 10, paddingTop: 2 },
 });

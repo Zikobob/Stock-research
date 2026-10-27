@@ -5,7 +5,7 @@ import type { ComponentProps, ReactNode } from 'react';
 import { StyleSheet, Switch, View, type StyleProp, type ViewStyle } from 'react-native';
 
 import { imageSource } from '@/data/images';
-import { colors, hair, line, radius } from '@/theme';
+import { colors, hair, isDark, line, radius } from '@/theme';
 import { initials } from '@/utils/format';
 
 import { Float } from './motion';
@@ -266,7 +266,7 @@ export function ToggleRow({ label, sub, value, onChange, icon }: { label: string
         value={value}
         onValueChange={onChange}
         trackColor={{ false: colors.borderStrong, true: colors.ink }}
-        thumbColor={colors.card}
+        thumbColor={isDark ? colors.ink : colors.card}
         {...({ activeThumbColor: colors.accent } as object)}
       />
     </View>
@@ -308,8 +308,10 @@ const styles = StyleSheet.create({
   chip: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     gap: 6,
     height: 44,
+    minWidth: 44,
     paddingHorizontal: 14,
     borderRadius: radius.chip,
     borderWidth: line,

@@ -2,7 +2,7 @@ import type { IconName } from '@/components/ui/bits';
 import type { Effects, HomeSection } from '@/store/types';
 import type { ModePref } from '@/theme/palettes';
 
-/** Faces to pick from next to the nickname. */
+/** Faces to pick from for the person's own avatar (the one place emoji are allowed: they are the person's choice, not decoration). */
 export const EMOJIS = ['✈️', '🌴', '🏔️', '🍜', '📸', '🎒', '🌸', '🏄', '🚂', '🗺️', '🌙', '🦋'];
 
 /** The numbered steps. The page after them is the summary with the build button. */
@@ -15,10 +15,11 @@ export const MODES: { key: ModePref; label: string; icon: IconName }[] = [
   { key: 'system', label: 'System', icon: 'phone-portrait-outline' },
 ];
 
-export const EFFECT_OPTIONS: { key: Effects; label: string; emoji: string; sub: string }[] = [
-  { key: 'chill', label: 'Chill', emoji: '😌', sub: 'No confetti, just a calm tick' },
-  { key: 'lively', label: 'Lively', emoji: '🎉', sub: 'A little confetti when it counts' },
-  { key: 'max', label: 'Max', emoji: '🪩', sub: 'Full party. Confetti everywhere' },
+/** The three Effects settings. `bars` is how many of the three intensity bars are lit. */
+export const EFFECT_OPTIONS: { key: Effects; label: string; sub: string; bars: 1 | 2 | 3 }[] = [
+  { key: 'chill', label: 'Chill', sub: 'No confetti, just a calm tick', bars: 1 },
+  { key: 'lively', label: 'Lively', sub: 'A little confetti when it counts', bars: 2 },
+  { key: 'max', label: 'Max', sub: 'Full party. Confetti everywhere', bars: 3 },
 ];
 
 export const EFFECT_LABEL: Record<Effects, string> = { chill: 'Chill', lively: 'Lively', max: 'Max' };

@@ -1,57 +1,68 @@
 import { Ionicons } from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
 import { router } from 'expo-router';
-import { useState } from 'react';
-import { ScrollView, StyleSheet, View, useWindowDimensions } from 'react-native';
+import { useEffect, useState, type ReactNode } from 'react';
+import { Animated, StyleSheet, View, useWindowDimensions } from 'react-native';
 
 import { GuidedTour } from '@/components/GuidedTour';
-import { BudgetTile } from '@/components/home/BudgetTile';
+import { BudgetSection } from '@/components/home/BudgetSection';
+import { CrewSection } from '@/components/home/CrewSection';
 import { DiscoverSection } from '@/components/home/DiscoverSection';
-import { GlanceTiles } from '@/components/home/GlanceTiles';
 import { HomeHero } from '@/components/home/HomeHero';
+import { blockHasContent, celebrateKey, shouldCelebrateOneDay } from '@/components/home/logic';
 import { NearbySection } from '@/components/home/NearbySection';
 import { PicksSection } from '@/components/home/PicksSection';
-import { QuickTiles } from '@/components/home/QuickTiles';
+import { pickedForYou } from '@/components/home/picks';
+import { PlaySection } from '@/components/home/PlaySection';
 import { UpNextSection } from '@/components/home/UpNextSection';
+import { hasTrip, useHomeContext } from '@/components/home/useHomeContext';
+import { WeatherSection } from '@/components/home/WeatherSection';
 import { TripMenuSheet } from '@/components/trip/TripMenuSheet';
-import { Card } from '@/components/ui/bits';
 import { Button } from '@/components/ui/Button';
+import { celebrate } from '@/components/ui/Confetti';
 import { toast } from '@/components/ui/feedback';
+import { FadeIn, useScrollY } from '@/components/ui/motion';
 import { Press, tap } from '@/components/ui/Press';
 import { T } from '@/components/ui/T';
-import { destinationById } from '@/data/destinations';
-import { useNow, useWeather } from '@/hooks/useTrip';
+import { visibleSections } from '@/data/layouts';
 import { useT } from '@/i18n';
-import { nextUpcoming } from '@/services/notifications';
-import { totalSpent, tripStatus, useActiveTrip, useAppStore, useCurrentUser } from '@/store/useAppStore';
-import { MAX_WIDTH, colors, radius } from '@/theme';
-import { daysBetween, deviceTimeZone, greetingFor, todayInTz } from '@/utils/time';
+import type { HomeSection } from '@/store/types';
+import { useAppStore } from '@/store/useAppStore';
+import { MAX_WIDTH, colors, space } from '@/theme';
+import { greetingFor } from '@/utils/time';
 
-/** Home: a hero picture, then the things worth seeing at a glance. Each block is its own component in components/home. */
+/**
+ * Home: the trip's photo and boarding pass, a one-line greeting, then the blocks the person chose, in the order they chose
+ * (see data/layouts). Each block is its own component in components/home; a block with nothing to show is left out.
+ */
 export default function Home() {
   const t = useT();
-  const { width } = useWindowDimensions();
-  const user = useCurrentUser();
-  const trip = useActiveTrip();
+  const ctx = useHomeContext();
+  const { trip, dest, status, now, today, tripLen, daysToGo, dayNo, personal, userName } = ctx;
   const unread = useAppStore((s) => s.notifications.filter((n) => !n.read).length);
-  const personal = useAppStore((s) => s.personal);
+  const fired = useAppStore((s) => s.firedReminders);
+  const markReminderFired = useAppStore((s) => s.markReminderFired);
   const setToured = useAppStore((s) => s.setToured);
-  const now = useNow(30000);
+  const { width } = useWindowDimensions();
+  const { y, onScroll } = useScrollY();
   const [menu, setMenu] = useState(false);
 
-  const dest = destinationById(trip?.destinationId ?? 'positano');
-  const tz = dest?.tz ?? 'UTC';
-  const weather = useWeather(dest?.id);
-  const status = trip ? tripStatus(trip) : null;
-  const show = personal.sections;
-  const colW = Math.min(width, MAX_WIDTH) - 40;
-  const today = todayInTz(tz);
-  const tripLen = trip ? daysBetween(trip.startDate, trip.endDate) + 1 : 0;
-  const daysToGo = trip ? Math.max(0, daysBetween(today, trip.startDate)) : 0;
-  const dayNo = trip ? Math.min(tripLen, Math.max(1, daysBetween(trip.startDate, today) + 1)) : 0;
-  const votingCount = trip ? trip.activities.filter((a) => a.status === 'voting').length : 0;
-  const firstName = personal.nickname || (user?.name.split(' ')[0] ?? 'traveller');
-  const todays = trip && status === 'active' ? trip.activities.filter((a) => a.date === today && a.status !== 'voting').sort((a, b) => a.time.localeCompare(b.time)) : [];
+  const colW = Math.min(width, MAX_WIDTH) - 2 * space.gutter;
+  const firstName = personal.nickname || userName.split(' ')[0] || 'traveller';
+  const picks = personal.done ? pickedForYou(personal) : [];
+  const blocks = visibleSections(personal).filter((k) => blockHasContent(k, { hasTrip: !!trip, status, hasPicks: picks.length > 0, hasDestination: !!dest }));
+
+  // One day before the trip: a small celebration, once (it is remembered, so it does not repeat on every visit that day).
+  const oneDay = !!trip && shouldCelebrateOneDay(status, daysToGo, fired, trip.id, today);
+  const tripId = trip?.id;
+  useEffect(() => {
+    if (!oneDay || !tripId) return;
+    const id = setTimeout(() => {
+      markReminderFired(celebrateKey(tripId, today));
+      celebrate('One day to go');
+    }, 1200);
+    return () => clearTimeout(id);
+  }, [oneDay, tripId, today, markReminderFired]);
 
   const copyCode = async () => {
     if (!trip) return;
@@ -60,47 +71,71 @@ export default function Home() {
     toast(`Invite code ${trip.inviteCode} copied`, { icon: 'copy-outline' });
   };
 
+  const render = (k: HomeSection): ReactNode => {
+    const withTrip = hasTrip(ctx) ? ctx : null;
+    switch (k) {
+      case 'upnext':
+        return withTrip ? <UpNextSection ctx={withTrip} /> : null;
+      case 'weather':
+        return withTrip ? <WeatherSection ctx={withTrip} /> : null;
+      case 'budget':
+        return withTrip ? <BudgetSection ctx={withTrip} /> : null;
+      case 'crew':
+        return withTrip ? <CrewSection ctx={withTrip} onInvite={copyCode} /> : null;
+      case 'play':
+        return <PlaySection ctx={ctx} />;
+      case 'forYou':
+        return <PicksSection picks={picks} />;
+      case 'nearby':
+        return trip && dest ? <NearbySection trip={trip} dest={dest} /> : null;
+      case 'discover':
+        return <DiscoverSection dest={dest} colW={colW} />;
+    }
+  };
+
   return (
     <View style={styles.root}>
-      <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
+      <Animated.ScrollView style={styles.scroll} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }} onScroll={onScroll} scrollEventThrottle={16}>
         <View style={styles.column}>
-          <HomeHero trip={trip} dest={dest} tz={tz} status={status} daysToGo={daysToGo} dayNo={dayNo} tripLen={tripLen} unread={unread} onMenu={() => setMenu(true)} onCopyCode={copyCode} />
+          <HomeHero trip={trip} dest={trip ? dest : undefined} tz={ctx.tz} status={status} daysToGo={daysToGo} dayNo={dayNo} tripLen={tripLen} unread={unread} scrollY={y} onMenu={() => setMenu(true)} onCopyCode={copyCode} />
 
-          <View style={styles.sheet}>
-            <T variant="small" color={colors.textSecondary} style={{ marginBottom: 14 }}>
-              {t(greetingFor(new Date(now).getHours()))}, {firstName} {personal.emoji}
-            </T>
+          <View style={styles.page}>
+            <FadeIn delay={120} distance={10}>
+              <T variant="title">
+                {t(greetingFor(new Date(now).getHours()))}, <T variant="title" weight="bold">{firstName}</T>
+              </T>
+            </FadeIn>
 
             {!trip ? (
-              <Card style={{ gap: 12, marginBottom: 14 }}>
-                <T variant="headline">Plan your first group trip</T>
-                <T variant="small" color={colors.textSecondary}>
-                  Create a trip, invite friends with a code and start planning together.
-                </T>
-                <View style={{ flexDirection: 'row', gap: 8 }}>
-                  <Button label="Create trip" size="md" icon="add" onPress={() => router.push('/new-trip')} style={{ flex: 1 }} />
-                  <Button label="Join" size="md" variant="secondary" icon="people-outline" onPress={() => router.push('/join')} style={{ flex: 1 }} />
+              <FadeIn delay={180} distance={12} style={styles.block}>
+                <View style={{ gap: 6 }}>
+                  <T variant="h2">Plan your first group trip</T>
+                  <T variant="small" color={colors.textSecondary}>
+                    Create a trip, invite friends with a code and start planning together.
+                  </T>
                 </View>
-              </Card>
+                <View style={styles.pair}>
+                  <Button label="Create trip" icon="add" size="md" onPress={() => router.push('/new-trip')} style={{ flex: 1 }} />
+                  <Button label="Join a trip" icon="people-outline" size="md" variant="secondary" onPress={() => router.push('/join')} style={{ flex: 1 }} />
+                </View>
+              </FadeIn>
             ) : null}
 
-            {show.weather ? <GlanceTiles dest={dest} weather={weather} now={now} tz={tz} homeTz={deviceTimeZone()} /> : null}
-            {trip && show.budget ? <BudgetTile trip={trip} spent={totalSpent(trip)} /> : null}
-            {trip && show.upnext ? <UpNextSection trip={trip} status={status} todays={todays} dayNo={dayNo} tripLen={tripLen} next={nextUpcoming(trip)} now={now} /> : null}
-            {trip && show.play ? <QuickTiles votingCount={votingCount} /> : null}
-            {show.forYou ? <PicksSection personal={personal} /> : null}
-            {trip && dest && show.nearby ? <NearbySection trip={trip} dest={dest} /> : null}
-            {show.discover ? <DiscoverSection dest={dest} colW={colW} /> : null}
+            {blocks.map((k, i) => (
+              <FadeIn key={k} delay={220 + i * 70} distance={14} duration={380} style={styles.block}>
+                {render(k)}
+              </FadeIn>
+            ))}
 
-            <Press onPress={() => router.push('/personalize')} style={styles.customize} accessibilityLabel="Customize this page">
-              <Ionicons name="color-palette-outline" size={16} color={colors.text} />
-              <T variant="small" weight="bold">
+            <Press onPress={() => router.push('/settings')} style={styles.customize} accessibilityLabel="Customize this page">
+              <Ionicons name="options-outline" size={18} color={colors.ink} />
+              <T variant="small" weight="bold" style={{ textDecorationLine: 'underline' }}>
                 Customize this page
               </T>
             </Press>
           </View>
         </View>
-      </ScrollView>
+      </Animated.ScrollView>
 
       {trip ? <TripMenuSheet visible={menu} onClose={() => setMenu(false)} trip={trip} /> : null}
       <GuidedTour visible={!personal.toured && !!trip} onClose={() => setToured(true)} />
@@ -110,9 +145,11 @@ export default function Home() {
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.bg, alignItems: 'center' },
-  // width 100% so the page is exactly as wide as the phone (the root centres its children, which would otherwise let a wide card row stretch the page sideways)
+  // width 100% so the page is exactly as wide as the phone (the root centres its children, which would otherwise let a wide row stretch the page sideways)
   scroll: { width: '100%' },
   column: { width: '100%', maxWidth: MAX_WIDTH },
-  sheet: { backgroundColor: colors.bg, paddingHorizontal: 20, paddingTop: 22 },
-  customize: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: 26, minHeight: 48, borderRadius: radius.button, borderWidth: 2, borderStyle: 'dashed', borderColor: colors.ink },
+  page: { paddingHorizontal: space.gutter, paddingTop: 20 },
+  block: { marginTop: space.section, gap: 16 },
+  pair: { flexDirection: 'row', gap: 12 },
+  customize: { alignSelf: 'flex-start', flexDirection: 'row', alignItems: 'center', gap: 8, minHeight: 48, marginTop: space.section },
 });

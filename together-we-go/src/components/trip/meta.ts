@@ -61,15 +61,3 @@ export const activityFilters: { key: 'all' | ActivityType; labelKey: string }[] 
 
 /** The line icon of an activity kind (use this, not emoji). */
 export const typeIcon = (t: ActivityType): IconName => typeMeta(t).icon;
-
-/** @deprecated Emoji are not used in the app's look. Use typeIcon. Kept only until every screen has switched. */
-export const typeEmoji: Record<ActivityType, string> = {
-  transport: '🚐',
-  stay: '🏡',
-  food: '🍝',
-  sightseeing: '📷',
-  culture: '🏛️',
-  adventure: '🥾',
-  nightlife: '🍸',
-  shopping: '🛍️',
-};

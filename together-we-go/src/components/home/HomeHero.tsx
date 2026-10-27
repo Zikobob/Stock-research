@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, View, type Animated } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { SkylineHero } from '@/components/SkylineHero';
@@ -38,13 +38,13 @@ function Control({ onPress, label, children, wide }: { onPress: () => void; labe
  * The top of Home: a photo of the place with square, outlined controls on it, and the trip as a boarding pass lying across
  * the photo's lower edge. The days to go flip like a departures board; below the tear line are the crew and the invite code.
  */
-export function HomeHero({ trip, dest, tz, status, daysToGo, dayNo, tripLen, unread, onMenu, onCopyCode }: { trip: Trip | undefined; dest: Destination | undefined; tz: string; status: HeroStatus; daysToGo: number; dayNo: number; tripLen: number; unread: number; onMenu: () => void; onCopyCode: () => void }) {
+export function HomeHero({ trip, dest, tz, status, daysToGo, dayNo, tripLen, unread, scrollY, onMenu, onCopyCode }: { trip: Trip | undefined; dest: Destination | undefined; tz: string; status: HeroStatus; daysToGo: number; dayNo: number; tripLen: number; unread: number; /** The page's scroll position, so the photo can drift against it. */ scrollY?: Animated.Value; onMenu: () => void; onCopyCode: () => void }) {
   const insets = useSafeAreaInsets();
   const view = countdownView(status, daysToGo, dayNo, tripLen);
   const stamp = status ? STAMP[status] : null;
   return (
     <View>
-      <SkylineHero image={dest?.image ?? 'amalfi'} tz={tz} height={300 + insets.top}>
+      <SkylineHero image={dest?.image ?? 'amalfi'} tz={tz} height={300 + insets.top} scrollY={scrollY}>
         <View style={[styles.top, { top: insets.top + 10 }]}>
           <Control onPress={() => (trip ? onMenu() : router.push('/trips'))} label={trip ? `${trip.name}. Trip options and switching` : 'Choose a trip'} wide>
             <T variant="small" weight="bold" numberOfLines={1} style={{ maxWidth: 170 }}>
@@ -94,7 +94,7 @@ export function HomeHero({ trip, dest, tz, status, daysToGo, dayNo, tripLen, unr
           }>
           <View style={styles.main}>
             <View style={styles.row}>
-              <T variant="kicker" color={colors.textSecondary} numberOfLines={1} style={{ flex: 1 }}>
+              <T variant="kicker" color={colors.textSecondary} style={{ flexGrow: 1, flexShrink: 1 }}>
                 {dest ? `${dest.city}, ${dest.country}` : 'Somewhere great'}
               </T>
               {stamp ? <Stamp label={stamp.label} tone={stamp.tone} /> : null}
@@ -147,8 +147,8 @@ const styles = StyleSheet.create({
   badge: { position: 'absolute', top: -8, right: -8, minWidth: 20, height: 20, paddingHorizontal: 4, borderRadius: 10, backgroundColor: colors.red, borderWidth: 2, borderColor: colors.ink, alignItems: 'center', justifyContent: 'center' },
   ticketWrap: { marginTop: -60, paddingHorizontal: 20 },
   main: { padding: 16, gap: 12 },
-  row: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  row: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', columnGap: 8, rowGap: 6 },
   count: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', rowGap: 6 },
-  stub: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingBottom: 14, paddingTop: 2 },
+  stub: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', columnGap: 12, rowGap: 10, paddingHorizontal: 16, paddingBottom: 14, paddingTop: 2 },
   code: { flexDirection: 'row', alignItems: 'center', gap: 10, minHeight: 44, paddingHorizontal: 12, borderRadius: radius.chip, borderWidth: line, borderColor: colors.ink, borderStyle: 'dashed', backgroundColor: colors.accentSoft },
 });

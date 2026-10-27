@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useState, type ReactNode } from 'react';
 import { StyleSheet, View } from 'react-native';
 
-import { colors } from '@/theme';
+import { colors, line, radius } from '@/theme';
 
 import { Card, type IconName } from './bits';
 import { Press } from './Press';
@@ -19,7 +19,7 @@ export function Fold({ title, summary, icon, label = title, children }: { title:
       <Card padded={false}>
         <Press onPress={() => setOpen((o) => !o)} style={styles.head} scaleTo={0.99} accessibilityLabel={label} accessibilityState={{ expanded: open }}>
           <View style={styles.icon}>
-            <Ionicons name={icon} size={19} color={colors.text} />
+            <Ionicons name={icon} size={18} color={colors.ink} />
           </View>
           <View style={{ flex: 1 }}>
             <T variant="title" weight="bold">
@@ -29,7 +29,7 @@ export function Fold({ title, summary, icon, label = title, children }: { title:
               {summary}
             </T>
           </View>
-          <Ionicons name={open ? 'chevron-up' : 'chevron-down'} size={18} color={colors.textMuted} />
+          <Ionicons name={open ? 'remove' : 'add'} size={22} color={colors.ink} />
         </Press>
       </Card>
       {open ? children : null}
@@ -38,6 +38,6 @@ export function Fold({ title, summary, icon, label = title, children }: { title:
 }
 
 const styles = StyleSheet.create({
-  head: { flexDirection: 'row', alignItems: 'center', gap: 14, paddingHorizontal: 16, paddingVertical: 14 },
-  icon: { width: 40, height: 40, borderRadius: 20, backgroundColor: colors.bgAlt, alignItems: 'center', justifyContent: 'center' },
+  head: { flexDirection: 'row', alignItems: 'center', gap: 14, paddingHorizontal: 16, paddingVertical: 14, minHeight: 64 },
+  icon: { width: 38, height: 38, borderRadius: radius.button, borderWidth: line, borderColor: colors.ink, backgroundColor: colors.card, alignItems: 'center', justifyContent: 'center' },
 });
