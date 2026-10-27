@@ -34,11 +34,11 @@ export function notifyRemoteChange(prev: Trip | undefined, next: Trip, me: strin
   const photos = next.photos.filter((x) => !seenPhotos.has(x.id) && x.by !== me);
   if (photos.length) {
     const who = nameOf(next, photos[0].by);
-    pushNotification({ kind: 'photo', title: photos.length === 1 ? `${who} added a photo` : `${photos.length} new photos in ${next.name}`, body: photos[0].caption || 'Have a look in the photo dump 📸', tripId: next.id, route: '/photos' });
+    pushNotification({ kind: 'photo', title: photos.length === 1 ? `${who} added a photo` : `${photos.length} new photos in ${next.name}`, body: photos[0].caption || 'Have a look in the photo dump', tripId: next.id, route: '/photos' });
   }
 
   const seenMembers = known(prev.members);
   for (const m of next.members.filter((x) => !seenMembers.has(x.id) && x.id !== me).slice(0, 2)) {
-    pushNotification({ kind: 'member', title: `${m.name.split(' ')[0]} joined ${next.name}`, body: 'Say hi in the trip chat 👋', tripId: next.id, route: '/(tabs)/chat' });
+    pushNotification({ kind: 'member', title: `${m.name.split(' ')[0]} joined ${next.name}`, body: 'Say hi in the trip chat', tripId: next.id, route: '/(tabs)/chat' });
   }
 }

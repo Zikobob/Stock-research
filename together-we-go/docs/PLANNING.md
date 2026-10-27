@@ -115,7 +115,7 @@ Key decisions:
 - Reference-matched visual language: cream canvas, forest-green primary, soft-green highlights, pill navigation — calm and readable outdoors.
 - Every icon-only control has an `accessibilityLabel`; toggles expose checked/selected state; sliders are adjustable with screen readers.
 - Text size setting (Default / Large / Extra large) on top of the phone’s own font scaling.
-- Personalization: 6 colour themes including a dark mode, adjustable card shapes and an *Animations* switch for people sensitive to motion.
+- Personalization: 6 themes in light, dark or follow-my-phone, three Home layouts, adjustable corner shapes, a celebration setting (Chill, Lively, Max) and an *Animations* switch for people sensitive to motion. The look is documented in `docs/DESIGN.md`.
 - Errors appear inline under the field in red with a plain-language fix (“Codes look like ABC-1234”).
 - Destructive actions always confirm; toasts confirm every successful action.
 - **Kept simple.** Each form asks for the few things that matter and folds the rest under *More options* (adding an activity: where, which day, what time). The kind of activity and of expense is guessed from the words typed. *More* is one grid of big buttons, *Settings* keeps the technical switches under *Advanced*, and the Plan's kind and length filters open from one *Filter* button.

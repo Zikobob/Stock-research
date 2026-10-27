@@ -5,22 +5,26 @@
 TogetherWeGo helps a group of friends or family plan, budget and enjoy a shared trip — from the first idea, through the trip itself, to the final recap. It runs natively on **iPhone and Android** (Expo / React Native, TypeScript) and keeps working **offline**, which matters at a conference venue with unreliable wifi.
 
 <p>
-<img src="docs/screenshots/03-home-night.jpg" width="170" alt="Home with the night skyline hero"/>
-<img src="docs/screenshots/04-home-day.jpg" width="170" alt="Home by day"/>
-<img src="docs/screenshots/05-plan.jpg" width="170" alt="The Plan"/>
-<img src="docs/screenshots/06-vote.jpg" width="170" alt="Vote tab with Lock in"/>
-<img src="docs/screenshots/07-budget.jpg" width="170" alt="Budget with who owes who"/>
+<img src="docs/screenshots/03-home-night.jpg" width="170" alt="Home in the dark mode: the trip as a boarding pass with a flip-board countdown"/>
+<img src="docs/screenshots/04-home-day.jpg" width="170" alt="Home in the light mode"/>
+<img src="docs/screenshots/05-plan.jpg" width="170" alt="The Plan: a timeline with LOCKED IN stamps"/>
+<img src="docs/screenshots/06-vote.jpg" width="170" alt="Vote tab with a live tally and Lock in"/>
+<img src="docs/screenshots/07-budget.jpg" width="170" alt="Budget: money left, state stamp, who owes who"/>
 <img src="docs/screenshots/08-chat-scout-ai.jpg" width="170" alt="Chat: Crew and Scout AI"/>
-<img src="docs/screenshots/09-more.jpg" width="170" alt="More: one grid of big buttons"/>
-<img src="docs/screenshots/25-add-activity-search.jpg" width="170" alt="Add an activity: type a place and see matches with how far each is from you"/>
-<img src="docs/screenshots/26-settings.jpg" width="170" alt="Settings: the basics up front, technical switches under Advanced"/>
-<img src="docs/screenshots/19-360-day.jpg" width="170" alt="360° view of Paris by day"/>
-<img src="docs/screenshots/20-360-night.jpg" width="170" alt="360° view of Paris at night with the lights on"/>
-<img src="docs/screenshots/15-make-it-yours.jpg" width="170" alt="Make it yours: pick a colour theme"/>
-<img src="docs/screenshots/16-midnight-theme.jpg" width="170" alt="Home in the Midnight dark theme"/>
-<img src="docs/screenshots/22-sync-chat.jpg" width="170" alt="Group chat on a phone synced with a friend's phone"/>
-<img src="docs/screenshots/23-invite-qr.jpg" width="170" alt="Invite QR code"/>
-<img src="docs/screenshots/24-sync-photos.jpg" width="170" alt="Photo dump showing a friend's photo"/>
+<img src="docs/screenshots/09-more.jpg" width="170" alt="More: a boarding pass and luggage-tag tiles"/>
+<img src="docs/screenshots/10-crew.jpg" width="170" alt="Crew: the invitation ticket with code, barcode and QR"/>
+<img src="docs/screenshots/11-flights.jpg" width="170" alt="Flights as boarding passes with each airport’s own clock"/>
+<img src="docs/screenshots/12-packing.jpg" width="170" alt="Packing list with progress"/>
+<img src="docs/screenshots/13-recap.jpg" width="170" alt="Trip recap: a passport-page poster you can share"/>
+<img src="docs/screenshots/22-quiz.jpg" width="170" alt="Travel quiz with a podium"/>
+<img src="docs/screenshots/23-bucket-list.jpg" width="170" alt="Bucket list tickets"/>
+<img src="docs/screenshots/25-add-activity.jpg" width="170" alt="Add an activity: search a place, see how far it is"/>
+<img src="docs/screenshots/26-settings.jpg" width="170" alt="Settings: the basics up front, the rest under Advanced"/>
+<img src="docs/screenshots/15-make-it-yours.jpg" width="170" alt="Make it yours: pick a look and watch the screen repaint"/>
+<img src="docs/screenshots/19-360-positano.jpg" width="170" alt="360° view of Positano"/>
+<img src="docs/screenshots/20-360-paris.jpg" width="170" alt="360° view of Paris"/>
+<img src="docs/screenshots/01-onboarding.jpg" width="170" alt="First-run slides"/>
+<img src="docs/screenshots/02-sign-in.jpg" width="170" alt="Sign in, with a demo account ticket"/>
 </p>
 
 ---
@@ -124,7 +128,7 @@ Other scripts: `npm test` (unit tests), `npm run e2e` (browser tests, see [`e2e/
 - **Who’s bringing what** — the packing list assigns every item to a person, with a “Split the rest fairly” button.
 - **Receipt photos** on expenses, and a shareable **story card** for the trip recap.
 - **First-run tour** and a **How it works** page (architecture, security, validation and a rubric map) inside the app.
-- **Make it yours** — a 7-step animated personalization survey: 6 colour themes (Forest, Ocean, Sunset, Lavender, Sakura, **Midnight dark mode**), card shape (Rounded / Bubbly / Crisp), travel interests with photos, pace & budget style, which Explore sections to show, nickname + emoji avatar, language and home currency — with a live preview and a confetti finish; on the last page, tapping any answer jumps back to change it. New accounts get it right after sign-up; it's always in *Settings*, the 🎨 button on Explore and the menu.
+- **Make it yours** — a short personalisation flow (Welcome, Look, Interests, Layout, Vibe, then a "Building your trip HQ" reveal): 6 themes (Limoncello, Tomato, Lagoon, Bubblegum, Grape, Ink) in **light, dark or follow-my-phone**, a photo-tile interest grid that feeds *Picked for you*, three Home layouts (Planner, Money, Party) and a celebration setting (Chill, Lively, Max). Choosing a look repaints the survey screen live; everything can be changed later in Settings.
 - **“Picked for you”** — Home ranks destinations against your interests and budget style and shows a match %.
 - **Motion everywhere** — animated home hero (a plane flies a dotted route past drifting clouds and a pulsing sun), staggered card entrances, a tab highlight that glides between tabs, Ken Burns zoom on onboarding photos, floating logo, pulsing live-reminder bell. One *Animations* switch turns it all off for people who prefer less motion.
 - **Trip recap** — stats (days, km between stops, votes, photos), highlights, final balances, rating, shareable summary.
@@ -165,7 +169,7 @@ docs/             Planning, rating-sheet map, demo script, sync, building, judge
 - **State & storage:** Zustand + Immer, persisted to AsyncStorage → the whole app works offline and survives restarts.
 - **Navigation:** Expo Router with `Stack.Protected` guards (signed-out users can only see onboarding/auth).
 - **Platform-specific code:** `TripMap.tsx` (react-native-maps) vs `TripMap.web.tsx` (OpenStreetMap embed).
-- **Theming:** `src/theme` holds 6 palettes and 3 corner styles. The saved choice is read synchronously before any screen's styles are created, so every `StyleSheet` picks up the user's palette; applying a new look restarts the UI once (`DevSettings.reload` on phones, a page reload on web).
+- **Theming:** `src/theme/palettes.ts` holds the 6 themes in light and dark (plain data, unit-tested so body text reaches 4.5:1 contrast everywhere) and `src/theme/index.ts` the other design tokens. The saved choice is read synchronously before any screen's styles are created, so every `StyleSheet` is built with the right colours; changing the look reloads the app. See `docs/DESIGN.md` for the design system and how each Law of UX is applied.
 - **Animations:** `src/components/ui/motion.tsx` (FadeIn, Float, Pulse, looping values) on React Native's `Animated` API with the native driver on iOS/Android.
 - **React Compiler** enabled; the code passes the compiler’s lint rules (`npm run lint` → 0 problems) and `tsc --noEmit` with `strict: true`.
 - **Small files.** The store is split into slices (`src/store/slices`), and the big screens into components (`src/components/home`, `crew`, `settings`, `chat`, `photos`, …). No screen file is over 300 lines.

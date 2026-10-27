@@ -126,9 +126,9 @@ export async function sharePhoto(uri: string, caption: string) {
       await Sharing.shareAsync(fileUri, { dialogTitle: caption, mimeType: 'image/jpeg' });
       return;
     }
-    await shareText(`${caption} 📸 — shared from TogetherWeGo`);
+    await shareText(`${caption} — shared from TogetherWeGo`);
   } catch {
-    await shareText(`${caption} 📸 — shared from TogetherWeGo`);
+    await shareText(`${caption} — shared from TogetherWeGo`);
   }
 }
 

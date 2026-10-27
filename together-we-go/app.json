@@ -8,7 +8,7 @@
     "icon": "./assets/images/icon.png",
     "scheme": "togetherwego",
     "userInterfaceStyle": "automatic",
-    "backgroundColor": "#F1F2F4",
+    "backgroundColor": "#F4EFE4",
     "ios": {
       "bundleIdentifier": "com.togetherwego.app",
       "supportsTablet": true,
@@ -22,7 +22,7 @@
     "android": {
       "package": "com.togetherwego.app",
       "adaptiveIcon": {
-        "backgroundColor": "#1F4D25",
+        "backgroundColor": "#16130E",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
@@ -33,15 +33,15 @@
       "output": "single",
       "favicon": "./assets/images/favicon.png",
       "name": "TogetherWeGo",
-      "themeColor": "#0B0B0D",
-      "backgroundColor": "#F1F2F4"
+      "themeColor": "#16130E",
+      "backgroundColor": "#F4EFE4"
     },
     "plugins": [
       "expo-router",
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#F1F2F4",
+          "backgroundColor": "#F4EFE4",
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 160,
           "dark": {
@@ -65,7 +65,7 @@
       [
         "expo-notifications",
         {
-          "color": "#0B0B0D"
+          "color": "#16130E"
         }
       ],
       [

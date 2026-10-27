@@ -25,7 +25,7 @@ Built around the rating sheet so every scored item gets shown. Times are cumulat
 | 4:55 | Chat → Crew, then **Scout AI** → "How's the budget?" | The group chat stays human; Scout answers from our real trip data, **offline**. Optional Claude mode with a key in the secure keychain. | Innovation |
 | 5:20 | Airplane mode → Offline Docs, Trip Map → Offline radar, Packing → Split the rest fairly | Built for bad wifi: documents, map, phrasebook and emergency info work offline. Everyone sees who is bringing what. | Data handling · Organization |
 | 5:45 | Settings → Language → 日本語 → back; text size; mention Reduce Motion | 6 languages, adjustable text, screen-reader labels, and the phone's Reduce Motion setting is respected. | Accessibility |
-| 6:00 | Home → Customize → Make it yours → Sunset/Midnight + interests → Apply | Every user makes the app theirs: themes incl. dark mode, interests drive "Picked for you". | Innovation · UX |
+| 6:00 | Home → Customize this page → Make it yours → pick Tomato or Grape + a few interests + a Home layout → Build my trip HQ | Every user makes the app theirs: six themes in light or dark, interests drive "Picked for you", three Home layouts. The reveal ends with confetti. | Innovation · UX |
 | 6:15 | Settings → Advanced → Demo timeline "In progress" → Home "Today" card; then "Just finished" → Recap story card | The full lifecycle: planning → travelling → recap with stats, balances and a shareable story card. | Addresses all parts |
 | 6:35 | More → How it works; then the repo: README, `docs/`, tests | Layered MVVM, a sync engine with its own tests, strict TypeScript, 0 lint errors; unit tests and browser tests; every library, API and photo documented. | Code quality · Architecture · Documentation |
 

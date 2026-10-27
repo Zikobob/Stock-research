@@ -2,8 +2,8 @@
 //
 //   node e2e/shoot.js --routes=explore,itinerary --modes=light,dark --themes=amalfi --out=/tmp/shots
 //
-//   --routes   screens to shoot, comma separated (default: the five tabs). "explore" is Home. Add :tap=Label to click a button first,
-//              for example  itinerary:tap=Add activity   (the click is a button's accessible name).
+//   --routes   screens to shoot, comma separated (default: the five tabs). "explore" is Home; "first" is the very first screen (use it with --signed-out). Add :tap=Label to click a button first,
+//              for example  itinerary:tap=Add activity   (the click is on whatever has that accessible name).
 //   --themes   amalfi,sunset,lagoon,rose,midnight,classic (default amalfi)
 //   --modes    light,dark (default light); the browser's own colour scheme is set to match, and the app is told to follow it
 //   --out      folder for the PNGs (default e2e/shots)
@@ -12,6 +12,8 @@
 //   --width / --height   the phone, default 390 x 844
 //   --scale    text size setting, 1 / 1.12 / 1.25 (default 1)
 //   --keep-tour   leave the first-run tour open
+//   --jpg         write small JPEG files (for documentation) instead of PNG
+//   --signed-out  do not sign in: shoot the first-run slides and sign-in
 const fs = require('fs');
 const path = require('path');
 const { chromium } = require('playwright-core');
@@ -32,6 +34,8 @@ const pages = Number(arg('pages', '1'));
 const width = Number(arg('width', '390'));
 const height = Number(arg('height', '844'));
 const scale = Number(arg('scale', '1'));
+const jpg = process.argv.includes('--jpg');
+const signedOut = process.argv.includes('--signed-out');
 
 (async () => {
   fs.mkdirSync(out, { recursive: true });
@@ -40,7 +44,7 @@ const scale = Number(arg('scale', '1'));
   const browser = await chromium.launch(process.env.E2E_CHROME ? { executablePath: process.env.E2E_CHROME } : {});
   for (const theme of themes) {
     for (const mode of modes) {
-      const ctx = await browser.newContext({ viewport: { width, height }, deviceScaleFactor: 2, isMobile: true, hasTouch: true, colorScheme: mode });
+      const ctx = await browser.newContext({ viewport: { width, height }, deviceScaleFactor: jpg ? 1.5 : 2, isMobile: true, hasTouch: true, colorScheme: mode });
       await ctx.addInitScript(([t, m]) => localStorage.setItem('togetherwego-appearance', JSON.stringify({ theme: t, corners: 'rounded', mode: m })), [theme, mode]);
       const p = await ctx.newPage();
       const errors = [];
@@ -48,22 +52,24 @@ const scale = Number(arg('scale', '1'));
       p.on('pageerror', (e) => errors.push('PAGEERROR ' + e.message.slice(0, 300)));
       await p.goto(base + '/', { waitUntil: 'networkidle' });
       await p.waitForTimeout(1800);
-      if (await p.getByRole('button', { name: 'Skip' }).count()) { await p.getByRole('button', { name: 'Skip' }).first().click(); await p.waitForTimeout(800); }
-      await p.getByLabel('Use the demo account').click();
-      await p.getByTestId('sign-in').click();
-      await p.waitForTimeout(2800);
-      if (scale !== 1) await p.evaluate((sc) => { const j = JSON.parse(localStorage.getItem('togetherwego-v1')); j.state.settings.textScale = sc; localStorage.setItem('togetherwego-v1', JSON.stringify(j)); }, scale);
-      if (!process.argv.includes('--keep-tour') && (await p.getByRole('button', { name: 'Skip' }).count())) { await p.getByRole('button', { name: 'Skip' }).first().click(); await p.waitForTimeout(600); }
+      if (!signedOut) {
+        if (await p.getByRole('button', { name: 'Skip' }).count()) { await p.getByRole('button', { name: 'Skip' }).first().click(); await p.waitForTimeout(800); }
+        await p.getByLabel('Use the demo account').click();
+        await p.getByTestId('sign-in').click();
+        await p.waitForTimeout(2800);
+        if (scale !== 1) await p.evaluate((sc) => { const j = JSON.parse(localStorage.getItem('togetherwego-v1')); j.state.settings.textScale = sc; localStorage.setItem('togetherwego-v1', JSON.stringify(j)); }, scale);
+        if (!process.argv.includes('--keep-tour') && (await p.getByRole('button', { name: 'Skip' }).count())) { await p.getByRole('button', { name: 'Skip' }).first().click(); await p.waitForTimeout(600); }
+      }
       for (const spec of routes) {
         const [route, ...opts] = spec.split(':');
-        await p.goto(`${base}/${route === 'explore' ? 'explore' : route}`, { waitUntil: 'load' });
+        await p.goto(route === 'first' ? `${base}/` : `${base}/${route}`, { waitUntil: 'load' });
         await p.waitForTimeout(1800);
         for (const o of opts) {
-          if (o.startsWith('tap=')) { await p.getByRole('button', { name: o.slice(4) }).first().click(); await p.waitForTimeout(900); }
+          if (o.startsWith('tap=')) { await p.getByLabel(o.slice(4)).first().click(); await p.waitForTimeout(900); }
         }
         const name = `${theme}-${mode}-${route.replace(/\//g, '_')}${opts.length ? '-' + opts.join('-').replace(/\W+/g, '_') : ''}`;
         for (let i = 0; i < pages; i++) {
-          await p.screenshot({ path: path.join(out, `${name}${pages > 1 ? '-' + (i + 1) : ''}.png`) });
+          await p.screenshot(jpg ? { path: path.join(out, `${name}${pages > 1 ? '-' + (i + 1) : ''}.jpg`), type: 'jpeg', quality: 82 } : { path: path.join(out, `${name}${pages > 1 ? '-' + (i + 1) : ''}.png`) });
           if (i < pages - 1) {
             const moved = await p.evaluate(() => {
               const el = [...document.querySelectorAll('*')].find((e) => /(auto|scroll)/.test(getComputedStyle(e).overflowY) && e.scrollHeight > e.clientHeight + 40);

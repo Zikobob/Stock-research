@@ -66,7 +66,7 @@ export function answerLocally(question: string, ctx: AssistantContext): string {
 
   if (has(/owe|settle|split|pay (back|me)|who pays|balance/)) {
     const plan = settlePlan(trip);
-    if (!plan.length) return 'Everyone is square right now — no one owes anything. 🎉';
+    if (!plan.length) return 'Everyone is square right now — no one owes anything.';
     const lines = plan.slice(0, 5).map((p) => `• ${first(trip, p.from)} → ${first(trip, p.to)}: ${money(p.amount, 'USD', { decimals: true })}`);
     const mine = balances(trip)[ctx.userId] ?? 0;
     return `Here’s the simplest way to settle up (${plan.length} transfer${plan.length > 1 ? 's' : ''}):\n${lines.join('\n')}\n\nYou are ${mine >= 0 ? `owed ${money(mine)}` : `owing ${money(-mine)}`}. Tap “Settle up” in Budget to record payments.`;

@@ -25,7 +25,7 @@ export function plannerHtml(trip: Trip): string {
               (a) => `<tr><td class="time">${time12(a.time)}</td><td><b>${esc(a.title)}</b><div class="muted">${esc(a.location)} · ${durationLabel(a.durationMin)}${a.costPerPerson ? ` · ${money(a.costPerPerson)}/person` : ''}</div>${a.notes ? `<div class="note">${esc(a.notes)}</div>` : ''}</td><td class="who">${a.assigned.map((x) => esc(name(x).split(' ')[0])).join(', ')}</td><td class="box">☐</td></tr>`,
             )
             .join('')
-        : '<tr><td colspan="4" class="muted">Free day — explore at your own pace ✨</td></tr>';
+        : '<tr><td colspan="4" class="muted">Free day — explore at your own pace</td></tr>';
       return `<section class="day"><h3>Day ${i + 1} · ${weekdayShort(d)} ${dayLabel(d)}</h3><table>${rows}</table></section>`;
     })
     .join('');
