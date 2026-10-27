@@ -83,7 +83,7 @@ export default function Recap() {
   const summary = `Our trip “${trip.name}”: ${days} days in ${dest.city} · ${trip.activities.length} activities · ${trip.photos.length} photos · ${kmLabel(km)} explored · ${money(perPerson)} each. Planned together on TogetherWeGo.`;
 
   return (
-    <Screen header={<Header kicker={trip.name} title="Trip recap" subtitle={status === 'completed' ? 'Your memories, wrapped up' : 'A preview. The full recap is ready when the trip ends.'} />}>
+    <Screen header={<Header kicker={trip.name} title="Trip recap" subtitle={status === 'completed' ? 'Your memories, wrapped up' : 'A preview until the trip ends'} />}>
       <RecapPoster
         cardRef={card}
         width={posterW}

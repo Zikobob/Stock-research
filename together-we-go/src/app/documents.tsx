@@ -31,7 +31,7 @@ import { firstError, maxLen, required } from '@/utils/validation';
 const KINDS: { key: 'file' | 'photo' | 'note'; label: string; sub: string; icon: IconName }[] = [
   { key: 'file', label: 'File', sub: 'A PDF, ticket or booking', icon: DOC_ICON.pdf },
   { key: 'photo', label: 'Photo', sub: 'A picture of a passport or card', icon: DOC_ICON.image },
-  { key: 'note', label: 'Note', sub: 'Addresses, booking refs, allergy cards', icon: DOC_ICON.note },
+  { key: 'note', label: 'Note', sub: 'Addresses and booking refs', icon: DOC_ICON.note },
 ];
 
 /** Offline document vault: tickets, bookings, passport copies and notes. */

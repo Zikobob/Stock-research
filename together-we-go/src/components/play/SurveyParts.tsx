@@ -114,10 +114,12 @@ export function MatchRow({ dest, match, last, onAdd }: { dest: Destination; matc
             {dest.city}
           </T>
           <T variant="kicker" color={colors.textSecondary} numberOfLines={1}>
-            {dest.country} / ~{money(dest.dailyCost)} a day
+            {dest.country} / ~{money(dest.dailyCost)}/day
           </T>
         </View>
-        <Stamp label={`${match}%`} tone="ink" rotate={0} />
+        <View style={{ alignSelf: 'center' }}>
+          <Stamp label={`${match}%`} tone="ink" rotate={0} />
+        </View>
       </Press>
       <IconButton icon="add" label={`Add ${dest.city} to a trip`} onPress={onAdd} />
     </View>

@@ -195,6 +195,7 @@ async function say(p, text) {
   await pa.screenshot({ path: shot('two-A-receipt.png') });
 
   await go(pa, 'documents');
+  await pa.getByRole('button', { name: 'Add a document' }).click(); await pa.waitForTimeout(700); // the add button opens a sheet with File, Photo and Note
   check('A: file chooser opens for a document', await choose(pa, pa.getByRole('button', { name: 'File', exact: true }), fixture('tiny.pdf')));
   check('A: document saved', await vis(pa.getByText(/Saved to the vault/)));
   check('server received the document', await until(async () => (await health())?.files >= 3));

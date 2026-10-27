@@ -27,7 +27,7 @@ The project was scaffolded with `npx create-expo-app` (default template, MIT lic
 
 “QR Code” is a registered trademark of DENSO WAVE INCORPORATED. The sync server in `server/` uses only Node.js built-in modules.
 | `@expo/vector-icons` (Ionicons, Material Community Icons) | 15.1.1 | MIT |
-| `@expo-google-fonts/manrope` (Manrope by Mikhail Sharanda), `@expo-google-fonts/anton` (Anton by Vernon Adams) | 0.4.x | MIT (package) / SIL Open Font License 1.1 (fonts) |
+| `@expo-google-fonts/fraunces` (Fraunces by Undercase Type), `@expo-google-fonts/space-grotesk` (Space Grotesk by Florian Karsten), `@expo-google-fonts/space-mono` (Space Mono by Colophon Foundry) | 0.4.x | MIT (package) / SIL Open Font License 1.1 (fonts) |
 
 ## APIs & data
 | Data | Source | Terms |

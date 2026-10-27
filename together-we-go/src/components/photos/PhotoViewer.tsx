@@ -56,13 +56,13 @@ export function PhotoViewer({ photo, trip, userId, onClose, onShare, onLike, onD
       </View>
       <View style={styles.print}>
         {uri ? (
-          <Image source={imageSource(uri)} style={{ flex: 1, width: '100%' }} contentFit="contain" accessibilityIgnoresInvertColors />
+          <Image source={imageSource(uri)} style={{ flex: 1, width: '100%', borderRadius: radius.card }} contentFit="contain" accessibilityIgnoresInvertColors />
         ) : loading ? (
           <Skeleton height={320} corner={radius.xs} />
         ) : (
           <View style={styles.away}>
-            <Ionicons name="phone-portrait-outline" size={36} color={colors.textSecondary} />
-            <T variant="small" color={colors.textSecondary} center>
+            <Ionicons name="phone-portrait-outline" size={36} color={colors.ink} />
+            <T variant="small" center>
               This photo is on {first}’s phone. Likes and captions still sync.
             </T>
           </View>
@@ -96,8 +96,8 @@ const styles = StyleSheet.create({
   viewer: { flex: 1, backgroundColor: colors.black, paddingHorizontal: 20, gap: 16 },
   top: { flexDirection: 'row', justifyContent: 'space-between' },
   control: { width: 44, height: 44, borderRadius: radius.button, borderWidth: line, borderColor: colors.ink, backgroundColor: colors.card, alignItems: 'center', justifyContent: 'center' },
-  print: { flex: 1, backgroundColor: colors.card, borderWidth: line, borderColor: colors.ink, borderRadius: radius.card, padding: 8, overflow: 'hidden' },
-  away: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 10, padding: 24 },
+  print: { flex: 1, justifyContent: 'center', overflow: 'hidden' },
+  away: { alignItems: 'center', justifyContent: 'center', gap: 10, padding: 24, backgroundColor: colors.card, borderWidth: line, borderColor: colors.ink, borderRadius: radius.card },
   panel: { backgroundColor: colors.card, borderWidth: line, borderColor: colors.ink, borderRadius: radius.card, padding: 14, gap: 14 },
   who: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   like: { minWidth: 64, height: 44, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingHorizontal: 12, borderRadius: radius.button, borderWidth: line, borderColor: colors.ink, backgroundColor: colors.card },

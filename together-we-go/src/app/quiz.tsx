@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { ordinal } from '@/components/home/logic';
 import { ShareSheet } from '@/components/ShareSheet';
 import { AnswerOption, Clock, Podium, StepBar, type OptionState } from '@/components/play/QuizParts';
 import { ROUND, SECONDS, crewBoard, isNewBest, pointsFor, resultRows, roundTitle, shouldCelebrate, shuffle } from '@/components/play/quizLogic';
@@ -175,6 +176,7 @@ export default function Quiz() {
     const rows = resultRows(board, me, score, bestAtStart);
     const record = isNewBest(score, bestAtStart);
     const solo = rows.some((r) => r.id === 'round');
+    const myRank = rows.findIndex((r) => r.me) + 1;
     return (
       <Screen header={<Header kicker="Travel quiz" title="Round complete" />}>
         <View style={styles.resultTop}>
@@ -199,6 +201,17 @@ export default function Quiz() {
         <View style={styles.block}>
           <SectionHeader title={solo ? 'This round' : 'Crew podium'} />
           <Podium rows={rows} />
+          {!solo && myRank > 3 ? (
+            <View style={styles.mine} accessible accessibilityLabel={`You are ${ordinal(myRank)} with ${score} points`}>
+              <Avatar name={me.name ?? 'You'} src={me.avatar} size={32} />
+              <T variant="bodySm" weight="bold" color={colors.onAccent} style={{ flex: 1 }} importantForAccessibility="no">
+                You are {ordinal(myRank)}
+              </T>
+              <T variant="numeralSm" color={colors.onAccent} style={{ fontSize: 17 }} importantForAccessibility="no">
+                {score} pts
+              </T>
+            </View>
+          ) : null}
         </View>
 
         <View style={{ gap: 12, marginTop: 32 }}>
@@ -304,5 +317,6 @@ const styles = StyleSheet.create({
   footer: { paddingHorizontal: 20, paddingTop: 12, borderTopWidth: line, borderTopColor: colors.ink, backgroundColor: colors.bg },
   fact: { marginTop: 24, gap: 12 },
   factHead: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  mine: { flexDirection: 'row', alignItems: 'center', gap: 10, minHeight: 48, marginTop: 14, paddingHorizontal: 10, borderRadius: radius.button, borderWidth: line, borderColor: colors.ink, backgroundColor: colors.accent },
   resultTop: { flexDirection: 'row', alignItems: 'flex-start', gap: 12 },
 });

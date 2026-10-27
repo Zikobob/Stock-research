@@ -175,7 +175,7 @@ export default function Packing() {
 
       {total && !shown.length ? (
         <T variant="small" color={colors.textSecondary} center style={{ marginTop: 28 }}>
-          {filter === 'mine' ? 'Nothing is assigned to you yet. Tap “Anyone” on an item to pick it up.' : 'Every item has someone bringing it.'}
+          {filter === 'mine' ? 'Nothing is assigned to you yet. Tap the person icon on an item to pick it up.' : 'Every item has someone bringing it.'}
         </T>
       ) : null}
 

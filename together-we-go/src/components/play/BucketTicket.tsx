@@ -50,7 +50,7 @@ export function BucketTicket({ item, dest, index, slam, onToggle, onOpen, onRemo
                 {item.text}
               </T>
               {dest ? (
-                <T variant="kicker" color={colors.textSecondary} numberOfLines={1}>
+                <T variant="kicker" color={colors.textSecondary} numberOfLines={2}>
                   {dest.country} / {dest.bestMonths.split(',')[0]}
                 </T>
               ) : null}

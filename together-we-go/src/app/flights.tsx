@@ -77,12 +77,12 @@ export default function Flights() {
 
           {firstLand && lastLand ? (
             <Card style={styles.landing}>
-              <Ionicons name="people-outline" size={22} color={colors.onAccent} />
+              <Ionicons name="people-outline" size={22} color={colors.ink} />
               <View style={{ flex: 1, gap: 2 }}>
-                <T variant="kicker" color={colors.onAccent}>
+                <T variant="kicker" color={colors.textSecondary}>
                   Group landing
                 </T>
-                <T variant="bodySm" weight="semibold" color={colors.onAccent}>
+                <T variant="bodySm" weight="semibold">
                   First in {when(firstLand.arriveUtc)}, last in {when(lastLand.arriveUtc)}.
                   {lastLand !== firstLand ? ` The group is complete ${durationLabel(Math.round((lastLand.arriveUtc - firstLand.arriveUtc) / 60000))} after the first landing.` : ''}
                 </T>
@@ -131,7 +131,7 @@ export default function Flights() {
 
 const styles = StyleSheet.create({
   zone: { marginTop: 10 },
-  landing: { flexDirection: 'row', alignItems: 'center', gap: 12, marginTop: 20, backgroundColor: colors.accent },
+  landing: { flexDirection: 'row', alignItems: 'center', gap: 12, marginTop: 20, backgroundColor: colors.accentSoft },
   person: { marginTop: 32, gap: 14 },
   who: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   none: { minHeight: 56, justifyContent: 'center', paddingHorizontal: 14, borderRadius: 12, borderWidth: line, borderStyle: 'dashed', borderColor: colors.textSecondary },

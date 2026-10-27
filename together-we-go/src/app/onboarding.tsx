@@ -1,67 +1,80 @@
+import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { Animated, FlatList, StyleSheet, View, useWindowDimensions, type NativeScrollEvent, type NativeSyntheticEvent } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { StepSegments } from '@/components/auth/kit';
+import { SLIDES, type Slide } from '@/components/auth/slides';
 import { LogoMark } from '@/components/Logo';
 import { Button } from '@/components/ui/Button';
-import { FadeIn, Float, nativeDriver, useMotion } from '@/components/ui/motion';
-import { Press } from '@/components/ui/Press';
+import { FadeIn, useLoop } from '@/components/ui/motion';
+import { PlatePress } from '@/components/ui/Plate';
+import { Stamp } from '@/components/ui/Stamp';
+import { StaggerText } from '@/components/ui/StaggerText';
 import { T } from '@/components/ui/T';
-import { photos } from '@/data/images';
+import { Ticket } from '@/components/ui/Ticket';
 import { useT } from '@/i18n';
 import { useAppStore } from '@/store/useAppStore';
-import { MAX_WIDTH, colors } from '@/theme';
+import { MAX_WIDTH, colors, line, radius } from '@/theme';
 
-const slides = [
-  { key: '1', image: photos['onboard-1'], title: 'Your Journey\nBegins Here', body: 'Welcome to a seamless way to explore the world with the people you love.' },
-  { key: '2', image: photos['onboard-2'], title: 'Plan Together,\nTravel Better', body: 'Coordinate itineraries, budgets, and memories — all in one place.' },
-  { key: '3', image: photos['onboard-3'], title: 'Every Trip,\nUnforgettable', body: 'From bucket lists to group chats — TogetherWeGo has you covered.' },
-];
+/** How much taller than the screen the photo is drawn, so it can be pulled up (Slide.lift) without showing a gap. */
+const EXTRA = 0.2;
 
+/** One full-bleed photo that zooms very slowly (the zoom stops when animations are off). */
+function Photo({ slide, width, height, zoom }: { slide: Slide; width: number; height: number; zoom: Animated.Value }) {
+  return (
+    <View style={{ width, height, overflow: 'hidden', backgroundColor: colors.ink }}>
+      <Animated.View
+        style={{ position: 'absolute', left: 0, right: 0, top: -slide.lift * height, height: height * (1 + EXTRA), transform: [{ scale: zoom.interpolate({ inputRange: [0, 1], outputRange: [1, 1.08] }) }] }}>
+        <Image source={slide.image} style={StyleSheet.absoluteFill} contentFit="cover" transition={300} accessibilityIgnoresInvertColors />
+      </Animated.View>
+      {/* a soft scrim behind the controls at the top, so they stay readable on a bright sky */}
+      <LinearGradient pointerEvents="none" colors={['rgba(0,0,0,0.28)', 'rgba(0,0,0,0)']} style={{ position: 'absolute', left: 0, right: 0, top: 0, height: 140 }} />
+    </View>
+  );
+}
+
+/**
+ * First run: three full-bleed photos, one idea each, and a boarding pass that slides up over the lower part with the headline (it slides
+ * in word by word), a step bar and one big black button in the thumb zone. Skip is a quiet outlined square at the top right.
+ */
 export default function Onboarding() {
   const t = useT();
   const { width: winW, height } = useWindowDimensions();
   const width = Math.min(winW, MAX_WIDTH);
   const insets = useSafeAreaInsets();
   const [index, setIndex] = useState(0);
-  const list = useRef<FlatList>(null);
+  const list = useRef<FlatList<Slide>>(null);
   const complete = useAppStore((s) => s.completeOnboarding);
-  const motion = useMotion();
-  const [zoom] = useState(() => new Animated.Value(0));
-
-  // Slow "Ken Burns" zoom on the current photo, restarted on every slide.
-  useEffect(() => {
-    zoom.setValue(0);
-    if (!motion) return;
-    const anim = Animated.timing(zoom, { toValue: 1, duration: 9000, useNativeDriver: nativeDriver });
-    anim.start();
-    return () => anim.stop();
-  }, [index, motion, zoom]);
-  const scale = zoom.interpolate({ inputRange: [0, 1], outputRange: [1, 1.14] });
+  const zoom = useLoop(18000, { pingPong: true, rest: 0 });
+  const last = SLIDES.length - 1;
+  const slide = SLIDES[index];
 
   const finish = () => {
     complete();
     router.replace('/sign-in');
   };
   const next = () => {
-    if (index >= slides.length - 1) return finish();
+    if (index >= last) return finish();
     list.current?.scrollToIndex({ index: index + 1, animated: true });
     setIndex(index + 1);
   };
   const onScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
-    const i = Math.round(e.nativeEvent.contentOffset.x / width);
+    const i = Math.min(last, Math.max(0, Math.round(e.nativeEvent.contentOffset.x / width)));
     if (i !== index) setIndex(i);
   };
+  const narrow = width < 350;
+  const titleSize = narrow ? { fontSize: 30, lineHeight: 34 } : { fontSize: 36, lineHeight: 40 };
 
   return (
     <View style={styles.root}>
       <View style={{ width, height, alignSelf: 'center' }}>
         <FlatList
           ref={list}
-          data={slides}
+          data={SLIDES}
           horizontal
           pagingEnabled
           bounces={false}
@@ -71,56 +84,53 @@ export default function Onboarding() {
           scrollEventThrottle={32}
           getItemLayout={(_, i) => ({ length: width, offset: width * i, index: i })}
           keyExtractor={(s) => s.key}
-          renderItem={({ item, index: i }) => (
-            <View style={{ width, height, overflow: 'hidden' }}>
-              <Animated.View style={[StyleSheet.absoluteFill, i === index ? { transform: [{ scale }] } : null]}>
-                <Image source={item.image} style={StyleSheet.absoluteFill} contentFit="cover" transition={300} accessibilityIgnoresInvertColors />
-              </Animated.View>
-              <LinearGradient colors={['rgba(0,0,0,0.05)', 'rgba(0,0,0,0)', 'rgba(8,16,6,0.78)']} locations={[0, 0.45, 1]} style={StyleSheet.absoluteFill} />
-            </View>
-          )}
+          renderItem={({ item }) => <Photo slide={item} width={width} height={height} zoom={zoom} />}
         />
-        <View style={[styles.top, { top: insets.top + 8 }]}>
-          <FadeIn from="down">
+
+        <View style={[styles.top, { top: insets.top + 12 }]}>
+          <FadeIn from="down" distance={12}>
             <View style={styles.brand}>
-              <Float amount={5} duration={2000}>
-                <LogoMark size={26} />
-              </Float>
-              <T variant="small" weight="bold" color={colors.white}>
+              <LogoMark size={28} />
+              <T variant="kicker" color={colors.ink}>
                 TogetherWeGo
               </T>
             </View>
           </FadeIn>
-          {index < slides.length - 1 ? (
-            <Press onPress={finish} accessibilityLabel={t('common.skip')} hitSlop={10} style={styles.skip}>
-              <T variant="small" weight="semibold" color={colors.white}>
+          {index < last ? (
+            <PlatePress onPress={finish} accessibilityLabel={t('common.skip')} offset={3} corner={radius.button} style={styles.skip}>
+              <T variant="small" weight="bold" color={colors.ink}>
                 {t('common.skip')}
               </T>
-            </Press>
+              <Ionicons name="arrow-forward" size={16} color={colors.ink} />
+            </PlatePress>
           ) : null}
         </View>
-        <View style={[styles.bottom, { paddingBottom: insets.bottom + 24 }]}>
-          <FadeIn key={`k${index}`} delay={80} distance={26}>
-            <View style={styles.kicker}>
-              <T variant="micro" weight="bold" color="#1A1C17">
-                {['✈️  PLAN', '🤝  TOGETHER', '📸  REMEMBER'][index]}
-              </T>
-            </View>
-            <T variant="display" color={colors.white} style={{ fontSize: 34, lineHeight: 40 }} accessibilityRole="header">
-              {slides[index].title}
-            </T>
+
+        <View style={[styles.bottom, { paddingBottom: insets.bottom + 20 }]} pointerEvents="box-none">
+          <FadeIn from="up" distance={80} duration={600} delay={250}>
+            <Ticket
+              stub={
+                <View style={styles.stub}>
+                  <StepSegments now={index + 1} total={SLIDES.length} />
+                  <Button label={index === last ? t('common.getStarted') : t('common.next')} onPress={next} iconRight="arrow-forward" testID="onboarding-next" />
+                </View>
+              }>
+              <View style={styles.main}>
+                <View style={styles.kickRow}>
+                  <T variant="kicker" color={colors.textSecondary}>
+                    {`0${index + 1} / 0${SLIDES.length}`}
+                  </T>
+                  <Stamp key={slide.key} label={slide.stamp} tone="accent" slam />
+                </View>
+                <StaggerText key={slide.key} text={slide.title} variant="display" style={titleSize} />
+                <FadeIn key={`b${slide.key}`} delay={280} distance={10}>
+                  <T variant="small" color={colors.textSecondary}>
+                    {slide.body}
+                  </T>
+                </FadeIn>
+              </View>
+            </Ticket>
           </FadeIn>
-          <FadeIn key={`b${index}`} delay={220} distance={20}>
-            <T variant="body" color="rgba(255,255,255,0.85)" style={{ marginTop: 10, maxWidth: 320 }}>
-              {slides[index].body}
-            </T>
-          </FadeIn>
-          <View style={styles.dots} accessibilityLabel={`Page ${index + 1} of ${slides.length}`}>
-            {slides.map((s, i) => (
-              <View key={s.key} style={[styles.dot, i === index && styles.dotActive]} />
-            ))}
-          </View>
-          <Button label={index === slides.length - 1 ? t('common.getStarted') : t('common.next')} onPress={next} iconRight="arrow-forward" style={{ borderRadius: 999 }} />
         </View>
       </View>
     </View>
@@ -128,13 +138,12 @@ export default function Onboarding() {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#0F1A0D' },
-  top: { position: 'absolute', left: 20, right: 20, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  brand: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: 'rgba(255,255,255,0.18)', paddingLeft: 5, paddingRight: 12, paddingVertical: 5, borderRadius: 999 },
-  kicker: { alignSelf: 'flex-start', backgroundColor: 'rgba(255,255,255,0.92)', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 999, marginBottom: 12 },
-  skip: { backgroundColor: 'rgba(0,0,0,0.25)', paddingHorizontal: 14, paddingVertical: 7, borderRadius: 999 },
-  bottom: { position: 'absolute', left: 24, right: 24, bottom: 0 },
-  dots: { flexDirection: 'row', gap: 6, marginTop: 22, marginBottom: 22 },
-  dot: { width: 7, height: 7, borderRadius: 4, backgroundColor: 'rgba(255,255,255,0.45)' },
-  dotActive: { width: 24, backgroundColor: colors.accent },
+  root: { flex: 1, backgroundColor: colors.bg },
+  top: { position: 'absolute', left: 16, right: 16, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  brand: { flexDirection: 'row', alignItems: 'center', gap: 8, height: 44, paddingHorizontal: 8, borderRadius: radius.button, borderWidth: line, borderColor: colors.ink, backgroundColor: colors.card },
+  skip: { flexDirection: 'row', alignItems: 'center', gap: 6, minWidth: 44, height: 44, paddingHorizontal: 12, borderRadius: radius.button, borderWidth: line, borderColor: colors.ink, backgroundColor: colors.card, justifyContent: 'center' },
+  bottom: { position: 'absolute', left: 20, right: 20, bottom: 0 },
+  main: { padding: 16, gap: 10, minHeight: 168 },
+  kickRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  stub: { paddingHorizontal: 16, paddingBottom: 12, paddingTop: 2, gap: 14 },
 });

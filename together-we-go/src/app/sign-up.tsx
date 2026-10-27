@@ -1,101 +1,178 @@
 import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
-import { useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { router, useLocalSearchParams } from 'expo-router';
+import { useRef, useState } from 'react';
+import { View, type TextInput } from 'react-native';
 
+import { AuthScreen, CheckRow, InviteNote, LegalLinks, PasswordMeter } from '@/components/auth/kit';
+import { afterSignIn, inviteFrom } from '@/components/auth/logic';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { Press, tap } from '@/components/ui/Press';
-import { Header, Screen } from '@/components/ui/Screen';
+import { tap } from '@/components/ui/Press';
+import { Header } from '@/components/ui/Screen';
 import { T } from '@/components/ui/T';
+import { useDraft } from '@/hooks/useDraft';
 import { useAppStore } from '@/store/useAppStore';
-import { colors, radius } from '@/theme';
-import { passwordStrength, validateEmail, validateName, validatePassword } from '@/utils/validation';
+import { colors } from '@/theme';
+import { validateEmail, validateName, validatePassword } from '@/utils/validation';
 
+type Field = 'name' | 'email' | 'password' | 'confirm' | 'agree';
+const NONE: Record<Field, boolean> = { name: false, email: false, password: false, confirm: false, agree: false };
+
+/** A green tick at the end of a field that is filled in correctly (with the field's own words, never colour alone). */
+const tick = (ok: boolean) => (ok ? <Ionicons name="checkmark-circle" size={20} color={colors.positive} accessibilityLabel="Looks good" /> : undefined);
+
+/**
+ * Create an account: four fields, one tick box, one black button. A field tells you what is wrong once you leave it (state colour, an
+ * icon and words) and shows a tick when it is right. Name and email are kept as a draft if you leave and come back.
+ */
 export default function SignUp() {
+  const params = useLocalSearchParams<{ code?: string }>();
+  const invite = inviteFrom(params.code);
   const signUp = useAppStore((s) => s.signUp);
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
+  const [name, setName, clearName] = useDraft('signup-name', '');
+  const [email, setEmail, clearEmail] = useDraft('signup-email', '');
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
   const [agree, setAgree] = useState(false);
-  const [errors, setErrors] = useState<Record<string, string | null | undefined>>({});
+  const [shown, setShown] = useState(NONE);
+  const [taken, setTaken] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const strength = passwordStrength(password);
+  const emailRef = useRef<TextInput>(null);
+  const pwRef = useRef<TextInput>(null);
+  const confirmRef = useRef<TextInput>(null);
+
+  const show = (f: Field) => setShown((s) => (s[f] ? s : { ...s, [f]: true }));
+  const nameErr = validateName(name);
+  const emailErr = validateEmail(email);
+  const passErr = validatePassword(password);
+  const confirmErr = !confirm ? 'Re-enter your password' : confirm !== password ? 'Passwords don’t match' : null;
+  const agreeErr = agree ? null : 'Please accept the terms to continue';
 
   const submit = async () => {
-    const e = {
-      name: validateName(name),
-      email: validateEmail(email),
-      password: validatePassword(password),
-      confirm: !confirm ? 'Re-enter your password' : confirm !== password ? 'Passwords don’t match' : null,
-      agree: agree ? null : 'Please accept the terms to continue',
-    };
-    setErrors(e);
-    if (Object.values(e).some(Boolean)) return tap('warning');
+    setShown({ name: true, email: true, password: true, confirm: true, agree: true });
+    if (nameErr || emailErr || passErr || confirmErr || agreeErr) return tap('warning');
     setLoading(true);
     const res = await signUp(name, email, password);
     setLoading(false);
     if (!res.ok) {
-      setErrors({ email: res.error });
+      setTaken(res.error);
       return tap('warning');
     }
     tap('success');
-    router.replace('/(tabs)/explore');
-    // Brand-new account: offer the personalization survey straight away.
-    setTimeout(() => router.push('/personalize'), 350);
+    clearName();
+    clearEmail();
+    const next = afterSignIn(invite);
+    router.replace(next.first);
+    // Brand-new account: with an invite the trip comes first; otherwise offer the personalization survey straight away.
+    setTimeout(() => router.push(next.then ?? '/personalize'), 350);
   };
 
-  const bars = [colors.red, colors.orange, colors.yellow, '#6BAA75', colors.primary];
-
   return (
-    <Screen header={<Header title="Create account" subtitle="Start planning trips with your crew" />}>
-      <View style={{ gap: 14 }}>
-        <Input label="Full name" icon="person-outline" value={name} onChangeText={setName} autoCapitalize="words" autoComplete="name" error={errors.name} placeholder="e.g. Alex Rivera" />
-        <Input label="Email address" icon="mail-outline" value={email} onChangeText={setEmail} autoCapitalize="none" keyboardType="email-address" autoComplete="email" error={errors.email} placeholder="you@email.com" />
-        <View style={{ gap: 8 }}>
-          <Input label="Password" icon="lock-closed-outline" value={password} onChangeText={setPassword} secureToggle error={errors.password} placeholder="At least 8 characters" textContentType="newPassword" />
-          {password ? (
-            <View style={{ gap: 6 }}>
-              <View style={{ flexDirection: 'row', gap: 4 }}>
-                {[0, 1, 2, 3].map((i) => (
-                  <View key={i} style={[styles.bar, { backgroundColor: i < strength.score ? bars[strength.score] : colors.border }]} />
-                ))}
-              </View>
-              <T variant="caption" color={colors.textSecondary}>
-                Strength: {strength.label}
-              </T>
-            </View>
-          ) : null}
+    <AuthScreen top={0}>
+      <View style={{ marginHorizontal: -20 }}>
+        <Header kicker="New passenger" title="Create account" subtitle="Start planning trips with your crew" />
+      </View>
+      {invite ? (
+        <View style={{ marginBottom: 20 }}>
+          <InviteNote code={invite} />
         </View>
-        <Input label="Confirm password" icon="lock-closed-outline" value={confirm} onChangeText={setConfirm} secureToggle error={errors.confirm} placeholder="Re-enter password" />
-        <Press onPress={() => setAgree((a) => !a)} style={styles.agree} accessibilityRole="checkbox" accessibilityState={{ checked: agree }}>
-          <View style={[styles.box, agree && styles.boxOn]}>{agree ? <Ionicons name="checkmark" size={13} color={colors.white} /> : null}</View>
-          <T variant="small" color={colors.textSecondary} style={{ flex: 1 }}>
+      ) : null}
+      <View style={{ gap: 16 }}>
+        <Input
+          label="Full name"
+          icon={shown.name && nameErr ? 'alert-circle' : 'person-outline'}
+          value={name}
+          onChangeText={setName}
+          onBlur={() => name && show('name')}
+          autoCapitalize="words"
+          autoComplete="name"
+          returnKeyType="next"
+          onSubmitEditing={() => emailRef.current?.focus()}
+          error={shown.name ? nameErr : null}
+          right={tick(!!name && !nameErr)}
+          placeholder="e.g. Alex Rivera"
+        />
+        <Input
+          ref={emailRef}
+          label="Email address"
+          icon={(shown.email && emailErr) || taken ? 'alert-circle' : 'mail-outline'}
+          value={email}
+          onChangeText={(v) => {
+            setEmail(v);
+            setTaken(null);
+          }}
+          onBlur={() => email && show('email')}
+          autoCapitalize="none"
+          autoCorrect={false}
+          keyboardType="email-address"
+          autoComplete="email"
+          textContentType="emailAddress"
+          returnKeyType="next"
+          onSubmitEditing={() => pwRef.current?.focus()}
+          error={taken ?? (shown.email ? emailErr : null)}
+          right={tick(!!email && !emailErr && !taken)}
+          placeholder="you@email.com"
+        />
+        <View style={{ gap: 10 }}>
+          <Input
+            ref={pwRef}
+            label="Password"
+            icon={shown.password && passErr ? 'alert-circle' : 'lock-closed-outline'}
+            value={password}
+            onChangeText={setPassword}
+            onBlur={() => password && show('password')}
+            secureToggle
+            textContentType="newPassword"
+            returnKeyType="next"
+            onSubmitEditing={() => confirmRef.current?.focus()}
+            error={shown.password ? passErr : null}
+            hint="At least 8 characters, with a letter and a number"
+            placeholder="At least 8 characters"
+          />
+          <PasswordMeter password={password} />
+        </View>
+        <Input
+          ref={confirmRef}
+          label="Confirm password"
+          icon={shown.confirm && confirmErr ? 'alert-circle' : 'lock-closed-outline'}
+          value={confirm}
+          onChangeText={setConfirm}
+          onBlur={() => confirm && show('confirm')}
+          secureToggle
+          returnKeyType="go"
+          onSubmitEditing={submit}
+          error={shown.confirm ? confirmErr : null}
+          right={tick(!!confirm && !confirmErr)}
+          placeholder="Re-enter password"
+        />
+      </View>
+
+      <View style={{ marginTop: 12 }}>
+        <CheckRow
+          checked={agree}
+          onPress={() => {
+            setAgree((a) => !a);
+            show('agree');
+          }}
+          label="I agree to the Terms of Service and Privacy Policy"
+          error={shown.agree ? agreeErr : null}>
+          <T variant="small" color={colors.textSecondary}>
             I agree to the Terms of Service and Privacy Policy
           </T>
-        </Press>
-        {errors.agree ? (
-          <T variant="caption" color={colors.red}>
-            {errors.agree}
-          </T>
-        ) : null}
-        <Button label="Create account" onPress={submit} loading={loading} />
-        <View style={styles.note}>
-          <Ionicons name="shield-checkmark-outline" size={16} color={colors.primary} />
-          <T variant="caption" color={colors.textSecondary} style={{ flex: 1 }}>
-            Your password is salted and hashed on-device — it’s never stored in plain text.
-          </T>
-        </View>
+        </CheckRow>
+        <LegalLinks />
       </View>
-    </Screen>
+
+      <View style={{ marginTop: 12 }}>
+        <Button label="Create account" onPress={submit} loading={loading} />
+      </View>
+
+      <View style={{ flexDirection: 'row', gap: 10, alignItems: 'center', marginTop: 20 }}>
+        <Ionicons name="shield-checkmark-outline" size={20} color={colors.ink} />
+        <T variant="caption" color={colors.textSecondary} style={{ flex: 1 }}>
+          Your password is salted and hashed on this phone. It is never stored as plain text.
+        </T>
+      </View>
+    </AuthScreen>
   );
 }
-
-const styles = StyleSheet.create({
-  bar: { flex: 1, height: 5, borderRadius: 3 },
-  agree: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  box: { width: 20, height: 20, borderRadius: 6, borderWidth: 1.5, borderColor: colors.borderStrong, alignItems: 'center', justifyContent: 'center' },
-  boxOn: { backgroundColor: colors.primary, borderColor: colors.primary },
-  note: { flexDirection: 'row', gap: 8, alignItems: 'center', padding: 12, borderRadius: radius.sm, backgroundColor: colors.primarySofter },
-});

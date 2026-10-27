@@ -67,33 +67,30 @@ export function FlightTicket({ flight: f, passenger, plated, zoneNote, canDelete
       plated={plated}
       stub={
         <View style={styles.stub}>
-          <View style={styles.fields}>
-            <Field label="Flight time" value={durationLabel(minutes)} />
-            {f.seat ? <Field label="Seat" value={f.seat} /> : null}
-            {f.confirmation ? <Field label="Booking" value={f.confirmation} /> : null}
+          <View style={styles.fieldsRow}>
+            <View style={styles.fields}>
+              <Field label="Flight time" value={durationLabel(minutes)} />
+              {f.seat ? <Field label="Seat" value={f.seat} /> : null}
+              {f.confirmation ? <Field label="Booking" value={f.confirmation} /> : null}
+            </View>
+            {canDelete ? (
+              <Press onPress={onDelete} style={styles.remove} accessibilityLabel={`Remove flight ${f.flightNo}`}>
+                <Ionicons name="trash-outline" size={20} color={colors.textSecondary} />
+              </Press>
+            ) : null}
           </View>
           <View style={styles.barcode} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
             {barcodeBars(`${f.id}${f.confirmation ?? f.flightNo}`).map((w, i) => (
               <View key={i} style={{ flex: w, backgroundColor: i % 2 === 0 ? colors.ink : 'transparent' }} />
             ))}
           </View>
-          {f.ticketUri || canDelete ? (
-            <View style={styles.actions}>
-              {f.ticketUri ? (
-                <Press onPress={() => Linking.openURL(f.ticketUri!).catch(() => toast('Ticket saved offline in Documents'))} style={styles.ticketBtn} accessibilityLabel={`Open ticket ${f.ticketName ?? ''}`}>
-                  {isImage ? <Image source={{ uri: f.ticketUri }} style={styles.thumb} accessibilityIgnoresInvertColors /> : <Ionicons name="document-attach-outline" size={18} color={colors.ink} />}
-                  <T variant="small" weight="bold" numberOfLines={1} style={{ maxWidth: 140 }}>
-                    {f.ticketName ?? 'Ticket'}
-                  </T>
-                </Press>
-              ) : null}
-              <View style={{ flex: 1 }} />
-              {canDelete ? (
-                <Press onPress={onDelete} style={styles.remove} accessibilityLabel={`Remove flight ${f.flightNo}`}>
-                  <Ionicons name="trash-outline" size={20} color={colors.textSecondary} />
-                </Press>
-              ) : null}
-            </View>
+          {f.ticketUri ? (
+            <Press onPress={() => Linking.openURL(f.ticketUri!).catch(() => toast('Ticket saved offline in Documents'))} style={styles.ticketBtn} accessibilityLabel={`Open ticket ${f.ticketName ?? ''}`}>
+              {isImage ? <Image source={{ uri: f.ticketUri }} style={styles.thumb} accessibilityIgnoresInvertColors /> : <Ionicons name="document-attach-outline" size={18} color={colors.ink} />}
+              <T variant="small" weight="bold" numberOfLines={1} style={{ maxWidth: 180 }}>
+                {f.ticketName ?? 'Ticket'}
+              </T>
+            </Press>
           ) : null}
         </View>
       }>
@@ -162,10 +159,10 @@ const styles = StyleSheet.create({
   mid: { flex: 1, minWidth: 24, flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 18 },
   plane: { width: 28, height: 28, alignItems: 'center', justifyContent: 'center' },
   stub: { paddingHorizontal: 16, paddingBottom: 14, paddingTop: 2, gap: 12 },
-  fields: { flexDirection: 'row', flexWrap: 'wrap', columnGap: 24, rowGap: 8 },
+  fieldsRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 8 },
+  fields: { flex: 1, flexDirection: 'row', flexWrap: 'wrap', columnGap: 24, rowGap: 8 },
   barcode: { flexDirection: 'row', height: 34 },
-  actions: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  ticketBtn: { flexDirection: 'row', alignItems: 'center', gap: 8, minHeight: 44, paddingHorizontal: 12, borderRadius: radius.chip, borderWidth: line, borderColor: colors.ink, backgroundColor: colors.bgAlt },
+  ticketBtn: { alignSelf: 'flex-start', flexDirection: 'row', alignItems: 'center', gap: 8, minHeight: 44, paddingHorizontal: 12, borderRadius: radius.chip, borderWidth: line, borderColor: colors.ink, backgroundColor: colors.bgAlt },
   thumb: { width: 22, height: 22, borderRadius: radius.xs },
-  remove: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
+  remove: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center', marginRight: -10, marginTop: -4 },
 });

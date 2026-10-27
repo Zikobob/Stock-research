@@ -29,11 +29,7 @@ export function PackRow({ item, who, me, onToggle, onWho, onRemove }: { item: Pa
             </T>
           </View>
         ) : (
-          <View style={[styles.who, styles.anyone]}>
-            <T variant="caption" weight="bold" color={colors.textSecondary}>
-              Anyone
-            </T>
-          </View>
+          <Ionicons name="person-add-outline" size={20} color={colors.textSecondary} />
         )}
       </Press>
       <Press onPress={onRemove} style={styles.remove} accessibilityLabel={`Remove ${item.text}`}>
@@ -49,6 +45,5 @@ const styles = StyleSheet.create({
   box: { width: 28, height: 28, borderRadius: radius.xs + 2, borderWidth: line, borderColor: colors.ink, backgroundColor: colors.card, alignItems: 'center', justifyContent: 'center' },
   whoHit: { minWidth: 44, height: 44, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 2 },
   who: { flexDirection: 'row', alignItems: 'center', gap: 6, height: 32, paddingHorizontal: 4 },
-  anyone: { paddingHorizontal: 10, borderRadius: radius.xs + 2, borderWidth: 1.5, borderStyle: 'dashed', borderColor: colors.textSecondary },
   remove: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
 });

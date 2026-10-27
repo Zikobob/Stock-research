@@ -22,6 +22,7 @@ E2E_DIST=/tmp/mybuild E2E_PORT=8130 npm run e2e -- verify   # build into your ow
 | `overflow.js` | **Every screen** at 390 px, 320 px and with larger text: nothing may stick out sideways |
 | `nesting.js` | **Every screen**: no button may sit inside another button (React's *"`<button>` cannot contain a nested `<button>`"* warning) |
 | `targets.js` | **Every screen**: every control you tap is at least 44 x 44 points (Fitts's law) |
+| `auth.js` | The screens before you sign in (first-run slides, sign-in, sign-up, reset password): tap sizes, overflow and nesting at three phone sizes, then each one used like a person: validation in words, the demo ticket, Join with a code, Google, reset |
 | `shoot.js` | Not a test: takes pictures of screens in any theme and in light or dark, so the design can be looked at |
 | `twophones.js` | Two phones and the real sync server: share, join from a QR code, chat, expenses, offline catch-up, restart, photo, receipt and PDF |
 

@@ -10,7 +10,7 @@ exports.shot = (name) => path.join(__dirname, 'shots', name);
 exports.launch = () => chromium.launch(process.env.E2E_CHROME ? { executablePath: process.env.E2E_CHROME } : {});
 
 /** Every screen of the app (route paths). */
-exports.ROUTES = ['', 'explore', 'itinerary', 'budget', 'chat', 'profile', 'about', 'airport', 'bucket-list', 'crew', 'currency', 'destinations', 'documents', 'emergency', 'flights', 'help', 'how-it-works', 'join', 'map', 'nearby', 'new-trip', 'notifications', 'packing', 'personalize', 'photos', 'phrasebook', 'quiz', 'recap', 'settings', 'trips', 'weather', 'destination/tokyo', 'sign-up', 'sign-in'];
+exports.ROUTES = ['', 'explore', 'itinerary', 'budget', 'chat', 'profile', 'about', 'airport', 'bucket-list', 'crew', 'currency', 'destinations', 'documents', 'emergency', 'flights', 'help', 'how-it-works', 'join', 'map', 'nearby', 'new-trip', 'notifications', 'packing', 'personalize', 'photos', 'phrasebook', 'quiz', 'recap', 'settings', 'trips', 'weather', 'destination/tokyo', 'sign-up', 'sign-in', 'survey'];
 
 /** Buttons and links that sit inside another button or link on the current screen, as `"outer" contains "inner"`. */
 exports.nestedControls = (p) =>

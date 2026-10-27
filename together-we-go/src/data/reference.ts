@@ -152,39 +152,39 @@ export const quizQuestions: QuizQuestion[] = [
 export interface SurveyQuestion {
   id: string;
   q: string;
-  options: { label: string; emoji: string; tags: string[] }[];
+  options: { label: string; tags: string[] }[];
 }
 
 export const surveyQuestions: SurveyQuestion[] = [
   { id: 'vibe', q: 'Pick your ideal trip vibe', options: [
-    { label: 'City lights', emoji: '🌃', tags: ['city', 'nightlife'] },
-    { label: 'Beach & sun', emoji: '🏖️', tags: ['beach', 'romantic'] },
-    { label: 'Mountains & trails', emoji: '🏔️', tags: ['adventure', 'nature'] },
-    { label: 'History & culture', emoji: '🏛️', tags: ['culture'] },
+    { label: 'City lights', tags: ['city', 'nightlife'] },
+    { label: 'Beach & sun', tags: ['beach', 'romantic'] },
+    { label: 'Mountains & trails', tags: ['adventure', 'nature'] },
+    { label: 'History & culture', tags: ['culture'] },
   ] },
   { id: 'food', q: 'How important is food on this trip?', options: [
-    { label: 'It’s the whole point', emoji: '🍜', tags: ['food', 'food'] },
-    { label: 'Love a good meal', emoji: '🍝', tags: ['food'] },
-    { label: 'Fuel for adventures', emoji: '🥪', tags: ['adventure'] },
-    { label: 'Not fussed', emoji: '🤷', tags: [] },
+    { label: 'It’s the whole point', tags: ['food', 'food'] },
+    { label: 'Love a good meal', tags: ['food'] },
+    { label: 'Fuel for adventures', tags: ['adventure'] },
+    { label: 'Not fussed', tags: [] },
   ] },
   { id: 'budget', q: 'Daily budget per person?', options: [
-    { label: 'Under $90', emoji: '🪙', tags: ['$1'] },
-    { label: '$90 – $160', emoji: '💵', tags: ['$2'] },
-    { label: '$160 – $230', emoji: '💳', tags: ['$3'] },
-    { label: 'Treat ourselves', emoji: '💎', tags: ['$4'] },
+    { label: 'Under $90', tags: ['$1'] },
+    { label: '$90 – $160', tags: ['$2'] },
+    { label: '$160 – $230', tags: ['$3'] },
+    { label: 'Treat ourselves', tags: ['$4'] },
   ] },
   { id: 'pace', q: 'What pace does your group like?', options: [
-    { label: 'Packed schedule', emoji: '⚡', tags: ['city', 'adventure'] },
-    { label: 'Balanced', emoji: '⚖️', tags: ['culture', 'food'] },
-    { label: 'Slow & relaxed', emoji: '🧘', tags: ['beach', 'romantic', 'nature'] },
-    { label: 'Spontaneous', emoji: '🎲', tags: ['nightlife'] },
+    { label: 'Packed schedule', tags: ['city', 'adventure'] },
+    { label: 'Balanced', tags: ['culture', 'food'] },
+    { label: 'Slow & relaxed', tags: ['beach', 'romantic', 'nature'] },
+    { label: 'Spontaneous', tags: ['nightlife'] },
   ] },
   { id: 'who', q: 'Who’s coming?', options: [
-    { label: 'Friends', emoji: '👯', tags: ['nightlife', 'adventure'] },
-    { label: 'Family with kids', emoji: '👨‍👩‍👧', tags: ['family'] },
-    { label: 'Partner', emoji: '💞', tags: ['romantic'] },
-    { label: 'Classmates / club', emoji: '🎒', tags: ['culture', 'city'] },
+    { label: 'Friends', tags: ['nightlife', 'adventure'] },
+    { label: 'Family with kids', tags: ['family'] },
+    { label: 'Partner', tags: ['romantic'] },
+    { label: 'Classmates / club', tags: ['culture', 'city'] },
   ] },
 ];
 
