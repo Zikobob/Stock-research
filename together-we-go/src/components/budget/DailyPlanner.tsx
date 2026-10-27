@@ -124,7 +124,7 @@ export function DailyPlanner({ trip }: { trip: Trip }) {
 const local = StyleSheet.create({
   bar: { height: 18, flexDirection: 'row', borderWidth: line, borderColor: colors.ink, borderRadius: radius.xs, overflow: 'hidden' },
   legend: { flexDirection: 'row', flexWrap: 'wrap', columnGap: 20, rowGap: 6 },
-  legendItem: { flexDirection: 'row', alignItems: 'center', gap: 8, flexGrow: 1, flexBasis: '42%', minWidth: 132 },
+  legendItem: { flexDirection: 'row', alignItems: 'center', gap: 8, width: '46%', minWidth: 132 },
   swatch: { width: 12, height: 12, borderWidth: 1.5, borderColor: colors.ink },
   findIcon: { width: 36, height: 36, borderRadius: radius.button, borderWidth: line, borderColor: colors.ink, backgroundColor: colors.card, alignItems: 'center', justifyContent: 'center' },
 });

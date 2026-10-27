@@ -158,7 +158,13 @@ export function AddExpenseSheet({ visible, onClose, trip, userId }: { visible: b
               <Ionicons name={more ? 'chevron-up' : 'chevron-down'} size={16} color={colors.ink} />
             </Press>
           </View>
-          {more ? null : (
+          {more ? (
+            <View style={styles.wrap}>
+              {expenseCategories.map((c) => (
+                <Chip key={c.key} small label={c.key} icon={c.icon} active={d.cat === c.key} onPress={() => pickCat(c.key)} />
+              ))}
+            </View>
+          ) : (
             <T variant="small" color={colors.textSecondary}>
               {summaryLine(payer, split, memberIds, userId)}
             </T>
@@ -167,11 +173,6 @@ export function AddExpenseSheet({ visible, onClose, trip, userId }: { visible: b
 
         {more ? (
           <View style={{ gap: 16 }}>
-            <View style={styles.wrap}>
-              {expenseCategories.map((c) => (
-                <Chip key={c.key} small label={c.key} icon={c.icon} active={d.cat === c.key} onPress={() => pickCat(c.key)} />
-              ))}
-            </View>
             <View style={{ gap: 8 }}>
               <T variant="kicker">Paid by</T>
               <View style={styles.wrap}>
@@ -238,7 +239,7 @@ export function AddExpenseSheet({ visible, onClose, trip, userId }: { visible: b
 
 const styles = StyleSheet.create({
   between: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
-  summary: { gap: 6 },
+  summary: { gap: 8 },
   change: { flexDirection: 'row', alignItems: 'center', gap: 4, minHeight: 44, paddingHorizontal: 8, alignSelf: 'flex-start' },
   wrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   receiptRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },

@@ -142,7 +142,7 @@ const styles = StyleSheet.create({
   cap: { flexDirection: 'row', alignItems: 'center', gap: 6, minHeight: 44, paddingBottom: 6 },
   bar: { height: 24, flexDirection: 'row', borderWidth: line, borderColor: colors.bg, borderRadius: radius.xs, overflow: 'hidden', backgroundColor: colors.ink },
   legend: { flexDirection: 'row', flexWrap: 'wrap', columnGap: 20, rowGap: 8 },
-  legendItem: { flexDirection: 'row', alignItems: 'center', gap: 8, flexGrow: 1, flexBasis: '42%', minWidth: 132 },
+  legendItem: { flexDirection: 'row', alignItems: 'center', gap: 8, width: '46%', minWidth: 132 },
   swatch: { width: 12, height: 12, borderWidth: 1.5, borderColor: colors.bg },
   stub: { flexDirection: 'row', paddingHorizontal: 18, paddingBottom: 16, paddingTop: 2, gap: 16 },
   stubCol: { flex: 1, gap: 2 },

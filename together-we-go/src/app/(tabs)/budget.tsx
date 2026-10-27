@@ -57,7 +57,7 @@ function BudgetInner() {
   const [justSettled, setJustSettled] = useState(false);
   const [today] = useState(() => todayInTz(dest?.tz ?? 'UTC'));
 
-  const viewCode = view === 'home' ? home : local;
+  const viewCode = view === 'local' && home !== local ? local : home;
   const fmt = (usd: number) => money(convert(usd, 'USD', viewCode, rates), viewCode);
 
   const spent = totalSpent(trip);
@@ -72,16 +72,21 @@ function BudgetInner() {
       bottomInset={30}
       header={<Header back={false} kicker={trip.name} title={t('budget.title')} />}
       fab={<Fab label="Expense" accessibilityLabel="Add expense" testID="add-expense-open" onPress={() => setAddOpen(true)} />}>
-      <Segmented
-        options={[
-          { key: 'home', label: `Home · ${home}` },
-          { key: 'local', label: `Local · ${local}` },
-        ]}
-        value={view}
-        onChange={setView}
-      />
+      {/* Only worth a switch when the two currencies differ (a trip in the home country has one). */}
+      {home !== local ? (
+        <View style={{ marginBottom: space.xxl }}>
+          <Segmented
+            options={[
+              { key: 'home', label: `Home · ${home}` },
+              { key: 'local', label: `Local · ${local}` },
+            ]}
+            value={view}
+            onChange={setView}
+          />
+        </View>
+      ) : null}
 
-      <View style={{ marginTop: space.xxl }}>
+      <View>
         <SpendSummary byCat={byCat} spent={spent} budget={trip.budget} remaining={trip.budget - spent} per={spent / Math.max(1, trip.members.length)} daysLeft={daysLeft} fmt={fmt} onEditBudget={() => setCapOpen(true)} />
       </View>
 
