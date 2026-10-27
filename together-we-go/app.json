@@ -1,0 +1,97 @@
+{
+  "expo": {
+    "name": "TogetherWeGo",
+    "slug": "together-we-go",
+    "description": "Plan, budget and enjoy group trips together.",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "scheme": "togetherwego",
+    "userInterfaceStyle": "automatic",
+    "backgroundColor": "#F4EFE4",
+    "ios": {
+      "bundleIdentifier": "com.togetherwego.app",
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSAppTransportSecurity": {
+          "NSAllowsLocalNetworking": true
+        },
+        "NSLocalNetworkUsageDescription": "TogetherWeGo connects to your group's sync server on your wifi so friends see the same trip."
+      }
+    },
+    "android": {
+      "package": "com.togetherwego.app",
+      "adaptiveIcon": {
+        "backgroundColor": "#16130E",
+        "foregroundImage": "./assets/images/android-icon-foreground.png",
+        "backgroundImage": "./assets/images/android-icon-background.png",
+        "monochromeImage": "./assets/images/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "output": "single",
+      "favicon": "./assets/images/favicon.png",
+      "name": "TogetherWeGo",
+      "themeColor": "#16130E",
+      "backgroundColor": "#F4EFE4"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#F4EFE4",
+          "image": "./assets/images/splash-icon.png",
+          "imageWidth": 160,
+          "dark": {
+            "backgroundColor": "#121212"
+          }
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "TogetherWeGo uses your location to show how far places are from you, places nearby, the closest airport and to share your location in an emergency."
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "TogetherWeGo lets you add trip photos and flight tickets from your library.",
+          "cameraPermission": "TogetherWeGo uses the camera to take photos for the group photo dump and to scan the invite QR code from a friend."
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "color": "#16130E"
+        }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "TogetherWeGo uses the camera to take photos for the group photo dump and to scan the invite QR code from a friend.",
+          "recordAudioAndroid": false
+        }
+      ],
+      "expo-sharing",
+      "expo-localization",
+      "expo-secure-store",
+      "expo-asset",
+      "expo-font",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "usesCleartextTraffic": true
+          }
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true,
+      "reactCompiler": true
+    }
+  }
+}
